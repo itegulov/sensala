@@ -21,7 +21,7 @@ The following command runs sensala on a simple discourse.
   
 
 ```
-  > scavenger "John loves Mary"
+  > sensala "John loves Mary"
 ```
 
 ### Documentation
@@ -38,6 +38,7 @@ TODO: Link to Katya's Thesis
 ### Currently Active Developers
 
  * [Bruno Woltzenlogel Paleo](https://github.com/Ceilican/)
+ * [Daniyar Itegulov](https://github.com/itegulov/)
 
 
 

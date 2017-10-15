@@ -15,19 +15,12 @@ scalacOptions in Test ++= Seq("-Yrangepos")
 resolvers ++= Seq("snapshots", "releases", "public").map(Resolver.sonatypeRepo)
 
 libraryDependencies ++= Seq(
-  "com.github.scopt" %% "scopt" % "3.5.0",
-//  "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4",
-//  "com.typesafe.akka" %% "akka-actor" % "2.4.12",
-//  "com.storm-enroute" %% "scalameter" % "0.8.2",
-//  "com.lihaoyi" %% "ammonite-ops" % "0.8.1",
-//  "ch.qos.logback" % "logback-classic" % "1.2.3",
-//  "com.typesafe.scala-logging" %% "scala-logging" % "3.6.0"
+  "com.github.scopt" %% "scopt" % "3.7.0",
+  "ch.qos.logback" % "logback-classic" % "1.2.3",
+  "com.typesafe.scala-logging" %% "scala-logging" % "3.6.0",
+  "edu.stanford.nlp" % "stanford-corenlp" % "3.8.0",
+  "edu.stanford.nlp" % "stanford-corenlp" % "3.8.0" classifier "models"
 )
-
-//testFrameworks += new TestFramework("org.scalameter.ScalaMeterFramework")
-  
-//logBuffered := false
-
 
 licenses := Seq("CC BY-NC-SA" -> url("http://creativecommons.org/licenses/by-nc-sa/4.0/"))
 
