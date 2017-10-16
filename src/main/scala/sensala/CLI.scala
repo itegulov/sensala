@@ -1,5 +1,8 @@
 package sensala
 
+import sensala.parser.SentenceParser
+import sensala.structure._
+
 object CLI {
 
   var hjafhjaf = "kafvkjba"
@@ -27,15 +30,17 @@ object CLI {
     parser.parse(args, Config()) foreach { c =>
 
       // TODO: write proper test classes for these assertions
-      val s1 = Sentence(Noun("John"), VerbObjPhrase(TransitiveVerb("loves"), Noun("Mary")))
-      assert(s1.interpret(new Context(Nil)) == App(App(Sym("loves"), Sym("Mary")), Sym("John")))
+      val s1 = SentenceParser.parse("John walks")
+      assert(s1.interpret(new Context(Nil)) == App(Sym("walks"), Sym("John")))
       println(s1.interpret(new Context(Nil)))
 
-      val s2 = Sentence(Noun("Mary"), VerbObjPhrase(TransitiveVerb("loves"), ReflexivePronoun("herself")))
-      assert(s2.interpret(new Context(Nil)) == App(App(Sym("loves"), Sym("Mary")), Sym("Mary")))
+      val s2 = SentenceParser.parse("John walks dog")
+      assert(s2.interpret(new Context(Nil)) == App(App(Sym("walks"), Sym("John")), Sym("dog")))
       println(s2.interpret(new Context(Nil)))
 
-
+      val s3 = SentenceParser.parse("Mary loves herself")
+      assert(s3.interpret(new Context(Nil)) == App(App(Sym("loves"), Sym("Mary")), Sym("Mary")))
+      println(s3.interpret(new Context(Nil)))
     }
   }
 }
