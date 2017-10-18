@@ -28,19 +28,7 @@ object CLI {
   
   def main(args: Array[String]): Unit = {
     parser.parse(args, Config()) foreach { c =>
-
-      // TODO: write proper test classes for these assertions
-      val s1 = SentenceParser.parse("John walks")
-      assert(s1.interpret(new Context(Nil)) == App(Sym("walks"), Sym("John")))
-      println(s1.interpret(new Context(Nil)))
-
-      val s2 = SentenceParser.parse("John walks dog")
-      assert(s2.interpret(new Context(Nil)) == App(App(Sym("walks"), Sym("John")), Sym("dog")))
-      println(s2.interpret(new Context(Nil)))
-
-      val s3 = SentenceParser.parse("Mary loves herself")
-      assert(s3.interpret(new Context(Nil)) == App(App(Sym("loves"), Sym("Mary")), Sym("Mary")))
-      println(s3.interpret(new Context(Nil)))
+      println(SentenceParser.parse(c.discourse).interpret(new Context(Nil)))
     }
   }
 }

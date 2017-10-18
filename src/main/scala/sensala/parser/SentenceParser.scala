@@ -2,12 +2,14 @@ package sensala.parser
 
 import java.io.StringReader
 
+import com.typesafe.scalalogging.Logger
 import edu.stanford.nlp.parser.lexparser.LexicalizedParser
 import edu.stanford.nlp.process.{CoreLabelTokenFactory, PTBTokenizer}
 import edu.stanford.nlp.trees.Tree
 import sensala.structure._
 
 object SentenceParser {
+  private val logger = Logger[this.type]
   private val parserModel = "edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz"
   private val lp = LexicalizedParser.loadModel(parserModel)
 
@@ -16,8 +18,8 @@ object SentenceParser {
       case "NP" =>
         val nounWords = tree.children.map {
           child => child.label.value match {
-            case "NN" => ProperNoun(child.getChild(0).label.value)
-            case "NNP" => CommonNoun(child.getChild(0).label.value)
+            case "NN" => CommonNoun(child.getChild(0).label.value)
+            case "NNP" => ProperNoun(child.getChild(0).label.value)
             case "PRP" => ReflexivePronoun(child.getChild(0).label.value)
           }
         }
@@ -36,7 +38,7 @@ object SentenceParser {
   }
 
   def convert(tree: Tree): Sentence = {
-    tree.pennPrint()
+    logger.debug(tree.pennString)
     val s = tree.getChild(0)
     val nounPhrase = s.children.find(_.label.value == "NP")
     val verbPhrase = s.children.find(_.label.value == "VP")

@@ -19,7 +19,8 @@ libraryDependencies ++= Seq(
   "ch.qos.logback" % "logback-classic" % "1.2.3",
   "com.typesafe.scala-logging" %% "scala-logging" % "3.6.0",
   "edu.stanford.nlp" % "stanford-corenlp" % "3.8.0",
-  "edu.stanford.nlp" % "stanford-corenlp" % "3.8.0" classifier "models"
+  "edu.stanford.nlp" % "stanford-corenlp" % "3.8.0" classifier "models",
+  "org.scalatest" %% "scalatest" % "3.0.4" % Test
 )
 
 licenses := Seq("CC BY-NC-SA" -> url("http://creativecommons.org/licenses/by-nc-sa/4.0/"))
