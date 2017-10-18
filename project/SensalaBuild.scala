@@ -8,7 +8,6 @@ object SensalaBuild {
     version := "0.1",
     scalaVersion := "2.12.3",
     scalacOptions := Seq(
-      "-optimize",
       "-encoding",
       "UTF-8",
       "-feature",
@@ -55,6 +54,11 @@ object SensalaBuild {
     .settings(commonSettings ++ commonDeps)
     .settings(
       name := "sensala-cli",
+      mainClass in assembly := Some("au.edu.anu.sensala.CLI"),
+      fullRunInputTask(sensala, Runtime, "au.edu.anu.sensala.CLI"),
+      trapExit in sensala := true,
+      fork in sensala := false,
+      traceLevel in sensala := 0,
       libraryDependencies ++= Seq(
         "com.github.scopt" %% "scopt" % "3.7.0"
       )
@@ -65,12 +69,7 @@ object SensalaBuild {
     .aggregate(core, parser, commandLine)
     .settings(commonSettings)
     .settings(
-      name := "Sensala",
-      mainClass in assembly := Some("au.edu.anu.sensala.CLI"),
-      fullRunInputTask(sensala, Runtime, "au.edu.anu.sensala.CLI"),
-      trapExit in sensala := true,
-      fork in sensala := false,
-      traceLevel in sensala := 0
+      name := "Sensala"
     )
 
   val sensala = InputKey[Unit]("sensala", "A Dynamic Semantics Framework")
