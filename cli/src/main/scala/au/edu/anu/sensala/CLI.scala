@@ -1,5 +1,6 @@
 package au.edu.anu.sensala
 
+import au.edu.anu.sensala.normalization.NormalFormConverter
 import au.edu.anu.sensala.parser.SentenceParser
 import au.edu.anu.sensala.structure._
 import com.typesafe.scalalogging.Logger
@@ -29,8 +30,20 @@ object CLI {
   def main(args: Array[String]): Unit = {
     parser.parse(args, Config()) foreach { c =>
       val sentence = SentenceParser.parse(c.discourse)
-      val (_, result) = sentence.interpret.run(Context(Nil)).value
-      logger.info(s"Result of discourse interpreting: $result")
+      val (_, lambdaTerm) = sentence.interpret.run(Context(Nil)).value
+      val result = NormalFormConverter.normalForm(lambdaTerm)
+      logger.info(
+        s"""
+           |Result of discourse interpreting:
+           |  $lambdaTerm
+        """.stripMargin
+      )
+      logger.info(
+        s"""
+           |Result of applying β-reduction:
+           |  $result
+        """.stripMargin
+      )
     }
   }
 }

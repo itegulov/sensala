@@ -9,4 +9,8 @@ class SentenceParserSpec extends SensalaSpec {
     SentenceParser.parse("John walks dog") shouldBe Sentence(ProperNoun("John"), VerbObjPhrase(TransitiveVerb("walks"), CommonNoun("dog")))
     SentenceParser.parse("Mary loves herself") shouldBe Sentence(ProperNoun("Mary"), VerbObjPhrase(TransitiveVerb("loves"), ReflexivePronoun("herself")))
   }
+
+  it should "parse articled common nouns" in {
+    SentenceParser.parse("A donkey walks") shouldBe Sentence(ExistentialArticle(CommonNoun("donkey")), IntransitiveVerb("walks"))
+  }
 }

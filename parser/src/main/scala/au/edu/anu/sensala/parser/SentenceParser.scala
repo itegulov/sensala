@@ -16,14 +16,29 @@ object SentenceParser {
   def extractNounPhrase(tree: Tree): NounPhrase = {
     tree.label.value match {
       case "NP" =>
-        val nounWords = tree.children.map {
+        val existentialArticles = tree.children.flatMap {
           child => child.label.value match {
-            case "NN" => CommonNoun(child.getChild(0).label.value)
-            case "NNP" => ProperNoun(child.getChild(0).label.value)
-            case "PRP" => ReflexivePronoun(child.getChild(0).label.value)
+            case "DT" if child.getChild(0).label.value == "a" => Some(ExistentialArticle.apply _)
+            case "DT" if child.getChild(0).label.value == "A" => Some(ExistentialArticle.apply _)
+            case _ => None
           }
         }
-        nounWords.head
+        val nounWords = tree.children.flatMap {
+          child => child.label.value match {
+            case "NN" => Some(CommonNoun(child.getChild(0).label.value))
+            case "NNP" => Some(ProperNoun(child.getChild(0).label.value))
+            case "PRP" => Some(ReflexivePronoun(child.getChild(0).label.value))
+            case _ => None
+          }
+        }
+        val nounWordOpt = nounWords.headOption
+        val existentialArticleOpt = existentialArticles.headOption
+        (existentialArticleOpt, nounWordOpt) match {
+          case (Some(existentialArticle), Some(commonNoun: CommonNoun)) => existentialArticle(commonNoun)
+          case (Some(_), Some(_)) => sys.error("Existential article should be applied to common nouns")
+          case (_, Some(nounWord)) => nounWord
+          case _ => sys.error("Invalid noun phrase")
+        }
     }
   }
 
