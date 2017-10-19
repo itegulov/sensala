@@ -19,6 +19,7 @@ object SensalaBuild {
       "-Xlint",
       "-Yno-adapted-args",
       "-Ywarn-dead-code",
+      "-Ypartial-unification",
       "-Xfuture",
       "-Xexperimental"
     ),
@@ -29,9 +30,11 @@ object SensalaBuild {
 
   lazy val commonDeps = Seq(
     libraryDependencies ++= Seq(
-      "ch.qos.logback" % "logback-classic" % "1.2.3",
-      "com.typesafe.scala-logging" %% "scala-logging" % "3.5.0",
-      "org.scalatest" %% "scalatest" % "3.0.4" % Test
+      "org.typelevel"              %% "cats-core"      % "1.0.0-MF",
+      "com.ironcorelabs"           %% "cats-scalatest" % "2.3.0" % Test,
+      "ch.qos.logback"             % "logback-classic" % "1.2.3",
+      "com.typesafe.scala-logging" %% "scala-logging"  % "3.5.0",
+      "org.scalatest"              %% "scalatest"      % "3.0.4" % Test
     )
   )
 
@@ -45,7 +48,7 @@ object SensalaBuild {
     .settings(
       libraryDependencies ++= Seq(
         "edu.stanford.nlp" % "stanford-corenlp" % "3.8.0",
-        "edu.stanford.nlp" % "stanford-corenlp" % "3.8.0" classifier "models"
+        ("edu.stanford.nlp" % "stanford-corenlp" % "3.8.0").classifier("models")
       )
     )
     .dependsOn(core)
@@ -67,6 +70,7 @@ object SensalaBuild {
 
   lazy val root = Project(id = "sensala", base = file("."))
     .aggregate(core, parser, commandLine)
+    .dependsOn(core, parser, commandLine)
     .settings(commonSettings)
     .settings(
       name := "Sensala"

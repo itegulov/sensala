@@ -1,12 +1,25 @@
 package au.edu.anu.sensala.structure
 
-trait NounPhrase extends NL {
-  def interpret(e: Context): Sym
+import cats.data.State
+
+trait NounPhrase extends NL
+
+case class ProperNoun(word: String) extends Word with NounPhrase {
+  override def interpret: CState =
+    State { s =>
+      val sym = Sym(word)
+      (s.extend(sym), sym)
+    }
+}
+case class CommonNoun(word: String) extends Word with NounPhrase {
+  override def interpret: CState =
+    State.pure {
+      val w = Sym(word)
+      val x = Sym("x")
+      Abs(x, App(w, x))
+    }
 }
 
-case class ProperNoun(word: String) extends Word with NounPhrase
-case class CommonNoun(word: String) extends Word with NounPhrase
-
 case class ReflexivePronoun(word: String) extends Word with NounPhrase {
-  override def interpret(e: Context) = e.findAnaphoricReferent()
+  override def interpret: CState = State.inspect(_.findAnaphoricReferent.get)
 }

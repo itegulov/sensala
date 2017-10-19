@@ -15,5 +15,9 @@ case class TransitiveVerb(word: String) extends Word {
 case class IntransitiveVerb(word: String) extends Word with VerbPhrase
 
 case class VerbObjPhrase(verb: TransitiveVerb, obj: NounPhrase) extends VerbPhrase {
-  def interpret(e: Context) = App(verb.interpret(e), obj.interpret(e))
+  def interpret: CState =
+    for {
+      verbL <- verb.interpret
+      objL  <- obj.interpret
+    } yield App(verbL, objL)
 }

@@ -2,8 +2,11 @@ package au.edu.anu.sensala
 
 import au.edu.anu.sensala.parser.SentenceParser
 import au.edu.anu.sensala.structure._
+import com.typesafe.scalalogging.Logger
 
 object CLI {
+  private val logger = Logger[this.type]
+
   case class Config(discourse: String = "")
 
   private val parser = new scopt.OptionParser[Config]("sensala") {
@@ -25,7 +28,9 @@ object CLI {
   
   def main(args: Array[String]): Unit = {
     parser.parse(args, Config()) foreach { c =>
-      println(SentenceParser.parse(c.discourse).interpret(new Context(Nil)))
+      val sentence = SentenceParser.parse(c.discourse)
+      val (_, result) = sentence.interpret.run(Context(Nil)).value
+      logger.info(s"Result of discourse interpreting: $result")
     }
   }
 }

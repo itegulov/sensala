@@ -1,9 +1,9 @@
 package au.edu.anu.sensala.structure
 
-case class Sentence(subject: NounPhrase, verbPhrase: VerbPhrase) extends NL {
-  def interpret(c: Context) = {
-    val s = subject.interpret(c)
-    val nc = new Context(s::c.referents)
-    App(verbPhrase.interpret(nc), s)
-  }
+case class Sentence(subjectPhrase: NounPhrase, verbPhrase: VerbPhrase) extends NL {
+  def interpret: CState =
+    for {
+      subjectL <- subjectPhrase.interpret
+      verbL    <- verbPhrase.interpret
+    } yield App(verbL, subjectL)
 }
