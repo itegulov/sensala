@@ -19,5 +19,7 @@ case class VerbObjPhrase(verb: TransitiveVerb, obj: NounPhrase) extends VerbPhra
     for {
       verbL <- verb.interpret
       objL  <- obj.interpret
-    } yield App(verbL, objL)
+      x     <- bindFreeSym
+      y     <- bindFreeSym
+    } yield Abs(x, App(objL, Abs(y, App(App(verbL, x), y))))
 }
