@@ -5,5 +5,5 @@ case class Sentence(subjectPhrase: NounPhrase, verbPhrase: VerbPhrase) extends N
     for {
       subjectL <- subjectPhrase.interpret
       verbL    <- verbPhrase.interpret
-    } yield App(subjectL, verbL)
+    } yield App(verbL, subjectL)
 }

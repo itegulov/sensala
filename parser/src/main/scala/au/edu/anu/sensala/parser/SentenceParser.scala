@@ -12,14 +12,19 @@ object SentenceParser {
   private val logger = Logger[this.type]
   private val parserModel = "edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz"
   private val lp = LexicalizedParser.loadModel(parserModel)
-
+  
   def extractNounPhrase(tree: Tree): NounPhrase = {
     tree.label.value match {
       case "NP" =>
-        val existentialArticles = tree.children.flatMap {
+        val existentialDeterminers = tree.children.flatMap {
           child => child.label.value match {
-            case "DT" if child.getChild(0).label.value == "a" => Some(ExistentialArticle.apply _)
-            case "DT" if child.getChild(0).label.value == "A" => Some(ExistentialArticle.apply _)
+            case "DT" if child.getChild(0).label.value.toLowerCase == "a" => Some(ExistentialQuantifier.apply _)
+            case _ => None
+          }
+        }
+        val forallDeterminers = tree.children.flatMap {
+          child => child.label.value match {
+            case "DT" if child.getChild(0).label.value.toLowerCase == "every" => Some(ForallQuantifier.apply _)
             case _ => None
           }
         }
@@ -32,12 +37,18 @@ object SentenceParser {
           }
         }
         val nounWordOpt = nounWords.headOption
-        val existentialArticleOpt = existentialArticles.headOption
-        (existentialArticleOpt, nounWordOpt) match {
-          case (Some(existentialArticle), Some(commonNoun: CommonNoun)) => existentialArticle(commonNoun)
-          case (Some(_), Some(_)) => sys.error("Existential article should be applied to common nouns")
-          case (_, Some(nounWord)) => nounWord
-          case _ => sys.error("Invalid noun phrase")
+        val existentialDeterminerOpt = existentialDeterminers.headOption
+        val forallDeterminerOpt = forallDeterminers.headOption
+        (existentialDeterminerOpt, forallDeterminerOpt, nounWordOpt) match {
+          case (Some(existentialDet), None, Some(commonNoun: CommonNoun)) => existentialDet(commonNoun)
+          case (Some(_), None, Some(_)) => sys.error("Existential determiner should be applied to common nouns")
+          case (None, Some(forallDet), Some(commonNoun: CommonNoun)) => forallDet(commonNoun)
+          case (None, Some(_), Some(_)) => sys.error("Forall determiner should be applied to common nouns")
+          case (Some(_), Some(_), _) => sys.error("Forall determiner and existential determiner cannot be applied together")
+          case (None, None, Some(_: CommonNoun)) => sys.error("Common noun should be used with a determiner")
+          case (None, None, Some(nounWord: ProperNoun)) => nounWord
+          case (None, None, Some(rf: ReflexivePronoun)) => rf
+          //          case _ => sys.error("Invalid noun phrase")
         }
     }
   }
@@ -52,20 +63,22 @@ object SentenceParser {
     }
   }
 
-  def convert(tree: Tree): Sentence = {
+  def convert(tree: Tree): NL = {
     logger.debug(tree.pennString)
     val s = tree.getChild(0)
-    val nounPhrase = s.children.find(_.label.value == "NP")
     val verbPhrase = s.children.find(_.label.value == "VP")
-    (nounPhrase, verbPhrase) match {
-      case (Some(noun), Some(verb)) =>
-        Sentence(extractNounPhrase(noun), extractVerbPhrase(verb))
-      case _ =>
-        sys.error("Invalid sentence")
+    val verbOpt = verbPhrase.map(extractVerbPhrase)
+    val nounPhrase = s.children.find(_.label.value == "NP")
+    val nounOpt = nounPhrase.map(extractNounPhrase)
+    (nounOpt, verbOpt) match {
+      case (Some(noun), Some(verb)) => Sentence(noun, verb)
+      case (Some(noun), None) => noun
+      case (None, Some(verb)) => verb
+      case (None, None) => sys.error("Invalid sentence")
     }
   }
 
-  def parse(text: String): Sentence = {
+  def parse(text: String): NL = {
     val tokenizerFactory = PTBTokenizer.factory(new CoreLabelTokenFactory(), "")
     val tok = tokenizerFactory.getTokenizer(new StringReader(text))
     val words = tok.tokenize()

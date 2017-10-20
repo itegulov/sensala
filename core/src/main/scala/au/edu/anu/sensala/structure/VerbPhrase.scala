@@ -1,25 +1,31 @@
 package au.edu.anu.sensala.structure
 
-trait VerbPhrase extends NL {
-  def apply(subject: NounPhrase) = Sentence(subject, this)
-
-  def \:(subject: NounPhrase) = apply(subject)
-}
+trait VerbPhrase extends NL
 
 case class TransitiveVerb(word: String) extends Word {
-  def apply(obj: NounPhrase) = VerbObjPhrase(this, obj)
-
-  def /(obj: NounPhrase) = apply(obj)
+  override def interpret: CState =
+    for {
+      f <- bindFreeSym
+      x <- bindFreeSym
+      y <- bindFreeSym
+      p <- bindFreeSym
+      q <- bindFreeSym
+    } yield Abs(p, Abs(q, App(q, Abs(x, App(p, Abs(y, Abs(f, And(App(App(Sym(word), x), y), f))))))))
 }
 
-case class IntransitiveVerb(word: String) extends Word with VerbPhrase
+case class IntransitiveVerb(word: String) extends Word with VerbPhrase {
+  override def interpret =
+    for {
+      f <- bindFreeSym
+      p <- bindFreeSym
+      x <- bindFreeSym
+    } yield Abs(p, Abs(f, App(App(p, Abs(x, App(Sym(word), x))), f)))
+}
 
 case class VerbObjPhrase(verb: TransitiveVerb, obj: NounPhrase) extends VerbPhrase {
   def interpret: CState =
     for {
       verbL <- verb.interpret
       objL  <- obj.interpret
-      x     <- bindFreeSym
-      y     <- bindFreeSym
-    } yield Abs(x, App(objL, Abs(y, App(App(verbL, x), y))))
+    } yield App(verbL, objL)
 }
