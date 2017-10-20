@@ -34,8 +34,14 @@ object CLI {
       val result = NormalFormConverter.normalForm(lambdaTerm)
       logger.info(
         s"""
+           |Result of sentence parsing:
+           |  $sentence
+        """.stripMargin
+      )
+      logger.info(
+        s"""
            |Result of discourse interpreting:
-           |  ${lambdaTerm}
+           |  $lambdaTerm
            |  ${lambdaTerm.pretty}
         """.stripMargin
       )
