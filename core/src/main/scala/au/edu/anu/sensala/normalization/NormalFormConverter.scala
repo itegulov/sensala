@@ -65,14 +65,16 @@ object NormalFormConverter {
       }
   }
 
-  def normalForm(l: L, scope: Set[String] = Set()): L = l match {
-    case v: Sym          => v
-    case Abs(bind, body) => Abs(bind, normalForm(body, scope + bind.name))
-    case App(lhs, rhs) =>
-      headNormalForm(lhs) match {
-        case Abs(bind, body) =>
-          normalForm(substitute(body, bind.name, rhs, scope + bind.name), scope + bind.name)
-        case o => App(normalForm(o), normalForm(rhs))
-      }
+  def normalForm(l: L, scope: Set[String] = Set()): L = {
+    l match {
+      case v: Sym => v
+      case Abs(bind, body) => Abs(bind, normalForm(body, scope + bind.name))
+      case App(lhs, rhs) =>
+        headNormalForm(lhs) match {
+          case Abs(bind, body) =>
+            normalForm(substitute(body, bind.name, rhs, scope + bind.name), scope + bind.name)
+          case o => App(normalForm(o, scope), normalForm(rhs, scope))
+        }
+    }
   }
 }
