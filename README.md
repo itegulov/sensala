@@ -1,3 +1,7 @@
+[![Build Status](https://gitlab.com/aossie/Sensala/badges/develop/pipeline.svg)](https://gitlab.com/aossie/Sensala/commits/develop)
+[![Coverage Report](https://gitlab.com/aossie/Sensala/badges/develop/coverage.svg)](https://gitlab.com/aossie/Sensala/commits/develop)
+
+
 Sensala is a dynamic semantics framework for natural language processing. 
 
 
@@ -27,12 +31,6 @@ The following command runs sensala on a simple discourse.
 ### Documentation
 
 TODO: Link to Katya's Thesis
-
-
-### Stats
-
-[![Build Status](https://TODO)](https://TODO)
-[![Coverage Report](https://TODO)](https://TODO)
 
 
 ### Currently Active Developers

@@ -48,7 +48,7 @@ object SensalaBuild {
     .settings(
       libraryDependencies ++= Seq(
         "edu.stanford.nlp" % "stanford-corenlp" % "3.8.0",
-        ("edu.stanford.nlp" % "stanford-corenlp" % "3.8.0").classifier("models")
+        "edu.stanford.nlp" % "stanford-corenlp" % "3.8.0" classifier "models"
       )
     )
     .dependsOn(core)
