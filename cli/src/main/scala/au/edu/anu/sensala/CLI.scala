@@ -2,6 +2,7 @@ package au.edu.anu.sensala
 
 import au.edu.anu.sensala.normalization.NormalFormConverter
 import au.edu.anu.sensala.parser.SentenceParser
+import au.edu.anu.sensala.postprocessing.PrettyTransformer
 import au.edu.anu.sensala.structure._
 import com.typesafe.scalalogging.Logger
 import org.aossie.scavenger.preprocessing.TPTPClausifier
@@ -49,7 +50,8 @@ object CLI {
           context = newContext
         }
       }
-      val cnf = new TPTPClausifier().apply(List((result, AxiomClause)))
+      val prettyTerm = PrettyTransformer.transform(result)
+      val cnf = new TPTPClausifier().apply(List((prettyTerm, AxiomClause)))
       logger.info(
         s"""
            |Context after interpretation:
@@ -74,6 +76,12 @@ object CLI {
            |Result of applying β-reduction:
            |  $result
            |  ${result.pretty}
+        """.stripMargin
+      )
+      logger.info(
+        s"""
+           |Result of applying pretty transform:
+           |  ${prettyTerm.pretty}
         """.stripMargin
       )
       logger.info(
