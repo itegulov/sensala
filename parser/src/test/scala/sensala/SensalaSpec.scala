@@ -1,4 +1,4 @@
-package au.edu.anu.sensala
+package sensala
 
 import com.typesafe.scalalogging.StrictLogging
 import org.scalatest._

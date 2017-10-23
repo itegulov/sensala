@@ -1,4 +1,4 @@
-package au.edu.anu.sensala.structure
+package sensala.structure
 
 import cats.data.State
 import org.aossie.scavenger.expression._

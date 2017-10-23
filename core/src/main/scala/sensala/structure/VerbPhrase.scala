@@ -1,4 +1,4 @@
-package au.edu.anu.sensala.structure
+package sensala.structure
 
 import org.aossie.scavenger.expression._
 import org.aossie.scavenger.expression.formula.And

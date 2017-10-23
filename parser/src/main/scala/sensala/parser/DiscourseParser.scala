@@ -1,11 +1,11 @@
-package au.edu.anu.sensala.parser
+package sensala.parser
 
 import scala.collection.JavaConverters._
 import java.util.Properties
 
 import com.typesafe.scalalogging.Logger
 import edu.stanford.nlp.trees.Tree
-import au.edu.anu.sensala.structure._
+import sensala.structure._
 import edu.stanford.nlp.ling.CoreAnnotations
 import edu.stanford.nlp.pipeline.{Annotation, StanfordCoreNLP}
 import edu.stanford.nlp.trees.TreeCoreAnnotations.TreeAnnotation

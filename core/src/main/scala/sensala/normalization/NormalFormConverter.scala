@@ -1,6 +1,6 @@
-package au.edu.anu.sensala.normalization
+package sensala.normalization
 
-import au.edu.anu.sensala.structure._
+import sensala.structure._
 import cats.data.State
 import org.aossie.scavenger.expression._
 

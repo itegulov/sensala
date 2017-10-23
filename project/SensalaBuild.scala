@@ -4,7 +4,7 @@ import sbtassembly.AssemblyKeys._
 
 object SensalaBuild {
   lazy val commonSettings = Seq(
-    organization := "au.edu.anu",
+    organization := "",
     version := "0.1",
     scalaVersion := "2.12.3",
     scalacOptions := Seq(
@@ -62,8 +62,8 @@ object SensalaBuild {
     .settings(commonSettings ++ commonDeps)
     .settings(
       name := "sensala-cli",
-      mainClass in assembly := Some("au.edu.anu.sensala.CLI"),
-      fullRunInputTask(sensala, Runtime, "au.edu.anu.sensala.CLI"),
+      mainClass in assembly := Some("sensala.CLI"),
+      fullRunInputTask(sensala, Runtime, "sensala.CLI"),
       trapExit in sensala := true,
       fork in sensala := false,
       traceLevel in sensala := 0,

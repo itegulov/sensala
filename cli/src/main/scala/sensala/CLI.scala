@@ -1,9 +1,9 @@
-package au.edu.anu.sensala
+package sensala
 
-import au.edu.anu.sensala.normalization.NormalFormConverter
-import au.edu.anu.sensala.parser.DiscourseParser
-import au.edu.anu.sensala.postprocessing.PrettyTransformer
-import au.edu.anu.sensala.structure._
+import sensala.normalization.NormalFormConverter
+import sensala.parser.DiscourseParser
+import sensala.postprocessing.PrettyTransformer
+import sensala.structure._
 import com.typesafe.scalalogging.Logger
 import org.aossie.scavenger.preprocessing.TPTPClausifier
 import org.aossie.scavenger.structure.immutable.AxiomClause

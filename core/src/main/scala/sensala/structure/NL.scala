@@ -1,4 +1,4 @@
-package au.edu.anu.sensala.structure
+package sensala.structure
 
 trait NL {
   def interpret: CState

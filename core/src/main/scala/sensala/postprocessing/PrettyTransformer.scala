@@ -1,4 +1,4 @@
-package au.edu.anu.sensala.postprocessing
+package sensala.postprocessing
 
 import org.aossie.scavenger.expression.E
 import org.aossie.scavenger.expression.formula._

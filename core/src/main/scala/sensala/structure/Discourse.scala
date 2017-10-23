@@ -1,4 +1,4 @@
-package au.edu.anu.sensala.structure
+package sensala.structure
 
 import cats.implicits._
 import org.aossie.scavenger.expression.{App, E}

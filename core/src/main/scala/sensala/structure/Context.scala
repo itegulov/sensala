@@ -1,6 +1,6 @@
-package au.edu.anu.sensala.structure
+package sensala.structure
 
-import au.edu.anu.sensala.normalization.NormalFormConverter
+import sensala.normalization.NormalFormConverter
 import cats.data.State
 import org.aossie.scavenger.expression._
 

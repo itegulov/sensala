@@ -1,7 +1,7 @@
-package au.edu.anu.sensala.parser
+package sensala.parser
 
-import au.edu.anu.sensala.SensalaSpec
-import au.edu.anu.sensala.structure._
+import sensala.SensalaSpec
+import sensala.structure._
 
 class DiscourseParserSpec extends SensalaSpec {
   it should "parse simple sentences" in {
