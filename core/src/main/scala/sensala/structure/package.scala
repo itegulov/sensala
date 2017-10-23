@@ -3,6 +3,7 @@ package sensala
 import cats.data.State
 import org.aossie.scavenger.expression._
 import org.aossie.scavenger.expression.formula._
+import sensala.normalization.NormalFormConverter
 
 package object structure {
   // TODO: Specify correct type for symbols
@@ -27,6 +28,13 @@ package object structure {
         case Abs(v, _, e) => s"(λ${v.pretty}.${e.pretty})"
       }
   }
+
+  def applyConversions(lambda: E): CState = 
+    State.get.flatMap { context =>
+      context.conversions.foldRight[CState](State.pure(lambda)) {
+        case ((v, s), lambdaL) => lambdaL.flatMap(NormalFormConverter.substitute(_, v, s))
+      }
+    }
 
   def bindFreeSym: ContextState[Var] =
     State { context =>

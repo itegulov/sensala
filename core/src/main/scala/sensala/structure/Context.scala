@@ -6,9 +6,6 @@ import org.aossie.scavenger.expression._
 
 // TODO: make context more general, generic and abstract
 case class Context(referents: List[Sym], boundSymbols: Set[Sym], conversions: List[(Sym, Sym)]) {
-  def applyConversions(lambda: E): CState = conversions.foldLeft[CState](State.pure(lambda)) { 
-    case (lambdaL, (v, s)) => lambdaL.flatMap(NormalFormConverter.substitute(_, v, s))
-  }
   def findAnaphoricReferent: Option[Sym] = referents.headOption
   def extend(newRef: Sym): Context = Context(newRef :: referents, boundSymbols,conversions)
   def deleteReferent(oldRef: Sym): Context = Context(referents.filterNot(_ == oldRef), boundSymbols, conversions)

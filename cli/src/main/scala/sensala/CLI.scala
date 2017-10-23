@@ -37,19 +37,7 @@ object CLI {
       val sentence = DiscourseParser.parse(c.discourse)
       val (context1, lambdaTerm) = sentence.interpret.run(Context(Nil, Set.empty, Nil)).value
       val (context2, normalizedTerm) = NormalFormConverter.normalForm(lambdaTerm).run(context1).value
-      var result = normalizedTerm
-      var context = context2
-      // TODO: find a monadic way to do this
-      Breaks.breakable {
-        while (true) {
-          val (newContext, newResult) = context.applyConversions(result).run(context).value
-          if (result == newResult) {
-            Breaks.break
-          }
-          result = newResult
-          context = newContext
-        }
-      }
+      val (context, result) = applyConversions(normalizedTerm).run(context2).value
       val prettyTerm = PrettyTransformer.transform(result)
       val cnf = new TPTPClausifier().apply(List((prettyTerm, AxiomClause)))
       logger.info(
