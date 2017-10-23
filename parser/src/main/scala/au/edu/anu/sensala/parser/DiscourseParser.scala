@@ -104,7 +104,7 @@ object DiscourseParser {
     }
   }
 
-  def convert(tree: Tree): NL = {
+  def convertSentence(tree: Tree): Sentence = {
     assert(tree.label.value == "ROOT")
     logger.debug(tree.pennString)
     val s = tree.getChild(0)
@@ -115,9 +115,7 @@ object DiscourseParser {
     val nounOpt = nounPhrase.map(extractNounPhrase)
     (nounOpt, verbOpt) match {
       case (Some(noun), Some(verb)) => Sentence(noun, verb)
-      case (Some(noun), None) => noun
-      case (None, Some(verb)) => verb
-      case (None, None) => sys.error("Invalid sentence")
+      case (None, None)             => sys.error("Invalid sentence")
     }
   }
 
@@ -125,6 +123,6 @@ object DiscourseParser {
     val document = new Annotation(text)
     pipeline.annotate(document)
     val sentences: List[CoreMap] = document.get(classOf[CoreAnnotations.SentencesAnnotation]).asScala.toList
-    Discourse(sentences.map(sentence => convert(sentence.get(classOf[TreeAnnotation]))))
+    Discourse(sentences.map(sentence => convertSentence(sentence.get(classOf[TreeAnnotation]))))
   }
 }
