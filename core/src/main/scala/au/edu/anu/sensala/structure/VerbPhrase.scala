@@ -18,8 +18,10 @@ case class IntransitiveVerb(word: String) extends Word with VerbPhrase {
     for {
       f <- bindFreeSym
       p <- bindFreeSym
+      q <- bindFreeSym
       x <- bindFreeSym
-    } yield Abs(p, Abs(f, App(App(p, Abs(x, App(Sym(word), x))), f)))
+      y <- bindFreeSym
+    } yield Abs(p, Abs(q, App(q, Abs(x, App(p, Abs(y, Abs(f, And(App(App(Sym(word), x), y), f))))))))
 }
 
 case class VerbObjPhrase(verb: TransitiveVerb, obj: NounPhrase) extends VerbPhrase {
