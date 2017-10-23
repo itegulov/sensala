@@ -13,7 +13,7 @@ case class ProperNoun(word: String) extends Word with NounPhrase {
     } yield Abs(x, App(x, w))
 }
 
-case class CommonNoun(word: String) extends Word {
+case class CommonNoun(word: String) extends Word with NounPhrase {
   override def interpret: CState =
     for {
       x <- bindFreeSym
@@ -27,5 +27,5 @@ case class ReflexivePronoun(word: String) extends Word with NounPhrase {
     p <- bindFreeSym
     f <- bindFreeSym
     ref <- State.inspect[Context, Sym](_.findAnaphoricReferent.get)
-  } yield Abs(p, Abs(f, And(App(p, ref), f)))
+  } yield Abs(p, Abs(f, App(App(p, ref), f)))
 }
