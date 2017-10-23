@@ -1,17 +1,21 @@
 package au.edu.anu.sensala.parser
 
-import java.io.StringReader
+import scala.collection.JavaConverters._
+import java.util.Properties
 
 import com.typesafe.scalalogging.Logger
-import edu.stanford.nlp.parser.lexparser.LexicalizedParser
-import edu.stanford.nlp.process.{CoreLabelTokenFactory, PTBTokenizer}
 import edu.stanford.nlp.trees.Tree
 import au.edu.anu.sensala.structure._
+import edu.stanford.nlp.ling.CoreAnnotations
+import edu.stanford.nlp.pipeline.{Annotation, StanfordCoreNLP}
+import edu.stanford.nlp.trees.TreeCoreAnnotations.TreeAnnotation
+import edu.stanford.nlp.util.CoreMap
 
-object SentenceParser {
+object DiscourseParser {
   private val logger = Logger[this.type]
-  private val parserModel = "edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz"
-  private val lp = LexicalizedParser.loadModel(parserModel)
+  private val props = new Properties()
+  props.put("annotators", "tokenize, ssplit, pos, lemma, ner, parse, dcoref")
+  private val pipeline = new StanfordCoreNLP(props)
   
   def extractSubordinatedSentence(tree: Tree): NounPhrase => WhNounPhrase = {
     assert(tree.label.value == "SBAR")
@@ -84,7 +88,7 @@ object SentenceParser {
               case (None, None, Some(_: CommonNoun)) => sys.error("Common noun should be used with a determiner")
               case (None, None, Some(nounWord: ProperNoun)) => nounWord
               case (None, None, Some(rf: ReflexivePronoun)) => rf
-              //          case _ => sys.error("Invalid noun phrase")
+              case _ => sys.error("Invalid noun phrase")
             }
         }
     }
@@ -101,8 +105,10 @@ object SentenceParser {
   }
 
   def convert(tree: Tree): NL = {
+    assert(tree.label.value == "ROOT")
     logger.debug(tree.pennString)
     val s = tree.getChild(0)
+    assert(s.label.value == "S")
     val verbPhrase = s.children.find(_.label.value == "VP")
     val verbOpt = verbPhrase.map(extractVerbPhrase)
     val nounPhrase = s.children.find(_.label.value == "NP")
@@ -116,10 +122,9 @@ object SentenceParser {
   }
 
   def parse(text: String): NL = {
-    val tokenizerFactory = PTBTokenizer.factory(new CoreLabelTokenFactory(), "")
-    val tok = tokenizerFactory.getTokenizer(new StringReader(text))
-    val words = tok.tokenize()
-    val tree = lp.apply(words)
-    convert(tree)
+    val document = new Annotation(text)
+    pipeline.annotate(document)
+    val sentences: List[CoreMap] = document.get(classOf[CoreAnnotations.SentencesAnnotation]).asScala.toList
+    Discourse(sentences.map(sentence => convert(sentence.get(classOf[TreeAnnotation]))))
   }
 }

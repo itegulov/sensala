@@ -1,7 +1,7 @@
 package au.edu.anu.sensala
 
 import au.edu.anu.sensala.normalization.NormalFormConverter
-import au.edu.anu.sensala.parser.SentenceParser
+import au.edu.anu.sensala.parser.DiscourseParser
 import au.edu.anu.sensala.postprocessing.PrettyTransformer
 import au.edu.anu.sensala.structure._
 import com.typesafe.scalalogging.Logger
@@ -34,7 +34,7 @@ object CLI {
   
   def main(args: Array[String]): Unit = {
     parser.parse(args, Config()) foreach { c =>
-      val sentence = SentenceParser.parse(c.discourse)
+      val sentence = DiscourseParser.parse(c.discourse)
       val (context1, lambdaTerm) = sentence.interpret.run(Context(Nil, Set.empty, Nil)).value
       val (context2, normalizedTerm) = NormalFormConverter.normalForm(lambdaTerm).run(context1).value
       var result = normalizedTerm
