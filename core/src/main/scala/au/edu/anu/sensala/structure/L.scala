@@ -9,7 +9,7 @@ trait L {
       case App(App(App(f, a), b), c) => s"(${f.pretty}(${a.pretty}, ${b.pretty}, ${c.pretty}))"
       case App(App(f, a), b) => s"(${f.pretty}(${a.pretty}, ${b.pretty}))"
       case App(f, a) => s"(${f.pretty}(${a.pretty}))"
-      case Abs(v, e) => s"(\\${v.pretty}.${e.pretty})"
+      case Abs(v, e) => s"(λ${v.pretty}.${e.pretty})"
     }
 }
 
