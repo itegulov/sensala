@@ -24,7 +24,7 @@ case class IntransitiveVerb(word: String) extends Word with VerbPhrase {
       q <- bindFreeSym
       x <- bindFreeSym
       y <- bindFreeSym
-    } yield Abs(p, i, Abs(q, i, App(q, Abs(x, i, App(p, Abs(y, i, Abs(f, i, And(App(App(Sym(word), x), y), f))))))))
+    } yield Abs(p, i, Abs(f, i, And(App(p, Abs(x, i, App(Sym(word), x))), f)))
 }
 
 case class VerbObjPhrase(verb: TransitiveVerb, obj: NounPhrase) extends VerbPhrase {
