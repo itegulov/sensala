@@ -41,6 +41,11 @@ object SensalaBuild {
   lazy val core = Project(id = "core", base = file("core"))
     .settings(commonSettings ++ commonDeps)
     .settings(name := "sensala-core")
+    .settings(
+      libraryDependencies ++= Seq(
+        "org.aossie" %% "scavenger" % "0.2"
+      )
+    )
 
   lazy val parser = Project(id = "parser", base = file("parser"))
     .settings(commonSettings ++ commonDeps)

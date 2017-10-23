@@ -2,10 +2,11 @@ package au.edu.anu.sensala.structure
 
 import au.edu.anu.sensala.normalization.NormalFormConverter
 import cats.data.State
+import org.aossie.scavenger.expression._
 
 // TODO: make context more general, generic and abstract
 case class Context(referents: List[Sym], boundSymbols: Set[Sym], conversions: List[(Sym, Sym)]) {
-  def applyConversions(lambda: L): CState = conversions.foldLeft[CState](State.pure(lambda)) { 
+  def applyConversions(lambda: E): CState = conversions.foldLeft[CState](State.pure(lambda)) { 
     case (lambdaL, (v, s)) => lambdaL.flatMap(NormalFormConverter.substitute(_, v, s))
   }
   def findAnaphoricReferent: Option[Sym] = referents.headOption

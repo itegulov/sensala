@@ -1,5 +1,7 @@
 package au.edu.anu.sensala.structure
 
+import org.aossie.scavenger.expression._
+
 trait VerbPhrase extends NL
 
 case class TransitiveVerb(word: String) extends Word {
@@ -10,7 +12,7 @@ case class TransitiveVerb(word: String) extends Word {
       y <- bindFreeSym
       p <- bindFreeSym
       q <- bindFreeSym
-    } yield Abs(p, Abs(q, App(q, Abs(x, App(p, Abs(y, Abs(f, And(App(App(Sym(word), x), y), f))))))))
+    } yield Abs(p, i, Abs(q, i, App(q, Abs(x, i, App(p, Abs(y, i, Abs(f, i, And(App(App(Sym(word), x), y), f))))))))
 }
 
 case class IntransitiveVerb(word: String) extends Word with VerbPhrase {
@@ -21,7 +23,7 @@ case class IntransitiveVerb(word: String) extends Word with VerbPhrase {
       q <- bindFreeSym
       x <- bindFreeSym
       y <- bindFreeSym
-    } yield Abs(p, Abs(q, App(q, Abs(x, App(p, Abs(y, Abs(f, And(App(App(Sym(word), x), y), f))))))))
+    } yield Abs(p, i, Abs(q, i, App(q, Abs(x, i, App(p, Abs(y, i, Abs(f, i, And(App(App(Sym(word), x), y), f))))))))
 }
 
 case class VerbObjPhrase(verb: TransitiveVerb, obj: NounPhrase) extends VerbPhrase {

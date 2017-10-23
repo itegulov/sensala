@@ -1,5 +1,7 @@
 package au.edu.anu.sensala.structure
 
+import org.aossie.scavenger.expression._
+
 case class WhNounPhrase(verbPhrase: VerbPhrase, nounPhrase: NounPhrase) extends NounPhrase {
   override def interpret: CState =
     for {
@@ -8,5 +10,5 @@ case class WhNounPhrase(verbPhrase: VerbPhrase, nounPhrase: NounPhrase) extends 
       q <- nounPhrase.interpret
       r <- verbPhrase.interpret
       p <- bindFreeSym
-    } yield Abs(x, Abs(f, App(App(q, x), App(App(r, Abs(p, App(p, x))), f))))
+    } yield Abs(x, i, Abs(f, i, App(App(q, x), App(App(r, Abs(p, i, App(p, x))), f))))
 }
