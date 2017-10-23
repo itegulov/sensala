@@ -61,7 +61,7 @@ object CLI {
       )
       logger.info(
         s"""
-           |Result of discourse interpreting:
+           |Result of discourse interpretation:
            |  $lambdaTerm
            |  ${lambdaTerm.pretty}
         """.stripMargin
