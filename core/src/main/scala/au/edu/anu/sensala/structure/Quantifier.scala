@@ -4,15 +4,14 @@ import cats.data.State
 
 trait Quantifier extends NounPhrase
 
-case class ForallQuantifier(commonNoun: CommonNoun) extends Quantifier {
+case class ForallQuantifier(nounPhrase: NounPhrase) extends Quantifier {
   override def interpret: CState = for {
     f <- bindFreeSym
-    e <- State.get
-    p <- commonNoun.interpret
+    p <- nounPhrase.interpret
     x <- bindFreeSym
     _ <- State.modify[Context](_.extend(x))
     q <- bindFreeSym
-    _ <- State.set(e)
+    _ <- State.modify[Context](_.deleteReferent(x))
   } yield Abs(q, Abs(f, And(App(forall, Abs(x, App(negation, App(App(p, x), App(negation, App(App(q, x), trueSym)))))), f)))
 }
 
