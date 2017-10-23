@@ -2,7 +2,7 @@ package au.edu.anu.sensala
 
 import cats.data.State
 import org.aossie.scavenger.expression._
-import org.aossie.scavenger.expression.formula.And
+import org.aossie.scavenger.expression.formula._
 
 package object structure {
   // TODO: Specify correct type for symbols
@@ -15,10 +15,14 @@ package object structure {
   implicit class ERich(val lambda: E) extends AnyVal {
     def pretty: String =
       lambda match {
+        case Neg(b) => s"¬${b.pretty}"
+        case All(v, _, b) => s"(∀${v.pretty}.${b.pretty})"
+        case Ex(v, _, b) => s"(∃${v.pretty}.${b.pretty})"
         case And(left, right) => s"${left.pretty} ∧ ${right.pretty}"
+        case Or(left, right) => s"${left.pretty} ∨ ${right.pretty}"
+        case Imp(left, right) => s"${left.pretty} → ${right.pretty}"
         case Sym(name) => name
-        case App(App(App(f, a), b), c) => s"(${f.pretty}(${a.pretty}, ${b.pretty}, ${c.pretty}))"
-        case App(App(f, a), b) => s"(${f.pretty}(${a.pretty}, ${b.pretty}))"
+        case AppRec(f, args) => s"(${f.pretty}(${args.map(_.pretty).mkString(", ")})"
         case App(f, a) => s"(${f.pretty}(${a.pretty}))"
         case Abs(v, _, e) => s"(λ${v.pretty}.${e.pretty})"
       }
