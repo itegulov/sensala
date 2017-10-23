@@ -13,42 +13,79 @@ object SentenceParser {
   private val parserModel = "edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz"
   private val lp = LexicalizedParser.loadModel(parserModel)
   
+  def extractSubordinatedSentence(tree: Tree): NounPhrase => WhNounPhrase = {
+    assert(tree.label.value == "SBAR")
+    val whNounPhrases = tree.children.flatMap {
+      child => child.label.value match {
+        case "WHNP" if child.getChild(0).label.value == "WP" => Some(WhNounPhrase.apply _)
+        case _ => None
+      }
+    }
+    val verbSentences = tree.children.flatMap {
+      child => child.label.value match {
+        case "S" if child.getChild(0).label.value == "VP" => Some(extractVerbPhrase(child.getChild(0)))
+        case _ => None
+      }
+    }
+    (whNounPhrases.headOption, verbSentences.headOption) match {
+      case (Some(whNoun), Some(verb)) => (x: NounPhrase) => whNoun(verb, x)
+    }
+  }
+  
   def extractNounPhrase(tree: Tree): NounPhrase = {
     tree.label.value match {
       case "NP" =>
-        val existentialDeterminers = tree.children.flatMap {
+        val embeddedNounPhrases = tree.children.flatMap {
           child => child.label.value match {
-            case "DT" if child.getChild(0).label.value.toLowerCase == "a" => Some(ExistentialQuantifier.apply _)
+            case "NP" => Some(extractNounPhrase(child))
             case _ => None
           }
         }
-        val forallDeterminers = tree.children.flatMap {
+        val subordinatedSentences = tree.children.flatMap {
           child => child.label.value match {
-            case "DT" if child.getChild(0).label.value.toLowerCase == "every" => Some(ForallQuantifier.apply _)
+            case "SBAR" => Some(extractSubordinatedSentence(child))
             case _ => None
           }
         }
-        val nounWords = tree.children.flatMap {
-          child => child.label.value match {
-            case "NN" => Some(CommonNoun(child.getChild(0).label.value))
-            case "NNP" => Some(ProperNoun(child.getChild(0).label.value))
-            case "PRP" => Some(ReflexivePronoun(child.getChild(0).label.value))
-            case _ => None
-          }
-        }
-        val nounWordOpt = nounWords.headOption
-        val existentialDeterminerOpt = existentialDeterminers.headOption
-        val forallDeterminerOpt = forallDeterminers.headOption
-        (existentialDeterminerOpt, forallDeterminerOpt, nounWordOpt) match {
-          case (Some(existentialDet), None, Some(commonNoun: CommonNoun)) => existentialDet(commonNoun)
-          case (Some(_), None, Some(_)) => sys.error("Existential determiner should be applied to common nouns")
-          case (None, Some(forallDet), Some(commonNoun: CommonNoun)) => forallDet(commonNoun)
-          case (None, Some(_), Some(_)) => sys.error("Forall determiner should be applied to common nouns")
-          case (Some(_), Some(_), _) => sys.error("Forall determiner and existential determiner cannot be applied together")
-          case (None, None, Some(_: CommonNoun)) => sys.error("Common noun should be used with a determiner")
-          case (None, None, Some(nounWord: ProperNoun)) => nounWord
-          case (None, None, Some(rf: ReflexivePronoun)) => rf
-          //          case _ => sys.error("Invalid noun phrase")
+        
+        (embeddedNounPhrases.headOption, subordinatedSentences.headOption) match {
+          case (Some(ForallQuantifier(commonNoun)), Some(subordinated)) => ForallQuantifier(subordinated(commonNoun))
+          case (Some(nounPhrase), Some(subordinated)) => subordinated(nounPhrase)
+          case _ =>
+            val existentialDeterminers = tree.children.flatMap {
+              child => child.label.value match {
+                case "DT" if child.getChild(0).label.value.toLowerCase == "a" => Some(ExistentialQuantifier.apply _)
+                case _ => None
+              }
+            }
+            val forallDeterminers = tree.children.flatMap {
+              child => child.label.value match {
+                case "DT" if child.getChild(0).label.value.toLowerCase == "every" => Some(ForallQuantifier.apply _)
+                case _ => None
+              }
+            }
+            val nounWords = tree.children.flatMap {
+              child => child.label.value match {
+                case "NN" => Some(CommonNoun(child.getChild(0).label.value))
+                case "NNP" => Some(ProperNoun(child.getChild(0).label.value))
+                case "PRP" => Some(ReflexivePronoun(child.getChild(0).label.value))
+                case _ => None
+              }
+            }
+            val nounWordOpt = nounWords.headOption
+            val existentialDeterminerOpt = existentialDeterminers.headOption
+            val forallDeterminerOpt = forallDeterminers.headOption
+            (existentialDeterminerOpt, forallDeterminerOpt, nounWordOpt) match {
+              case (Some(existentialDet), None, Some(commonNoun: CommonNoun)) => existentialDet(commonNoun)
+              case (Some(_), None, Some(_)) => sys.error("Existential determiner should be applied to common nouns")
+              case (None, Some(forallDet), Some(commonNoun: CommonNoun)) => forallDet(commonNoun)
+              case (None, Some(_), Some(_)) => sys.error("Forall determiner should be applied to common nouns")
+              case (Some(_), Some(_), _) => sys.error("Forall determiner and existential determiner cannot be applied together")
+              case (None, None, Some(_: CommonNoun)) => sys.error("Common noun should be used with a determiner")
+              case (None, None, Some(nounWord: ProperNoun)) => nounWord
+              case (None, None, Some(rf: ReflexivePronoun)) => rf
+              //          case _ => sys.error("Invalid noun phrase")
+            }
         }
     }
   }

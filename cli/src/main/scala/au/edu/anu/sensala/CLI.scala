@@ -5,6 +5,8 @@ import au.edu.anu.sensala.parser.SentenceParser
 import au.edu.anu.sensala.structure._
 import com.typesafe.scalalogging.Logger
 
+import scala.util.control.Breaks
+
 object CLI {
   private val logger = Logger[this.type]
 
@@ -30,8 +32,27 @@ object CLI {
   def main(args: Array[String]): Unit = {
     parser.parse(args, Config()) foreach { c =>
       val sentence = SentenceParser.parse(c.discourse)
-      val (_, lambdaTerm) = sentence.interpret.run(Context(Nil, Set.empty)).value
-      val result = NormalFormConverter.normalForm(lambdaTerm)
+      val (context1, lambdaTerm) = sentence.interpret.run(Context(Nil, Set.empty, Nil)).value
+      val (context2, normalizedTerm) = NormalFormConverter.normalForm(lambdaTerm).run(context1).value
+      var result = normalizedTerm
+      var context = context2
+      // TODO: find a monadic way to do this
+      Breaks.breakable {
+        while (true) {
+          val (newContext, newResult) = context.applyConversions(result).run(context).value
+          if (result == newResult) {
+            Breaks.break
+          }
+          result = newResult
+          context = newContext
+        }
+      }
+      logger.info(
+        s"""
+           |Context after interpretation:
+           |  ${context.referents}
+        """.stripMargin
+      )
       logger.info(
         s"""
            |Result of sentence parsing:
