@@ -22,7 +22,7 @@ package object structure {
         case Or(left, right) => s"${left.pretty} ∨ ${right.pretty}"
         case Imp(left, right) => s"${left.pretty} → ${right.pretty}"
         case Sym(name) => name
-        case AppRec(f, args) => s"(${f.pretty}(${args.map(_.pretty).mkString(", ")})"
+        case AppRec(f, args) => s"${f.pretty}(${args.map(_.pretty).mkString(", ")})"
         case App(f, a) => s"(${f.pretty}(${a.pretty}))"
         case Abs(v, _, e) => s"(λ${v.pretty}.${e.pretty})"
       }
