@@ -2,6 +2,7 @@ package au.edu.anu.sensala.structure
 
 import cats.data.State
 import org.aossie.scavenger.expression._
+import org.aossie.scavenger.expression.formula.And
 
 trait NounPhrase extends NL
 

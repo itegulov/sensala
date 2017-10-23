@@ -2,6 +2,7 @@ package au.edu.anu.sensala
 
 import cats.data.State
 import org.aossie.scavenger.expression._
+import org.aossie.scavenger.expression.formula.And
 
 package object structure {
   // TODO: Specify correct type for symbols
@@ -10,23 +11,6 @@ package object structure {
   // State monad over the Context type aliases
   type ContextState[A] = State[Context, A]
   type CState          = State[Context, E]
-
-  val trueSym  = Sym("⊤")
-  val falseSym = Sym("⊥")
-  val negation = Sym("¬")
-  val implies = Sym("→")
-  val and      = Sym("∧")
-  val forall   = Sym("∀")
-  val exists   = Sym("∃")
-
-  object And {
-    def apply(left: E, right: E): E = App(App(Sym("∧"), left), right)
-
-    def unapply(arg: E): Option[(E, E)] = arg match {
-      case App(App(Sym("∧"), left), right) => Some((left, right))
-      case _ => None
-    }
-  }
   
   implicit class ERich(val lambda: E) extends AnyVal {
     def pretty: String =

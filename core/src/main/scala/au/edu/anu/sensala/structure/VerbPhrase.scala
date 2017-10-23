@@ -1,6 +1,7 @@
 package au.edu.anu.sensala.structure
 
 import org.aossie.scavenger.expression._
+import org.aossie.scavenger.expression.formula.And
 
 trait VerbPhrase extends NL
 
