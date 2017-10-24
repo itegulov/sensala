@@ -45,6 +45,6 @@ package object structure {
         }
       val range  = ('a' to 'z').map(_.toString).map(Var.apply)
       val newSym = getFreeSymInternal(range)
-      (context.bindSym(newSym), newSym)
+      (context.addBoundSym(newSym), newSym)
     }
 }

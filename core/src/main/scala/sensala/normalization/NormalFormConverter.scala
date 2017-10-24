@@ -10,7 +10,7 @@ object NormalFormConverter {
       State { context =>
         if (context.referents.contains(v)) {
           e match {
-            case s: Sym => (context.addConversion(v, s).deleteReferent(v).extend(s), e)
+            case s: Sym => (context.addConversion(v, s).deleteReferent(v).addReferent(s), e)
             case _      => (context, e)
           }
         } else {

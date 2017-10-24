@@ -11,7 +11,7 @@ case class ProperNoun(word: String) extends Word with NounPhrase {
     for {
       x <- bindFreeSym
       w = Sym(word)
-      _ <- State.modify[Context](_.extend(w))
+      _ <- State.modify[Context](_.addReferent(w))
     } yield Abs(x, i, App(x, w))
 }
 
