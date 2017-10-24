@@ -18,10 +18,10 @@ case class ForallQuantifier(nounPhrase: NounPhrase) extends Quantifier {
   } yield Abs(q, i, Abs(f, i, And(All(x, i, Neg(App(App(p, x), Neg(App(App(q, x), True))))), f)))
 }
 
-case class ExistentialQuantifier(commonNoun: CommonNoun) extends Quantifier {
+case class ExistentialQuantifier(nounPhrase: NounPhrase) extends Quantifier {
   override def interpret: CState = for {
     f <- bindFreeSym
-    p <- commonNoun.interpret
+    p <- nounPhrase.interpret
     x <- bindFreeSym
     _ <- modify(_.addReferent(x))
     q <- bindFreeSym

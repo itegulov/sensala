@@ -34,3 +34,11 @@ case class VerbObjPhrase(verb: TransitiveVerb, obj: NounPhrase) extends VerbPhra
       objL  <- obj.interpret
     } yield App(verbL, objL)
 }
+
+case class VerbSentencePhrase(verb: TransitiveVerb, sentence: Sentence) extends VerbPhrase {
+  override def interpret: CState = ???
+}
+
+case class VerbAdjectivePhrase(verb: TransitiveVerb, adjective: Adjective) extends VerbPhrase {
+  override def interpret: CState = ???
+}

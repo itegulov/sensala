@@ -6,9 +6,9 @@ import java.util.Properties
 import com.typesafe.scalalogging.Logger
 import edu.stanford.nlp.trees.Tree
 import sensala.structure._
-import edu.stanford.nlp.ling.CoreAnnotations
+import edu.stanford.nlp.ling.CoreAnnotations._
 import edu.stanford.nlp.pipeline.{Annotation, StanfordCoreNLP}
-import edu.stanford.nlp.trees.TreeCoreAnnotations.TreeAnnotation
+import edu.stanford.nlp.trees.TreeCoreAnnotations._
 import edu.stanford.nlp.util.CoreMap
 
 object DiscourseParser {
@@ -36,7 +36,7 @@ object DiscourseParser {
     }
   }
   
-  def extractNounPhrase(tree: Tree): NounPhrase = {
+  def extractAdjectiveNounPhrase(tree: Tree): NounPhrase = {
     tree.label.value match {
       case "NP" =>
         val embeddedNounPhrases = tree.children.flatMap {
@@ -56,18 +56,6 @@ object DiscourseParser {
           case (Some(ForallQuantifier(commonNoun)), Some(subordinated)) => ForallQuantifier(subordinated(commonNoun))
           case (Some(nounPhrase), Some(subordinated)) => subordinated(nounPhrase)
           case _ =>
-            val existentialDeterminers = tree.children.flatMap {
-              child => child.label.value match {
-                case "DT" if child.getChild(0).label.value.toLowerCase == "a" => Some(ExistentialQuantifier.apply _)
-                case _ => None
-              }
-            }
-            val forallDeterminers = tree.children.flatMap {
-              child => child.label.value match {
-                case "DT" if child.getChild(0).label.value.toLowerCase == "every" => Some(ForallQuantifier.apply _)
-                case _ => None
-              }
-            }
             val nounWords = tree.children.flatMap {
               child => child.label.value match {
                 case "NN" => Some(CommonNoun(child.getChild(0).label.value))
@@ -76,22 +64,54 @@ object DiscourseParser {
                 case _ => None
               }
             }
+            val adjectiveWords = tree.children.flatMap {
+              child => child.label.value match {
+                case "JJ" => Some(Adjective(child.getChild(0).label.value))
+                case _ => None
+              }
+            }
             val nounWordOpt = nounWords.headOption
-            val existentialDeterminerOpt = existentialDeterminers.headOption
-            val forallDeterminerOpt = forallDeterminers.headOption
-            (existentialDeterminerOpt, forallDeterminerOpt, nounWordOpt) match {
-              case (Some(existentialDet), None, Some(commonNoun: CommonNoun)) => existentialDet(commonNoun)
-              case (Some(_), None, Some(_)) => sys.error("Existential determiner should be applied to common nouns")
-              case (None, Some(forallDet), Some(commonNoun: CommonNoun)) => forallDet(commonNoun)
-              case (None, Some(_), Some(_)) => sys.error("Forall determiner should be applied to common nouns")
-              case (Some(_), Some(_), _) => sys.error("Forall determiner and existential determiner cannot be applied together")
-              case (None, None, Some(_: CommonNoun)) => sys.error("Common noun should be used with a determiner")
-              case (None, None, Some(nounWord: ProperNoun)) => nounWord
-              case (None, None, Some(rf: ReflexivePronoun)) => rf
+            val adjectiveWordOpt = adjectiveWords.headOption
+            (adjectiveWordOpt, nounWordOpt) match {
+              case (None, Some(commonNoun: CommonNoun)) => commonNoun
+              case (None, Some(properNoun: ProperNoun)) => properNoun
+              case (None, Some(rf: ReflexivePronoun)) => rf
+              case (Some(adjective), Some(nounPhrase)) => AdjectivePhrase(adjective, nounPhrase)
               case _ => sys.error("Invalid noun phrase")
             }
         }
     }
+  }
+  
+  def extractDeterminedNounPhrase(tree: Tree): NounPhrase = {
+    val existentialDeterminers = tree.children.flatMap {
+      child => child.label.value match {
+        case "DT" if child.getChild(0).label.value.toLowerCase == "a" => Some(ExistentialQuantifier.apply _)
+        case _ => None
+      }
+    }
+    val forallDeterminers = tree.children.flatMap {
+      child => child.label.value match {
+        case "DT" if child.getChild(0).label.value.toLowerCase == "every" => Some(ForallQuantifier.apply _)
+        case _ => None
+      }
+    }
+    val existentialDeterminerOpt = existentialDeterminers.headOption
+    val forallDeterminerOpt = forallDeterminers.headOption
+    (existentialDeterminerOpt, forallDeterminerOpt) match {
+      case (None, None) =>
+        extractAdjectiveNounPhrase(tree)
+      case (Some(existentialDet), None) =>
+        existentialDet(extractAdjectiveNounPhrase(tree))
+      case (None, Some(forallDet)) =>
+        forallDet(extractAdjectiveNounPhrase(tree))
+      case (Some(_), Some(_)) =>
+        sys.error("Forall determiner and existential determiner cannot be applied together")
+    }
+  }
+  
+  def extractNounPhrase(tree: Tree): NounPhrase = {
+    extractDeterminedNounPhrase(tree)
   }
 
   def extractVerbPhrase(tree: Tree): VerbPhrase = {
@@ -100,12 +120,33 @@ object DiscourseParser {
         IntransitiveVerb(tree.getChild(0).getChild(0).label.value)
       case "VP" if tree.children.length == 2 =>
         val transitiveVerb = TransitiveVerb(tree.getChild(0).getChild(0).label.value)
-        VerbObjPhrase(transitiveVerb, extractNounPhrase(tree.getChild(1)))
+        convert(tree.getChild(1)) match {
+          case nounPhrase: NounPhrase => VerbObjPhrase(transitiveVerb, nounPhrase)
+          case adjective: Adjective => VerbAdjectivePhrase(transitiveVerb, adjective)
+          case sentence: Sentence => VerbSentencePhrase(transitiveVerb, sentence)
+        }
+    }
+  }
+  
+  def extractAdjective(tree: Tree): Adjective = {
+    tree.label.value match {
+      case "ADJP" =>
+        val adjectiveWords = tree.children.flatMap {
+          child => child.label.value match {
+            case "JJ" => Some(Adjective(child.getChild(0).label.value))
+            case _ => None
+          }
+        }
+        val adjectiveWordOpt = adjectiveWords.headOption
+        adjectiveWordOpt match {
+          case Some(adjective) => adjective
+          case None => sys.error("Invalid adjective phrase")
+        }
     }
   }
 
   def convertSentence(tree: Tree): Sentence = {
-    assert(tree.label.value == "ROOT")
+    assert(tree.label.value == "ROOT" || tree.label.value == "SBAR")
     logger.debug(tree.pennString)
     val s = tree.getChild(0)
     assert(s.label.value == "S")
@@ -118,11 +159,19 @@ object DiscourseParser {
       case (None, None)             => sys.error("Invalid sentence")
     }
   }
+  
+  def convert(tree: Tree): NL = {
+    tree.label.value match {
+      case "SBAR" => convertSentence(tree)
+      case "NP" => extractNounPhrase(tree)
+      case "ADJP" => extractAdjective(tree)
+    }
+  }
 
   def parse(text: String): NL = {
     val document = new Annotation(text)
     pipeline.annotate(document)
-    val sentences: List[CoreMap] = document.get(classOf[CoreAnnotations.SentencesAnnotation]).asScala.toList
+    val sentences: List[CoreMap] = document.get(classOf[SentencesAnnotation]).asScala.toList
     Discourse(sentences.map(sentence => convertSentence(sentence.get(classOf[TreeAnnotation]))))
   }
 }

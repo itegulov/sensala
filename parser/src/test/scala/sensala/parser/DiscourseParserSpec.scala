@@ -50,4 +50,25 @@ class DiscourseParserSpec extends SensalaSpec {
       )
     ))
   }
+  
+  it should "parse sentences with adjectives" in {
+    DiscourseParser.parse("Every wealthy farmer owns a donkey") shouldBe Discourse(List(
+      Sentence(
+        ForallQuantifier(AdjectivePhrase(Adjective("wealthy"), CommonNoun("farmer"))),
+        VerbObjPhrase(TransitiveVerb("owns"), ExistentialQuantifier(CommonNoun("donkey"))))
+    ))
+
+    DiscourseParser.parse("Every lawyer believes he is smart") shouldBe Discourse(List(
+      Sentence(
+        ForallQuantifier(CommonNoun("lawyer")),
+        VerbSentencePhrase(
+          TransitiveVerb("believes"),
+          Sentence(
+            ReflexivePronoun("he"),
+            VerbAdjectivePhrase(TransitiveVerb("is"), Adjective("smart"))
+          )
+        )
+      )
+    ))
+  }
 }
