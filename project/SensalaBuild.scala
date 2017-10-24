@@ -76,7 +76,7 @@ object SensalaBuild {
 
   lazy val root = Project(id = "sensala", base = file("."))
     .aggregate(core, parser, commandLine)
-    .dependsOn(core, parser, commandLine)
+    .dependsOn(core, parser % "compile->compile;test->test", commandLine)
     .settings(commonSettings ++ commonDeps)
     .settings(
       name := "Sensala"
