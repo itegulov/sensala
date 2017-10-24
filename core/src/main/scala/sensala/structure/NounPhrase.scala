@@ -1,8 +1,9 @@
 package sensala.structure
 
-import cats.data.State
 import org.aossie.scavenger.expression._
 import org.aossie.scavenger.expression.formula.And
+
+import contextMonad._
 
 trait NounPhrase extends NL
 
@@ -11,7 +12,7 @@ case class ProperNoun(word: String) extends Word with NounPhrase {
     for {
       x <- bindFreeSym
       w = Sym(word)
-      _ <- State.modify[Context](_.addReferent(w))
+      _ <- modify(_.addReferent(w))
     } yield Abs(x, i, App(x, w))
 }
 
@@ -28,6 +29,6 @@ case class ReflexivePronoun(word: String) extends Word with NounPhrase {
   override def interpret: CState = for {
     p <- bindFreeSym
     f <- bindFreeSym
-    ref <- State.inspect[Context, Sym](_.findAnaphoricReferent.get)
+    ref <- inspect(_.findAnaphoricReferent.get)
   } yield Abs(p, i, Abs(f, i, App(App(p, ref), f)))
 }

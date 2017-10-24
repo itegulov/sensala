@@ -1,6 +1,8 @@
 package sensala
 
 import cats.data.State
+import cats.mtl.MonadState
+import cats.mtl.implicits._
 import org.aossie.scavenger.expression._
 import org.aossie.scavenger.expression.formula._
 import sensala.normalization.NormalFormConverter
@@ -12,6 +14,13 @@ package object structure {
   // State monad over the Context type aliases
   type ContextState[A] = State[Context, A]
   type CState          = State[Context, E]
+
+  /*
+  After writing `import contextMonad._` you have implicit access to
+  ContextState functions. For example, you can write `modify(_.addReferent(x))`
+  instead of `State.modify[Context](_.addReferent(x))`.
+   */
+  implicit val contextMonad = MonadState[ContextState, Context]
   
   implicit class ERich(val lambda: E) extends AnyVal {
     def pretty: String =

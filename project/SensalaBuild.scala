@@ -31,6 +31,7 @@ object SensalaBuild {
   lazy val commonDeps = Seq(
     libraryDependencies ++= Seq(
       "org.typelevel"              %% "cats-core"      % "1.0.0-MF",
+      "org.typelevel"              %% "cats-mtl-core"  % "0.0.2",
       "com.ironcorelabs"           %% "cats-scalatest" % "2.3.0" % Test,
       "ch.qos.logback"             % "logback-classic" % "1.2.3",
       "com.typesafe.scala-logging" %% "scala-logging"  % "3.5.0",
