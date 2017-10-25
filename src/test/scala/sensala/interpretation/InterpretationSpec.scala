@@ -66,5 +66,6 @@ class InterpretationSpec extends SensalaSpec {
   
   it should "interpret other anaphora sentences" in {
     interpret("Every lawyer believes he is smart") shouldEqual All(x, i, Imp(App("lawyer", x), App("smart", x)))
+    interpret("John left. He said he was ill.") shouldEqual Ex(x, i, And(App("John", x), And(App("left", x), App("ill", x))))
   }
 }

@@ -136,6 +136,7 @@ object DiscourseParser {
         val adjectiveWords = tree.children.flatMap {
           child => child.label.value match {
             case "JJ" => Some(Adjective(child.getChild(0).label.value))
+            case "RB" => Some(Adjective(child.getChild(0).label.value)) // TODO: Adverb are generally not adjectives
             case _ => None
           }
         }
