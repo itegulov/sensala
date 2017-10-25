@@ -14,7 +14,8 @@ case class ForallQuantifier(nounPhrase: NounPhrase) extends Quantifier {
     x <- bindFreeSym
     _ <- modify(_.addReferent(x))
     q <- bindFreeSym
-    _ <- modify(_.deleteReferent(x))
+    // TODO: understand the scope of forall quantifier
+//    _ <- modify(_.deleteReferent(x))
   } yield Abs(q, i, Abs(f, i, And(All(x, i, Neg(App(App(p, x), Neg(App(App(q, x), True))))), f)))
 }
 
