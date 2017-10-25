@@ -6,10 +6,10 @@ import sensala.structure._
 class DiscourseParserSpec extends SensalaSpec {
   it should "parse simple sentences" in {
     DiscourseParser.parse("John walks") shouldBe Discourse(List(
-      Sentence(ProperNoun("John"), IntransitiveVerb("walks"))
+      Sentence(ExistentialQuantifier(ProperNoun("John")), IntransitiveVerb("walks"))
     ))
     DiscourseParser.parse("Mary loves herself") shouldBe Discourse(List(
-      Sentence(ProperNoun("Mary"), VerbObjPhrase(TransitiveVerb("loves"), ReflexivePronoun("herself")))
+      Sentence(ExistentialQuantifier(ProperNoun("Mary")), VerbObjPhrase(TransitiveVerb("loves"), ReflexivePronoun("herself")))
     ))
   }
 
@@ -53,11 +53,11 @@ class DiscourseParserSpec extends SensalaSpec {
         VerbObjPhrase(TransitiveVerb("beats"), ReflexivePronoun("it"))
       ),
       Sentence(
-        ProperNoun("John"),
+        ExistentialQuantifier(ProperNoun("John")),
         VerbObjPhrase(TransitiveVerb("is"), ExistentialQuantifier(CommonNoun("farmer")))
       ),
       Sentence(
-        ProperNoun("John"),
+        ExistentialQuantifier(ProperNoun("John")),
         VerbObjPhrase(TransitiveVerb("owns"), ExistentialQuantifier(CommonNoun("donkey")))
       )
     ))

@@ -37,19 +37,19 @@ class InterpretationSpec extends SensalaSpec {
   val y = Var("y")
 
   it should "interpret simple sentences" in {
-    interpret("John loves Mary") === AppRec("loves", List("John", "Mary"))
-    interpret("John walks") === App("walks", "John")
+    interpret("John loves Mary") shouldEqual Ex(x, i, And(App("John", x), Ex(y, i, And(App("Mary", y), AppRec("loves", List(x, y))))))
+    interpret("John walks") shouldEqual Ex(x, i, And(App("John", x), App("walks", x)))
   }
   
   it should "interpret quantified sentences" in {
-    interpret("John walks") === App("walks", "John")
-    interpret("A farmer walks") === Ex(x, i, And(App("farmer", x), App("walks", x)))
-    interpret("John owns a donkey") === Ex(x, i, And(App("donkey", x), AppRec("owns", List("John", x))))
-    interpret("Every farmer owns a donkey") === All(x, i, Imp(App("farmer", x), Ex(y, i, And(App("donkey", y), AppRec("owns", List(x, y))))))
+    interpret("John walks") shouldEqual Ex(x, i, And(App("John", x), App("walks", x)))
+    interpret("A farmer walks") shouldEqual Ex(x, i, And(App("farmer", x), App("walks", x)))
+    interpret("John owns a donkey") shouldEqual Ex(x, i, And(App("John", x), Ex(y, i, And(App("donkey", y), AppRec("owns", List(x, y))))))
+    interpret("Every farmer owns a donkey") shouldEqual All(x, i, Imp(App("farmer", x), Ex(y, i, And(App("donkey", y), AppRec("owns", List(x, y))))))
   }
   
   it should "interpret donkey anaphora" in {
-    interpret("Every farmer who owns a donkey beats it") === All(x, i, Imp(App("farmer", x), All(y, i, Imp(App("donkey", y), Imp(AppRec("owns", List(x, y)), AppRec("beats", List(x, y)))))))
-    interpret("A farmer who owns a donkey beats it") === Ex(x, i, Imp(App("farmer", x), Ex(y, i, Imp(App("donkey", y), Imp(AppRec("owns", List(x, y)), AppRec("beats", List(x, y)))))))
+    interpret("Every farmer who owns a donkey beats it") shouldEqual All(x, i, Imp(App("farmer", x), All(y, i, Imp(App("donkey", y), Imp(AppRec("owns", List(x, y)), AppRec("beats", List(x, y)))))))
+    interpret("A farmer who owns a donkey beats it") shouldEqual Ex(x, i, And(App("farmer", x), Ex(y, i, And(App("donkey", y), And(AppRec("owns", List(x, y)), AppRec("beats", List(x, y)))))))
   }
 }

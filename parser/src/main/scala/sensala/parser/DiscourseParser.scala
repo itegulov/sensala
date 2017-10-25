@@ -88,6 +88,7 @@ object DiscourseParser {
     val existentialDeterminers = tree.children.flatMap {
       child => child.label.value match {
         case "DT" if child.getChild(0).label.value.toLowerCase == "a" => Some(ExistentialQuantifier.apply _)
+        case "NNP" => Some(ExistentialQuantifier.apply _)
         case _ => None
       }
     }
