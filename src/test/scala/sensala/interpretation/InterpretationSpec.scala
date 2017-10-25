@@ -52,4 +52,8 @@ class InterpretationSpec extends SensalaSpec {
     interpret("Every farmer who owns a donkey beats it") shouldEqual All(x, i, Imp(App("farmer", x), All(y, i, Imp(App("donkey", y), Imp(AppRec("owns", List(x, y)), AppRec("beats", List(x, y)))))))
     interpret("A farmer who owns a donkey beats it") shouldEqual Ex(x, i, And(App("farmer", x), Ex(y, i, And(App("donkey", y), And(AppRec("owns", List(x, y)), AppRec("beats", List(x, y)))))))
   }
+  
+  it should "interpret sentences with adjectives" in {
+    interpret("Every wealthy farmer owns a fat donkey") shouldEqual All(x, i, Imp(App("farmer", x), Imp(App("wealthy", x), Ex(y, i, And(App("donkey", y), And(App("fat", y), AppRec("owns", List(x, y))))))))
+  }
 }
