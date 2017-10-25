@@ -54,6 +54,7 @@ object DiscourseParser {
         
         (embeddedNounPhrases.headOption, subordinatedSentences.headOption) match {
           case (Some(ForallQuantifier(commonNoun)), Some(subordinated)) => ForallQuantifier(subordinated(commonNoun))
+          case (Some(ExistentialQuantifier(commonNoun)), Some(subordinated)) => ExistentialQuantifier(subordinated(commonNoun))
           case (Some(nounPhrase), Some(subordinated)) => subordinated(nounPhrase)
           case _ =>
             val nounWords = tree.children.flatMap {

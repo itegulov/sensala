@@ -32,6 +32,12 @@ class DiscourseParserSpec extends SensalaSpec {
         VerbObjPhrase(TransitiveVerb("beats"), ReflexivePronoun("it"))
       )
     ))
+    DiscourseParser.parse("A farmer who eats walks") shouldBe Discourse(List(
+      Sentence(
+        ExistentialQuantifier(WhNounPhrase(IntransitiveVerb("eats"), CommonNoun("farmer"))),
+        IntransitiveVerb("walks")
+      )
+    ))
   }
 
   it should "parse multi-sentence discourses" in {
