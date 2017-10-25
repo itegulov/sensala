@@ -35,23 +35,13 @@ object CLI {
   def main(args: Array[String]): Unit = {
     parser.parse(args, Config()) foreach { c =>
       val sentence = DiscourseParser.parse(c.discourse)
-      val (context1, lambdaTerm) = sentence.interpret.run(Context(Nil, Set.empty, Nil)).value
-      val (context2, normalizedTerm) = NormalFormConverter.normalForm(lambdaTerm).run(context1).value
-      val (context, result) = applyConversions(normalizedTerm).run(context2).value
-      val prettyTerm = PrettyTransformer.transform(result)
-      val cnf = new TPTPClausifier().apply(List((prettyTerm, AxiomClause)))
-      logger.info(
-        s"""
-           |Context after interpretation:
-           |  ${context.referents}
-        """.stripMargin
-      )
       logger.info(
         s"""
            |Result of sentence parsing:
            |  $sentence
         """.stripMargin
       )
+      val (context1, lambdaTerm) = sentence.interpret.run(Context(Nil, Set.empty, Nil)).value
       logger.info(
         s"""
            |Result of discourse interpretation:
@@ -59,6 +49,8 @@ object CLI {
            |  ${lambdaTerm.pretty}
         """.stripMargin
       )
+      val (context2, normalizedTerm) = NormalFormConverter.normalForm(lambdaTerm).run(context1).value
+      val (context, result) = applyConversions(normalizedTerm).run(context2).value
       logger.info(
         s"""
            |Result of applying β-reduction:
@@ -66,12 +58,20 @@ object CLI {
            |  ${result.pretty}
         """.stripMargin
       )
+      val prettyTerm = PrettyTransformer.transform(result)
       logger.info(
         s"""
            |Result of applying pretty transform:
            |  ${prettyTerm.pretty}
         """.stripMargin
       )
+      logger.info(
+        s"""
+           |Context after interpretation:
+           |  ${context.referents}
+        """.stripMargin
+      )
+      val cnf = new TPTPClausifier().apply(List((prettyTerm, AxiomClause)))
       logger.info(
         s"""
            |Result of clausification:
