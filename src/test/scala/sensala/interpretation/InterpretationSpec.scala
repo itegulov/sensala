@@ -47,4 +47,9 @@ class InterpretationSpec extends SensalaSpec {
     interpret("John owns a donkey") === Ex(x, i, And(App("donkey", x), AppRec("owns", List("John", x))))
     interpret("Every farmer owns a donkey") === All(x, i, Imp(App("farmer", x), Ex(y, i, And(App("donkey", y), AppRec("owns", List(x, y))))))
   }
+  
+  it should "interpret donkey anaphora" in {
+    interpret("Every farmer who owns a donkey beats it") === All(x, i, Imp(App("farmer", x), All(y, i, Imp(App("donkey", y), Imp(AppRec("owns", List(x, y)), AppRec("beats", List(x, y)))))))
+    interpret("A farmer who owns a donkey beats it") === Ex(x, i, Imp(App("farmer", x), Ex(y, i, Imp(App("donkey", y), Imp(AppRec("owns", List(x, y)), AppRec("beats", List(x, y)))))))
+  }
 }

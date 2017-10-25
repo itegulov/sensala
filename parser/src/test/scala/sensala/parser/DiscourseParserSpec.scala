@@ -32,6 +32,12 @@ class DiscourseParserSpec extends SensalaSpec {
         VerbObjPhrase(TransitiveVerb("beats"), ReflexivePronoun("it"))
       )
     ))
+    DiscourseParser.parse("A farmer who owns a donkey beats it") shouldBe Discourse(List(
+      Sentence(
+        ExistentialQuantifier(WhNounPhrase(VerbObjPhrase(TransitiveVerb("owns"), ExistentialQuantifier(CommonNoun("donkey"))), CommonNoun("farmer"))),
+        VerbObjPhrase(TransitiveVerb("beats"), ReflexivePronoun("it"))
+      )
+    ))
     DiscourseParser.parse("A farmer who eats walks") shouldBe Discourse(List(
       Sentence(
         ExistentialQuantifier(WhNounPhrase(IntransitiveVerb("eats"), CommonNoun("farmer"))),
