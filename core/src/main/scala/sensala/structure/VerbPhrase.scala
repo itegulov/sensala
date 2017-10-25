@@ -39,5 +39,15 @@ case class VerbSentencePhrase(verb: TransitiveVerb, sentence: Sentence) extends 
 }
 
 case class VerbAdjectivePhrase(verb: TransitiveVerb, adjective: Adjective) extends VerbPhrase {
-  override def interpret: CState = ???
+  override def interpret: CState =
+    verb match {
+      case TransitiveVerb("is") =>
+        for {
+          adjL <- adjective.interpret
+          p <- bindFreeSym
+          x <- bindFreeSym
+          y <- bindFreeSym
+        } yield Abs(p, i, App(p, App(adjL, Abs(x, i, Abs(y, i, y)))))
+      case _ => ???
+    }
 }
