@@ -42,7 +42,9 @@ class InterpretationSpec extends SensalaSpec {
   }
   
   it should "interpret quantified sentences" in {
-    interpret("John owns a donkey") === Ex(Var("x"), i, And(App("donkey", Var("x")), AppRec("owns", List("John", Var("x")))))
+    interpret("John walks") === App("walks", "John")
+    interpret("A farmer walks") === Ex(x, i, And(App("farmer", x), App("walks", x)))
+    interpret("John owns a donkey") === Ex(x, i, And(App("donkey", x), AppRec("owns", List("John", x))))
     interpret("Every farmer owns a donkey") === All(x, i, Imp(App("farmer", x), Ex(y, i, And(App("donkey", y), AppRec("owns", List(x, y))))))
   }
 }

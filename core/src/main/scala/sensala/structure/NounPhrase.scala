@@ -11,9 +11,11 @@ case class ProperNoun(word: String) extends Word with NounPhrase {
   override def interpret: CState =
     for {
       x <- bindFreeSym
+      q <- bindFreeSym
+      f <- bindFreeSym
       w = Sym(word)
-      _ <- modify(_.addReferent(w))
-    } yield Abs(x, i, App(x, w))
+      _ <- modify(_.addReferent(x))
+    } yield Abs(q, i, Abs(f, i, And(App(w, x), App(App(q, x), f))))
 }
 
 case class CommonNoun(word: String) extends Word with NounPhrase {
