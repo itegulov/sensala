@@ -19,4 +19,6 @@ final case class AdjectivePhrase(adjective: Adjective, nounPhrase: NounPhrase) e
       adjL <- adjective.interpret
       nounL <- nounPhrase.interpret
     } yield App(adjL, nounL)
+
+  override def gender = nounPhrase.gender
 }

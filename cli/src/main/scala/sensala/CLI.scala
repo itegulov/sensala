@@ -41,7 +41,7 @@ object CLI {
            |  $sentence
         """.stripMargin
       )
-      val (context1, lambdaTerm) = sentence.interpret.run(Context(Nil, Set.empty, Nil)).value
+      val (context1, lambdaTerm) = sentence.interpret.run(Context(Map.empty, Set.empty, Nil)).value
       logger.info(
         s"""
            |Result of discourse interpretation:
@@ -68,7 +68,7 @@ object CLI {
       logger.info(
         s"""
            |Context after interpretation:
-           |  ${context.referents}
+           |  ${context.referentProperties}
         """.stripMargin
       )
       val cnf = new TPTPClausifier().apply(List((prettyTerm, AxiomClause)))

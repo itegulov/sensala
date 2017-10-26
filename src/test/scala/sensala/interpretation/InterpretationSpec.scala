@@ -19,7 +19,7 @@ class InterpretationSpec extends SensalaSpec {
       converted <- applyConversions(normalized)
       prettified = PrettyTransformer.transform(converted)
     } yield prettified
-    val (_, result) = resultM.run(Context(Nil, Set.empty, Nil)).value
+    val (_, result) = resultM.run(Context(Map.empty, Set.empty, Nil)).value
     println(result.pretty)
     result
   }

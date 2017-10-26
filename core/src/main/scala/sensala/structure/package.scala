@@ -22,6 +22,15 @@ package object structure {
    */
   implicit val contextMonad = MonadState[ContextState, Context]
   
+  trait Gender
+  object Male extends Gender
+  object Female extends Gender
+  object Other extends Gender
+  
+  val nonHuman = Sym("non_human")
+  val female = Sym("female")
+  val male = Sym("non_human")
+  
   implicit class ERich(val lambda: E) extends AnyVal {
     def pretty: String =
       lambda match {

@@ -4,14 +4,27 @@ import org.aossie.scavenger.expression._
 
 // TODO: make context more general, generic and abstract
 case class Context(
-  referents: List[Sym],
+  referentProperties: Map[Sym, E],
   boundSymbols: Set[Sym],
   conversions: List[(Sym, Sym)]
 ) {
-  def findAnaphoricReferent: Option[Sym] = referents.headOption
-
-  def addReferent(newRef: Sym): Context      = copy(referents = newRef :: referents)
-  def deleteReferent(oldRef: Sym): Context   = copy(referents = referents.filterNot(_ == oldRef))
-  def addBoundSym(sym: Sym): Context         = copy(boundSymbols = boundSymbols + sym)
-  def addConversion(v: Sym, s: Sym): Context = copy(conversions = (v, s) :: conversions)
+  def findAnaphoricReferent(properties: E): Option[Sym] =
+    referentProperties.find {
+      case (_, refProperties) =>
+        properties =+= refProperties
+    }.map(_._1)
+  def addReferent(newRef: Sym, properties: E): Context =
+    copy(referentProperties = referentProperties.updated(newRef, properties))
+  def addReferent(newRef: Var, gender: Gender): Context =
+    gender match {
+      case Male   => addReferent(newRef, Abs(newRef, i, App(male, newRef)))
+      case Female => addReferent(newRef, Abs(newRef, i, App(female, newRef)))
+      case Other  => addReferent(newRef, Abs(newRef, i, App(nonHuman, newRef)))
+    }
+  def deleteReferent(oldRef: Sym): Context =
+    copy(referentProperties = referentProperties - oldRef)
+  def addBoundSym(sym: Sym): Context =
+    copy(boundSymbols = boundSymbols + sym)
+  def addConversion(v: Sym, s: Sym): Context =
+    copy(conversions = (v, s) :: conversions)
 }

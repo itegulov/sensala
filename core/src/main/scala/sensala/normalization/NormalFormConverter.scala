@@ -8,9 +8,9 @@ object NormalFormConverter {
   def substitute(l: E, v: Sym, e: E): CState = l match {
     case lamV: Sym if v == lamV =>
       State { context =>
-        if (context.referents.contains(v)) {
+        if (context.referentProperties.contains(v)) {
           e match {
-            case s: Sym => (context.addConversion(v, s).deleteReferent(v).addReferent(s), e)
+            case s: Sym => (context.addConversion(v, s).deleteReferent(v).addReferent(s, context.referentProperties(v)), e)
             case _      => (context, e)
           }
         } else {

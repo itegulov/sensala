@@ -11,4 +11,6 @@ case class WhNounPhrase(verbPhrase: VerbPhrase, nounPhrase: NounPhrase) extends 
       r <- verbPhrase.interpret
       p <- bindFreeSym
     } yield Abs(x, i, Abs(f, i, App(App(q, x), App(App(r, Abs(p, i, App(p, x))), f))))
+
+  override def gender = nounPhrase.gender
 }
