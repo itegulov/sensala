@@ -44,6 +44,7 @@ class InterpretationSpec extends SensalaSpec {
   it should "interpret quantified sentences" in {
     interpret("John walks") shouldEqual Ex(x, i, And(App("John", x), App("walks", x)))
     interpret("A farmer walks") shouldEqual Ex(x, i, And(App("farmer", x), App("walks", x)))
+    interpret("An anthropologist discovered a skeleton") shouldEqual Ex(x, i, And(App("anthropologist", x), Ex(y, i, And(App("skeleton", y), AppRec("discovered", List(x, y))))))
     interpret("John owns a donkey") shouldEqual Ex(x, i, And(App("John", x), Ex(y, i, And(App("donkey", y), AppRec("owns", List(x, y))))))
     interpret("Every farmer owns a donkey") shouldEqual All(x, i, Imp(App("farmer", x), Ex(y, i, And(App("donkey", y), AppRec("owns", List(x, y))))))
   }
