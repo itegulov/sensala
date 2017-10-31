@@ -9,11 +9,11 @@ trait Quantifier extends NounPhrase
 
 case class ForallQuantifier(nounPhrase: NounPhrase) extends Quantifier {
   override def interpret: CState = for {
-    f <- bindFreeSym
+    f <- bindFreeVar
     p <- nounPhrase.interpret
-    x <- bindFreeSym
+    x <- bindFreeVar
     _ <- modify(_.addReferent(x, gender))
-    q <- bindFreeSym
+    q <- bindFreeVar
     // TODO: understand the scope of forall quantifier
 //    _ <- modify(_.deleteReferent(x))
   } yield Abs(q, i, Abs(f, i, And(All(x, i, Neg(App(App(p, x), Neg(App(App(q, x), True))))), f)))
@@ -23,11 +23,11 @@ case class ForallQuantifier(nounPhrase: NounPhrase) extends Quantifier {
 
 case class ExistentialQuantifier(nounPhrase: NounPhrase) extends Quantifier {
   override def interpret: CState = for {
-    f <- bindFreeSym
+    f <- bindFreeVar
     p <- nounPhrase.interpret
-    x <- bindFreeSym
+    x <- bindFreeVar
     _ <- modify(_.addReferent(x, gender))
-    q <- bindFreeSym
+    q <- bindFreeVar
   } yield Abs(q, i, Abs(f, i, Ex(x, i, App(App(p, x), App(App(q, x), f)))))
 
   override def gender = nounPhrase.gender

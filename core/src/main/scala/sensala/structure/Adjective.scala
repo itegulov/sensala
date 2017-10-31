@@ -6,9 +6,9 @@ import org.aossie.scavenger.expression.formula.And
 final case class Adjective(word: String) extends Word {
   override def interpret: CState =
     for {
-      p <- bindFreeSym
-      x <- bindFreeSym
-      f <- bindFreeSym
+      p <- bindFreeVar
+      x <- bindFreeVar
+      f <- bindFreeVar
       w = Sym(word)
     } yield Abs(p, i, Abs(x, i, Abs(f, i, App(App(p, x), And(App(w, x), f)))))
 }

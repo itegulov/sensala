@@ -8,20 +8,20 @@ trait VerbPhrase extends NL
 case class TransitiveVerb(word: String) extends Word {
   override def interpret: CState =
     for {
-      f <- bindFreeSym
-      x <- bindFreeSym
-      y <- bindFreeSym
-      p <- bindFreeSym
-      q <- bindFreeSym
+      f <- bindFreeVar
+      x <- bindFreeVar
+      y <- bindFreeVar
+      p <- bindFreeVar
+      q <- bindFreeVar
     } yield Abs(p, i, Abs(q, i, App(q, Abs(x, i, App(p, Abs(y, i, Abs(f, i, And(App(App(Sym(word), x), y), f))))))))
 }
 
 case class IntransitiveVerb(word: String) extends Word with VerbPhrase {
   override def interpret =
     for {
-      f <- bindFreeSym
-      p <- bindFreeSym
-      x <- bindFreeSym
+      f <- bindFreeVar
+      p <- bindFreeVar
+      x <- bindFreeVar
       w = Sym(word)
     } yield Abs(p, i, App(p, Abs(x, i, Abs(f, i, And(App(w, x), f)))))
 }
@@ -39,9 +39,9 @@ case class VerbSentencePhrase(verb: TransitiveVerb, sentence: Sentence) extends 
     for {
       verbL <- verb.interpret // TODO: probably I should use this verb somehow
       senL <- sentence.interpret
-      p <- bindFreeSym
-      x <- bindFreeSym
-      f <- bindFreeSym
+      p <- bindFreeVar
+      x <- bindFreeVar
+      f <- bindFreeVar
     } yield Abs(p, i, App(p, Abs(x, i, Abs(f, i, App(senL, f)))))
 }
 
@@ -51,9 +51,9 @@ case class VerbAdjectivePhrase(verb: TransitiveVerb, adjective: Adjective) exten
       case TransitiveVerb("is") | TransitiveVerb("was") =>
         for {
           adjL <- adjective.interpret
-          p <- bindFreeSym
-          x <- bindFreeSym
-          y <- bindFreeSym
+          p <- bindFreeVar
+          x <- bindFreeVar
+          y <- bindFreeVar
         } yield Abs(p, i, App(p, App(adjL, Abs(x, i, Abs(y, i, y)))))
       case _ => ???
     }

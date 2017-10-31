@@ -12,8 +12,8 @@ trait NounPhrase extends NL {
 case class ProperNoun(word: String) extends Word with NounPhrase {
   override def interpret: CState =
     for {
-      x <- bindFreeSym
-      f <- bindFreeSym
+      x <- bindFreeVar
+      f <- bindFreeVar
       w = Sym(word)
     } yield Abs(x, i, Abs(f, i, And(App(w, x), f)))
 
@@ -27,8 +27,8 @@ case class ProperNoun(word: String) extends Word with NounPhrase {
 case class CommonNoun(word: String) extends Word with NounPhrase {
   override def interpret: CState =
     for {
-      x <- bindFreeSym
-      f <- bindFreeSym
+      x <- bindFreeVar
+      f <- bindFreeVar
       w = Sym(word)
     } yield Abs(x, i, Abs(f, i, And(App(w, x), f)))
 
@@ -42,9 +42,9 @@ case class CommonNoun(word: String) extends Word with NounPhrase {
 case class ReflexivePronoun(word: String) extends Word with NounPhrase {
   override def interpret: CState =
     for {
-      p <- bindFreeSym
-      f <- bindFreeSym
-      x <- bindFreeSym
+      p <- bindFreeVar
+      f <- bindFreeVar
+      x <- bindFreeVar
       ref <- if (word.toLowerCase == "it") inspect(_.findAnaphoricReferent(Abs(x, i, App(nonHuman, x))).get)
             else if (word.toLowerCase == "he") inspect(_.findAnaphoricReferent(Abs(x, i, App(male, x))).get)
             else ???

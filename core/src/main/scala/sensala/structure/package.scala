@@ -7,6 +7,8 @@ import org.aossie.scavenger.expression._
 import org.aossie.scavenger.expression.formula._
 import sensala.normalization.NormalFormConverter
 
+import scala.annotation.tailrec
+
 package object structure {
   // TODO: Specify correct type for symbols
   // TODO: extend this with articles, NL quantifiers, adverbs, ...
@@ -54,15 +56,16 @@ package object structure {
       }
     }
 
-  def bindFreeSym: ContextState[Var] =
+  def bindFreeVar: ContextState[Var] =
     State { context =>
-      def getFreeSymInternal(range: Seq[Var]): Var =
+      @tailrec
+      def bindFreeVarInternal(range: Seq[Var]): Var =
         range.find(c => !context.boundSymbols.contains(c)) match {
           case Some(c) => c
-          case _       => getFreeSymInternal(range.map(s => Var(s.name + "'")))
+          case _       => bindFreeVarInternal(range.map(s => Var(s.name + "'")))
         }
       val range  = ('a' to 'z').map(_.toString).map(Var.apply)
-      val newSym = getFreeSymInternal(range)
+      val newSym = bindFreeVarInternal(range)
       (context.addBoundSym(newSym), newSym)
     }
 }
