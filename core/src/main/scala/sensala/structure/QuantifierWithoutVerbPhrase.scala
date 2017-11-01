@@ -5,30 +5,28 @@ import org.aossie.scavenger.expression.formula._
 
 import contextMonad._
 
-trait Quantifier extends NounPhrase
+trait QuantifierWithoutVerbPhrase extends NounPhraseWithoutVerbPhrase
 
-case class ForallQuantifier(nounPhrase: NounPhrase) extends Quantifier {
+case class ForallQuantifier(nounPhrase: NounPhrase) extends QuantifierWithoutVerbPhrase {
   override def interpret: CState = for {
     f <- bindFreeVar
-    p <- nounPhrase.interpret
+    nounL <- nounPhrase.interpret
     x <- bindFreeVar
     _ <- modify(_.addReferent(x, gender))
-    q <- bindFreeVar
     // TODO: understand the scope of forall quantifier
 //    _ <- modify(_.deleteReferent(x))
-  } yield Abs(q, i, Abs(f, i, And(All(x, i, Neg(App(App(p, x), Neg(App(App(q, x), True))))), f)))
+  } yield Abs(f, i -> o, All(x, i, And(Neg(App(App(nounL, True), x)), App(f, x))))
 
   override def gender = nounPhrase.gender
 }
 
-case class ExistentialQuantifier(nounPhrase: NounPhrase) extends Quantifier {
+case class ExistentialQuantifier(nounPhrase: NounPhrase) extends QuantifierWithoutVerbPhrase {
   override def interpret: CState = for {
     f <- bindFreeVar
     p <- nounPhrase.interpret
     x <- bindFreeVar
     _ <- modify(_.addReferent(x, gender))
-    q <- bindFreeVar
-  } yield Abs(q, i, Abs(f, i, Ex(x, i, App(App(p, x), App(App(q, x), f)))))
+  } yield Abs(f, i -> o, Ex(x, i, AppRec(p, List(f, x))))
 
   override def gender = nounPhrase.gender
 }

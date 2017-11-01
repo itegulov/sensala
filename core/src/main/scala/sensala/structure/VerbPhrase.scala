@@ -5,56 +5,45 @@ import org.aossie.scavenger.expression.formula.And
 
 trait VerbPhrase extends NL
 
-case class TransitiveVerb(word: String) extends Word {
-  override def interpret: CState =
-    for {
-      f <- bindFreeVar
-      x <- bindFreeVar
-      y <- bindFreeVar
-      p <- bindFreeVar
-      q <- bindFreeVar
-    } yield Abs(p, i, Abs(q, i, App(q, Abs(x, i, App(p, Abs(y, i, Abs(f, i, And(App(App(Sym(word), x), y), f))))))))
-}
-
 case class IntransitiveVerb(word: String) extends Word with VerbPhrase {
   override def interpret =
     for {
       f <- bindFreeVar
-      p <- bindFreeVar
       x <- bindFreeVar
       w = Sym(word)
-    } yield Abs(p, i, App(p, Abs(x, i, Abs(f, i, And(App(w, x), f)))))
+    } yield Abs(f, i -> o, Abs(x, i, And(App(w, x), App(f, x))))
 }
 
-case class VerbObjPhrase(verb: TransitiveVerb, obj: NounPhrase) extends VerbPhrase {
+case class VerbObjPhrase(word: String, obj: NounPhraseWithoutVerbPhrase) extends VerbPhrase {
   def interpret: CState =
     for {
-      verbL <- verb.interpret
-      objL  <- obj.interpret
-    } yield App(verbL, objL)
-}
-
-case class VerbSentencePhrase(verb: TransitiveVerb, sentence: Sentence) extends VerbPhrase {
-  override def interpret: CState =
-    for {
-      verbL <- verb.interpret // TODO: probably I should use this verb somehow
-      senL <- sentence.interpret
-      p <- bindFreeVar
-      x <- bindFreeVar
       f <- bindFreeVar
-    } yield Abs(p, i, App(p, Abs(x, i, Abs(f, i, App(senL, f)))))
+      x <- bindFreeVar
+      y <- bindFreeVar
+      objL  <- obj.interpret
+      w = Sym(word)
+    } yield Abs(f, i -> o, Abs(x, i, App(objL, Abs(y, i, And(AppRec(w, List(x, y)), App(f, x))))))
 }
 
-case class VerbAdjectivePhrase(verb: TransitiveVerb, adjective: Adjective) extends VerbPhrase {
+case class VerbSentencePhrase(word: String, sentence: NounPhraseWithVerbPhrase) extends VerbPhrase {
+  override def interpret: CState = for {
+    // TODO: probably I should use the verb somehow
+    sentenceL <- sentence.interpret
+    f <- bindFreeVar
+    x <- bindFreeVar
+    y <- bindFreeVar
+  } yield Abs(f, i -> o, Abs(x, i, App(sentenceL, f)))
+}
+
+case class VerbAdjectivePhrase(verb: String, adjective: Adjective) extends VerbPhrase {
   override def interpret: CState =
     verb match {
-      case TransitiveVerb("is") | TransitiveVerb("was") =>
+      case "is" | "was" =>
         for {
-          adjL <- adjective.interpret
-          p <- bindFreeVar
+          f <- bindFreeVar
           x <- bindFreeVar
-          y <- bindFreeVar
-        } yield Abs(p, i, App(p, App(adjL, Abs(x, i, Abs(y, i, y)))))
+          w = Sym(adjective.word)
+        } yield Abs(f, i -> o, Abs(x, i, And(App(w, x), App(f, x))))
       case _ => ???
     }
 }
