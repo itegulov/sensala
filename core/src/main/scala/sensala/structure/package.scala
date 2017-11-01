@@ -31,7 +31,7 @@ package object structure {
   
   val nonHuman = Sym("non_human")
   val female = Sym("female")
-  val male = Sym("non_human")
+  val male = Sym("male")
   
   implicit class ERich(val lambda: E) extends AnyVal {
     def pretty: String =
