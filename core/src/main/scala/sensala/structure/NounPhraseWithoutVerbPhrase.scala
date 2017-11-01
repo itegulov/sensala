@@ -8,12 +8,11 @@ import contextMonad._
 trait NounPhraseWithoutVerbPhrase extends NounPhrase
 
 case class ProperNoun(word: String) extends Word with NounPhraseWithoutVerbPhrase {
-  override def interpret: CState =
+  override def interpret(cont: E): CState =
     for {
       x <- bindFreeVar
-      f <- bindFreeVar
       w = Sym(word)
-    } yield Abs(f, i -> o, Abs(x, i, And(App(w, x), App(f, x))))
+    } yield Abs(x, i, And(App(w, x), App(cont, x)))
 
   override def gender: Gender = word match {
     case "Mary" => Female
@@ -23,12 +22,11 @@ case class ProperNoun(word: String) extends Word with NounPhraseWithoutVerbPhras
 }
 
 case class CommonNoun(word: String) extends Word with NounPhraseWithoutVerbPhrase {
-  override def interpret: CState =
+  override def interpret(cont: E): CState =
     for {
       x <- bindFreeVar
-      f <- bindFreeVar
       w = Sym(word)
-    } yield Abs(f, i -> o, Abs(x, i, And(App(w, x), App(f, x))))
+    } yield Abs(x, i, And(App(w, x), App(cont, x)))
 
   override def gender: Gender = word match {
     case "farmer" => Male
@@ -38,14 +36,13 @@ case class CommonNoun(word: String) extends Word with NounPhraseWithoutVerbPhras
 }
 
 case class ReflexivePronoun(word: String) extends Word with NounPhraseWithoutVerbPhrase {
-  override def interpret: CState =
+  override def interpret(cont: E): CState =
     for {
-      f <- bindFreeVar
       x <- bindFreeVar
       ref <- if (word.toLowerCase == "it") inspect(_.findAnaphoricReferent(Abs(x, i, App(nonHuman, x))).get)
             else if (word.toLowerCase == "he") inspect(_.findAnaphoricReferent(Abs(x, i, App(male, x))).get)
             else ???
-    } yield Abs(f, i -> o, App(f, ref))
+    } yield App(cont, ref)
 
   override def gender: Gender = word match {
     case "he" => Male

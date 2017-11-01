@@ -17,9 +17,12 @@ case class Context(
     copy(referentProperties = referentProperties.updated(newRef, properties))
   def addReferent(newRef: Var, gender: Gender): Context =
     gender match {
-      case Male   => addReferent(newRef, Abs(newRef, i, App(male, newRef)))
-      case Female => addReferent(newRef, Abs(newRef, i, App(female, newRef)))
-      case Other  => addReferent(newRef, Abs(newRef, i, App(nonHuman, newRef)))
+      case Male   => 
+        addReferent(newRef, Abs(newRef, i, App(male, newRef)))
+      case Female => 
+        addReferent(newRef, Abs(newRef, i, App(female, newRef)))
+      case Other  => 
+        addReferent(newRef, Abs(newRef, i, App(nonHuman, newRef)))
     }
   def deleteReferent(oldRef: Sym): Context =
     copy(referentProperties = referentProperties - oldRef)

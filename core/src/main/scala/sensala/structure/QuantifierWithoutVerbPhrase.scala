@@ -8,25 +8,23 @@ import contextMonad._
 trait QuantifierWithoutVerbPhrase extends NounPhraseWithoutVerbPhrase
 
 case class ForallQuantifier(nounPhrase: NounPhrase) extends QuantifierWithoutVerbPhrase {
-  override def interpret: CState = for {
-    f <- bindFreeVar
-    nounL <- nounPhrase.interpret
+  override def interpret(cont: E): CState = for {
+    nounL <- nounPhrase.interpret(True)
     x <- bindFreeVar
     _ <- modify(_.addReferent(x, gender))
     // TODO: understand the scope of forall quantifier
 //    _ <- modify(_.deleteReferent(x))
-  } yield Abs(f, i -> o, All(x, i, And(Neg(App(App(nounL, True), x)), App(f, x))))
+  } yield All(x, i, And(Neg(App(nounL, x)), App(cont, x)))
 
   override def gender = nounPhrase.gender
 }
 
 case class ExistentialQuantifier(nounPhrase: NounPhrase) extends QuantifierWithoutVerbPhrase {
-  override def interpret: CState = for {
-    f <- bindFreeVar
-    p <- nounPhrase.interpret
+  override def interpret(cont: E): CState = for {
+    nounL <- nounPhrase.interpret(cont)
     x <- bindFreeVar
     _ <- modify(_.addReferent(x, gender))
-  } yield Abs(f, i -> o, Ex(x, i, AppRec(p, List(f, x))))
+  } yield Ex(x, i, App(nounL, x))
 
   override def gender = nounPhrase.gender
 }

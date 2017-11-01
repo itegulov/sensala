@@ -5,6 +5,7 @@ import sensala.parser.DiscourseParser
 import sensala.postprocessing.PrettyTransformer
 import sensala.structure._
 import com.typesafe.scalalogging.Logger
+import org.aossie.scavenger.expression.formula.True
 import org.aossie.scavenger.preprocessing.TPTPClausifier
 import org.aossie.scavenger.structure.immutable.AxiomClause
 
@@ -41,7 +42,7 @@ object CLI {
            |  $sentence
         """.stripMargin
       )
-      val (context1, lambdaTerm) = sentence.interpret.run(Context(Map.empty, Set.empty, Nil)).value
+      val (context1, lambdaTerm) = sentence.interpret(True).run(Context(Map.empty, Set.empty, Nil)).value
       logger.info(
         s"""
            |Result of discourse interpretation:

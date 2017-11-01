@@ -5,10 +5,17 @@ import org.aossie.scavenger.expression._
 import org.aossie.scavenger.expression.formula.True
 
 case class Discourse(sentences: List[NounPhraseWithVerbPhrase]) extends NL {
-  override def interpret: CState =
+  override def interpret(cont: E): CState =
     for {
       x <- bindFreeVar
       y <- bindFreeVar
-      sentenceLs <- sentences.map(_.interpret).sequence[ContextState, E]
-    } yield sentenceLs.foldRight[E](True) { case (a, b) => App(a, Abs(y, i, b)) }
+      result <- sentences.foldLeftM[ContextState, E](Abs(x, i, App(x, True))) {
+                 case (e, b) =>
+                   for {
+                     z      <- bindFreeVar
+                     a      <- bindFreeVar
+                     intRes <- b.interpret(z)
+                   } yield Abs(z, i, App(e, Abs(a, i, intRes)))
+               }
+    } yield App(result, Abs(y, i, cont))
 }
