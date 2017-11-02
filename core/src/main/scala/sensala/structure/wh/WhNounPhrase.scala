@@ -17,5 +17,5 @@ final case class WhNounPhrase(
       nounL <- nounPhrase.interpret(Abs(y, i, App(verbL, y)))
     } yield Abs(x, i, App(nounL, x))
 
-  override def gender = nounPhrase.gender
+  override def properties = nounPhrase.properties
 }

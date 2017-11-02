@@ -8,6 +8,7 @@ import com.typesafe.scalalogging.Logger
 import org.aossie.scavenger.expression.formula.True
 import org.aossie.scavenger.preprocessing.TPTPClausifier
 import org.aossie.scavenger.structure.immutable.AxiomClause
+import sensala.property.PropertyExtractor
 
 object CLI {
   private val logger = Logger[this.type]
@@ -73,7 +74,7 @@ object CLI {
       logger.info(
         s"""
            |Context after interpretation:
-           |  ${context.referentProperties}
+           |  ${context.referentProperties.map(_._2.pretty).mkString("\n")}
         """.stripMargin
       )
       val cnf = new TPTPClausifier().apply(List((prettyTerm, AxiomClause)))
@@ -83,6 +84,7 @@ object CLI {
            |${cnf.clauses.mkString("\n")}
         """.stripMargin
       )
+      PropertyExtractor.close()
     }
   }
 }

@@ -4,6 +4,7 @@ import org.aossie.scavenger.expression._
 import org.aossie.scavenger.expression.formula.And
 import sensala.structure._
 import contextMonad._
+import sensala.property.{Property, PropertyExtractor}
 
 trait NounPhraseWithoutVerbPhrase extends NounPhrase
 
@@ -16,10 +17,10 @@ final case class ProperNoun(
       w = Sym(word)
     } yield Abs(x, i, And(App(w, x), App(cont, x)))
 
-  override def gender: Gender = word match {
-    case "Mary" => Female
-    case "John" => Male
-    case _      => Other
+  override def properties: List[Property] = word match {
+    case "Mary" => List(Property(female))
+    case "John" => List(Property(male))
+    case _      => List(Property(nonHuman))
   }
 }
 
@@ -32,12 +33,7 @@ case class CommonNoun(
       w = Sym(word)
     } yield Abs(x, i, And(App(w, x), App(cont, x)))
 
-  override def gender: Gender = word match {
-    case "farmer" => Male
-    case "lawyer" => Male
-    case "donkey" => Other
-    case _        => Other
-  }
+  override def properties: List[Property] = PropertyExtractor.extractProperties(word)
 }
 
 final case class ReflexivePronoun(
@@ -47,16 +43,16 @@ final case class ReflexivePronoun(
     for {
       x <- bindFreeVar
       ref <- if (word.toLowerCase == "it")
-              inspect(_.findAnaphoricReferent(Abs(x, i, App(nonHuman, x))).get)
+              inspect(_.findAnaphoricReferent(x, App(nonHuman, x)).get)
             else if (word.toLowerCase == "he")
-              inspect(_.findAnaphoricReferent(Abs(x, i, App(male, x))).get)
+              inspect(_.findAnaphoricReferent(x, App(male, x)).get)
             else ???
     } yield App(cont, ref)
 
-  override def gender: Gender = word match {
-    case "he"  => Male
-    case "she" => Female
-    case "it"  => Other
-    case _     => Other
+  override def properties: List[Property] = word match {
+    case "he" => List(Property(male))
+    case "she" => List(Property(female))
+    case "it" => List(Property(nonHuman))
+    case _      => List(Property(nonHuman))
   }
 }

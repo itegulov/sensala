@@ -1,27 +1,34 @@
 package sensala.structure
 
 import org.aossie.scavenger.expression._
+import org.aossie.scavenger.expression.formula.{All, And, Neg}
+import org.aossie.scavenger.preprocessing.TPTPClausifier
+import org.aossie.scavenger.prover.{EPCR, Unsatisfiable}
+import org.aossie.scavenger.structure.immutable.{AxiomClause, NegConjectureClause}
+import sensala.property.Property
 
 final case class Context(
   referentProperties: Map[Sym, E],
   boundSymbols: Set[Sym]
 ) {
-  def findAnaphoricReferent(properties: E): Option[Sym] =
+  private val clausifier = new TPTPClausifier()
+  
+  def findAnaphoricReferent(v: Var, properties: E): Option[Sym] =
     referentProperties.find {
       case (_, refProperties) =>
-        properties =+= refProperties
+        val cnf = clausifier(List((refProperties, AxiomClause), (All(v, i, Neg(properties)), NegConjectureClause)))
+        EPCR.prove(cnf) match {
+          case Unsatisfiable(_) => true
+          case _ => false
+        }
     }.map(_._1)
-  def addReferent(newRef: Sym, properties: E): Context =
-    copy(referentProperties = referentProperties.updated(newRef, properties))
-  def addReferent(newRef: Var, gender: Gender): Context =
-    gender match {
-      case Male =>
-        addReferent(newRef, Abs(newRef, i, App(male, newRef)))
-      case Female =>
-        addReferent(newRef, Abs(newRef, i, App(female, newRef)))
-      case Other =>
-        addReferent(newRef, Abs(newRef, i, App(nonHuman, newRef)))
-    }
+  def addReferent(newRef: Var, properties: List[Property]): Context =
+    copy(referentProperties = 
+      referentProperties.updated(
+        newRef, 
+        All(newRef, i, properties.map(p => App(p.symbol, newRef)).reduceLeft(And.apply))
+      )
+    )
   def deleteReferent(oldRef: Sym): Context =
     copy(referentProperties = referentProperties - oldRef)
   def addBoundSym(sym: Sym): Context =

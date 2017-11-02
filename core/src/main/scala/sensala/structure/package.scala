@@ -20,11 +20,6 @@ package object structure {
    */
   implicit val contextMonad = MonadState[ContextState, Context]
   
-  trait Gender
-  object Male extends Gender
-  object Female extends Gender
-  object Other extends Gender
-  
   val nonHuman = Sym("non_human")
   val female = Sym("female")
   val male = Sym("male")

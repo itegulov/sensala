@@ -51,12 +51,13 @@ object SensalaBuild {
     .settings(name := "sensala-core")
     .settings(
       libraryDependencies ++= Seq(
-        "org.typelevel"    %% "cats-core"      % "1.0.0-RC1",
+        "org.typelevel"    %% "cats-core"      % "1.0.0-MF",
         "org.typelevel"    %% "cats-mtl-core"  % "0.0.2",
         "com.ironcorelabs" %% "cats-scalatest" % "2.3.0" % Test,
         "org.aossie"       %% "scavenger"      % "0.2"
       )
     )
+    .dependsOn(conceptNet)
 
   lazy val parser = Project(id = "parser", base = file("parser"))
     .settings(commonSettings ++ commonDeps)

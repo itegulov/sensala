@@ -1,7 +1,8 @@
 package sensala.structure.noun
 
-import sensala.structure.{Gender, NL}
+import sensala.property.Property
+import sensala.structure.NL
 
 trait NounPhrase extends NL {
-  def gender: Gender
+  def properties: List[Property]
 }

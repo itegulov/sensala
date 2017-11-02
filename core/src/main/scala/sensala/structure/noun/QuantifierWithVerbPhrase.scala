@@ -16,14 +16,14 @@ final case class ForallQuantifierVP(
     x <- bindFreeVar
     y <- bindFreeVar
     z <- bindFreeVar
-    _ <- modify(_.addReferent(x, gender))
+    _ <- modify(_.addReferent(x, properties))
     nounL <- nounPhrase.interpret(z)
     verbL <- verbPhrase.interpret(cont)
     // TODO: understand the scope of forall quantifier
 //    _ <- modify(_.deleteReferent(x))
   } yield All(x, i, Neg(App(App(Abs(z, i, nounL), Abs(y, i, Neg(App(verbL, y)))), x)))
 
-  override def gender = nounPhrase.gender
+  override def properties = nounPhrase.properties
 }
 
 final case class ExistentialQuantifierVP(
@@ -33,11 +33,11 @@ final case class ExistentialQuantifierVP(
   override def interpret(cont: E): CState = for {
     x <- bindFreeVar
     y <- bindFreeVar
-    _ <- modify(_.addReferent(x, gender))
+    _ <- modify(_.addReferent(x, properties))
     nounL <- nounPhrase.interpret(y)
     verbL <- verbPhrase.interpret(cont)
   } yield Ex(x, i, App(App(Abs(y, i, nounL), verbL), x))
 
-  override def gender = nounPhrase.gender
+  override def properties = nounPhrase.properties
 }
 

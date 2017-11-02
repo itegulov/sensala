@@ -22,5 +22,5 @@ final case class AdjectiveNounPhraseVP(
       nounL <- nounPhrase.interpret(Abs(y, i, And(App(w, y), App(verbL, y))))
     } yield Abs(x, i, App(nounL, x))
 
-  override def gender = nounPhrase.gender
+  override def properties = nounPhrase.properties
 }
