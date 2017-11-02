@@ -9,8 +9,6 @@ import org.aossie.scavenger.expression.formula.True
 import org.aossie.scavenger.preprocessing.TPTPClausifier
 import org.aossie.scavenger.structure.immutable.AxiomClause
 
-import scala.util.control.Breaks
-
 object CLI {
   private val logger = Logger[this.type]
 
