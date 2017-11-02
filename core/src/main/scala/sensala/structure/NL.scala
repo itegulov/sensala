@@ -1,6 +1,7 @@
 package sensala.structure
 
-import org.aossie.scavenger.expression.E
+import cats.data.State
+import org.aossie.scavenger.expression.{E, Sym}
 
 trait NL {
   def interpret(cont: E): CState
@@ -11,7 +12,7 @@ trait NounPhrase extends NL {
 }
 
 final case class Adjective(word: String) extends Word {
-  override def interpret(cont: E) = ???
+  override def interpret(cont: E) = State.pure(Sym(word))
 }
 
 trait Word extends NL {

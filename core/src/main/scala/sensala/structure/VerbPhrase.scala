@@ -5,7 +5,9 @@ import org.aossie.scavenger.expression.formula.And
 
 trait VerbPhrase extends NL
 
-case class IntransitiveVerb(word: String) extends Word with VerbPhrase {
+final case class IntransitiveVerb(
+  word: String
+) extends Word with VerbPhrase {
   override def interpret(cont: E): CState =
     for {
       x <- bindFreeVar
@@ -13,7 +15,10 @@ case class IntransitiveVerb(word: String) extends Word with VerbPhrase {
     } yield Abs(x, i, And(App(w, x), App(cont, x)))
 }
 
-case class VerbObjPhrase(word: String, obj: NounPhraseWithoutVerbPhrase) extends VerbPhrase {
+final case class VerbObjPhrase(
+  word: String,
+  obj: NounPhraseWithoutVerbPhrase
+) extends VerbPhrase {
   def interpret(cont: E): CState =
     for {
       x <- bindFreeVar
@@ -23,7 +28,10 @@ case class VerbObjPhrase(word: String, obj: NounPhraseWithoutVerbPhrase) extends
     } yield Abs(x, i, objL)
 }
 
-case class VerbSentencePhrase(word: String, sentence: NounPhraseWithVerbPhrase) extends VerbPhrase {
+final case class VerbSentencePhrase(
+  word: String,
+  sentence: NounPhraseWithVerbPhrase
+) extends VerbPhrase {
   override def interpret(cont: E): CState = for {
     // TODO: probably I should use the verb somehow
     sentenceL <- sentence.interpret(cont)
@@ -31,7 +39,10 @@ case class VerbSentencePhrase(word: String, sentence: NounPhraseWithVerbPhrase) 
   } yield Abs(x, i, sentenceL)
 }
 
-case class VerbAdjectivePhrase(verb: String, adjective: Adjective) extends VerbPhrase {
+final case class VerbAdjectivePhrase(
+  verb: String,
+  adjective: Adjective
+) extends VerbPhrase {
   override def interpret(cont: E): CState =
     verb match {
       case "is" | "was" =>

@@ -3,13 +3,14 @@ package sensala.structure
 import org.aossie.scavenger.expression.formula.And
 import org.aossie.scavenger.expression._
 import contextMonad._
-import sensala.normalization.NormalFormConverter
 
 trait NounPhraseWithVerbPhrase extends NounPhrase {
   val verbPhrase: VerbPhrase
 }
 
-case class ProperNounVP(word: String, verbPhrase: VerbPhrase) extends Word with NounPhraseWithVerbPhrase {
+final case class ProperNounVP(
+  word: String, verbPhrase: VerbPhrase
+) extends Word with NounPhraseWithVerbPhrase {
   override def interpret(cont: E): CState =
     for {
       x <- bindFreeVar
@@ -20,25 +21,29 @@ case class ProperNounVP(word: String, verbPhrase: VerbPhrase) extends Word with 
   override def gender: Gender = word match {
     case "Mary" => Female
     case "John" => Male
-    case _ => Other
+    case _      => Other
   }
 }
 
-case class ReflexivePronounVP(word: String, verbPhrase: VerbPhrase) extends Word with NounPhraseWithVerbPhrase {
+final case class ReflexivePronounVP(
+  word: String,
+  verbPhrase: VerbPhrase
+) extends Word with NounPhraseWithVerbPhrase {
   override def interpret(cont: E): CState =
     for {
       x <- bindFreeVar
-      ref <- if (word.toLowerCase == "it") inspect(_.findAnaphoricReferent(Abs(x, i, App(nonHuman, x))).get)
-            else if (word.toLowerCase == "he") inspect(_.findAnaphoricReferent(Abs(x, i, App(male, x))).get)
+      ref <- if (word.toLowerCase == "it")
+              inspect(_.findAnaphoricReferent(Abs(x, i, App(nonHuman, x))).get)
+            else if (word.toLowerCase == "he")
+              inspect(_.findAnaphoricReferent(Abs(x, i, App(male, x))).get)
             else ???
       verbL <- verbPhrase.interpret(cont)
     } yield App(verbL, ref)
 
   override def gender: Gender = word match {
-    case "he" => Male
+    case "he"  => Male
     case "she" => Female
-    case "it" => Other
-    case _ => Other
+    case "it"  => Other
+    case _     => Other
   }
 }
-

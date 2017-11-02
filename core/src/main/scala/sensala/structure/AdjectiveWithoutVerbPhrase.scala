@@ -5,9 +5,13 @@ import org.aossie.scavenger.expression.formula.And
 
 trait AdjectiveWithoutVerbPhrase extends NounPhraseWithoutVerbPhrase
 
-final case class AdjectivePhrase(adjective: Adjective, nounPhrase: NounPhrase) extends AdjectiveWithoutVerbPhrase {
+final case class AdjectivePhrase(
+  adjective: Adjective,
+  nounPhrase: NounPhrase
+) extends AdjectiveWithoutVerbPhrase {
   override def interpret(cont: E): CState =
     for {
+      f <- bindFreeVar
       x <- bindFreeVar
       y <- bindFreeVar
       w = Sym(adjective.word)

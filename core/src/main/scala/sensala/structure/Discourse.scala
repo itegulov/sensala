@@ -4,7 +4,7 @@ import cats.implicits._
 import org.aossie.scavenger.expression._
 import org.aossie.scavenger.expression.formula.True
 
-case class Discourse(sentences: List[NounPhraseWithVerbPhrase]) extends NL {
+final case class Discourse(sentences: List[NounPhraseWithVerbPhrase]) extends NL {
   override def interpret(cont: E): CState =
     for {
       x <- bindFreeVar

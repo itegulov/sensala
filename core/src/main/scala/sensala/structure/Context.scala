@@ -2,8 +2,7 @@ package sensala.structure
 
 import org.aossie.scavenger.expression._
 
-// TODO: make context more general, generic and abstract
-case class Context(
+final case class Context(
   referentProperties: Map[Sym, E],
   boundSymbols: Set[Sym]
 ) {
@@ -16,11 +15,11 @@ case class Context(
     copy(referentProperties = referentProperties.updated(newRef, properties))
   def addReferent(newRef: Var, gender: Gender): Context =
     gender match {
-      case Male   => 
+      case Male =>
         addReferent(newRef, Abs(newRef, i, App(male, newRef)))
-      case Female => 
+      case Female =>
         addReferent(newRef, Abs(newRef, i, App(female, newRef)))
-      case Other  => 
+      case Other =>
         addReferent(newRef, Abs(newRef, i, App(nonHuman, newRef)))
     }
   def deleteReferent(oldRef: Sym): Context =

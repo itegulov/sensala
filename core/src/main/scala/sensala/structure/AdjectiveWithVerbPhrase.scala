@@ -5,7 +5,11 @@ import org.aossie.scavenger.expression.formula.And
 
 trait AdjectiveWithVerbPhrase extends NounPhraseWithVerbPhrase
 
-final case class AdjectivePhraseVP(adjective: Adjective, nounPhrase: NounPhrase, verbPhrase: VerbPhrase) extends AdjectiveWithVerbPhrase {
+final case class AdjectivePhraseVP(
+  adjective: Adjective,
+  nounPhrase: NounPhrase,
+  verbPhrase: VerbPhrase
+) extends AdjectiveWithVerbPhrase {
   override def interpret(cont: E): CState =
     for {
       x <- bindFreeVar

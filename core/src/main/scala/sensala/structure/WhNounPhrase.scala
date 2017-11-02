@@ -2,7 +2,10 @@ package sensala.structure
 
 import org.aossie.scavenger.expression._
 
-case class WhNounPhrase(verbPhrase: VerbPhrase, nounPhrase: NounPhrase) extends NounPhraseWithoutVerbPhrase {
+final case class WhNounPhrase(
+  verbPhrase: VerbPhrase,
+  nounPhrase: NounPhrase
+) extends NounPhraseWithoutVerbPhrase {
   override def interpret(cont: E): CState =
     for {
       x <- bindFreeVar

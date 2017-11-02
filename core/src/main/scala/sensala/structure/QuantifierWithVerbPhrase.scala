@@ -7,7 +7,10 @@ import contextMonad._
 
 trait QuantifierWithVerbPhrase extends NounPhraseWithVerbPhrase
 
-case class ForallQuantifierVP(nounPhrase: NounPhrase, verbPhrase: VerbPhrase) extends QuantifierWithVerbPhrase {
+final case class ForallQuantifierVP(
+  nounPhrase: NounPhrase,
+  verbPhrase: VerbPhrase
+) extends QuantifierWithVerbPhrase {
   override def interpret(cont: E): CState = for {
     x <- bindFreeVar
     y <- bindFreeVar
@@ -22,7 +25,10 @@ case class ForallQuantifierVP(nounPhrase: NounPhrase, verbPhrase: VerbPhrase) ex
   override def gender = nounPhrase.gender
 }
 
-case class ExistentialQuantifierVP(nounPhrase: NounPhrase, verbPhrase: VerbPhrase) extends QuantifierWithVerbPhrase {
+final case class ExistentialQuantifierVP(
+  nounPhrase: NounPhrase,
+  verbPhrase: VerbPhrase
+) extends QuantifierWithVerbPhrase {
   override def interpret(cont: E): CState = for {
     x <- bindFreeVar
     y <- bindFreeVar

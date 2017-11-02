@@ -5,7 +5,6 @@ import cats.mtl.MonadState
 import cats.mtl.implicits._
 import org.aossie.scavenger.expression._
 import org.aossie.scavenger.expression.formula._
-import sensala.normalization.NormalFormConverter
 
 import scala.annotation.tailrec
 

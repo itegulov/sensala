@@ -17,7 +17,13 @@ object CLI {
   case class Config(discourse: String = "")
 
   private val parser = new scopt.OptionParser[Config]("sensala") {
-    head("\nSensala's Command Line Interface\n\n")
+    head(
+      """
+        |Sensala's Command Line Interface
+        |
+        |
+      """.stripMargin
+    )
 
     arg[String]("<discourse>...") optional () action { (v, c) =>
       c.copy(discourse = v)
@@ -25,11 +31,12 @@ object CLI {
 
     help("help") text "print this usage text"
 
-    note("""
-    Example:
-
-      sensala "John loves Mary"
-      """)
+    note(
+      """Example:
+        |
+        |sensala "John loves Mary"
+      """.stripMargin
+    )
   }
 
   

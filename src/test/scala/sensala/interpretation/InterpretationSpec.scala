@@ -27,10 +27,11 @@ class InterpretationSpec extends SensalaSpec {
   
   // Scalatest treats === as an alpha equality
   implicit val lambdaEq: Equality[E] =
-    (a: E, b: Any) => b match {
-      case bl: E => a =+= bl
-      case _ => false
-    }
+    (a: E, b: Any) => 
+      b match {
+        case bl: E => a =+= bl
+        case _ => false
+      }
   
   val x = Var("x")
   val y = Var("y")

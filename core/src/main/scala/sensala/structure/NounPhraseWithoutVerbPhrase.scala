@@ -7,7 +7,9 @@ import contextMonad._
 
 trait NounPhraseWithoutVerbPhrase extends NounPhrase
 
-case class ProperNoun(word: String) extends Word with NounPhraseWithoutVerbPhrase {
+final case class ProperNoun(
+  word: String
+) extends Word with NounPhraseWithoutVerbPhrase {
   override def interpret(cont: E): CState =
     for {
       x <- bindFreeVar
@@ -17,11 +19,13 @@ case class ProperNoun(word: String) extends Word with NounPhraseWithoutVerbPhras
   override def gender: Gender = word match {
     case "Mary" => Female
     case "John" => Male
-    case _ => Other
+    case _      => Other
   }
 }
 
-case class CommonNoun(word: String) extends Word with NounPhraseWithoutVerbPhrase {
+case class CommonNoun(
+  word: String
+) extends Word with NounPhraseWithoutVerbPhrase {
   override def interpret(cont: E): CState =
     for {
       x <- bindFreeVar
@@ -32,23 +36,27 @@ case class CommonNoun(word: String) extends Word with NounPhraseWithoutVerbPhras
     case "farmer" => Male
     case "lawyer" => Male
     case "donkey" => Other
-    case _ => Other
+    case _        => Other
   }
 }
 
-case class ReflexivePronoun(word: String) extends Word with NounPhraseWithoutVerbPhrase {
+final case class ReflexivePronoun(
+  word: String
+) extends Word with NounPhraseWithoutVerbPhrase {
   override def interpret(cont: E): CState =
     for {
       x <- bindFreeVar
-      ref <- if (word.toLowerCase == "it") inspect(_.findAnaphoricReferent(Abs(x, i, App(nonHuman, x))).get)
-            else if (word.toLowerCase == "he") inspect(_.findAnaphoricReferent(Abs(x, i, App(male, x))).get)
+      ref <- if (word.toLowerCase == "it")
+              inspect(_.findAnaphoricReferent(Abs(x, i, App(nonHuman, x))).get)
+            else if (word.toLowerCase == "he")
+              inspect(_.findAnaphoricReferent(Abs(x, i, App(male, x))).get)
             else ???
     } yield App(cont, ref)
 
   override def gender: Gender = word match {
-    case "he" => Male
+    case "he"  => Male
     case "she" => Female
-    case "it" => Other
-    case _ => Other
+    case "it"  => Other
+    case _     => Other
   }
 }
