@@ -35,6 +35,16 @@ object SensalaBuild {
       "org.scalatest"              %% "scalatest"      % "3.0.4" % Test
     )
   )
+  
+  lazy val conceptNet = Project(id = "concept-net", base = file("concept-net"))
+    .settings(commonSettings ++ commonDeps)
+    .settings(name := "sensala-concept-net")
+    .settings(
+      libraryDependencies ++= Seq(
+        "com.typesafe.play" %% "play-ahc-ws-standalone" % "1.1.2",
+        "com.typesafe.play" %% "play-ws-standalone-json" % "1.1.2"
+      )
+    )
 
   lazy val core = Project(id = "core", base = file("core"))
     .settings(commonSettings ++ commonDeps)

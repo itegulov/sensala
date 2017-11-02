@@ -1,0 +1,17 @@
+package sensala.conceptnet.structure.auxilary
+
+sealed trait ConceptNetRelation
+
+object RelatedTo extends ConceptNetRelation
+object Synonym extends ConceptNetRelation
+object Antonym extends ConceptNetRelation
+object CapableOf extends ConceptNetRelation
+object IsA extends ConceptNetRelation
+object ExternalUrl extends ConceptNetRelation
+object FormOf extends ConceptNetRelation
+object HasContext extends ConceptNetRelation
+object PartOf extends ConceptNetRelation
+object SimilarTo extends ConceptNetRelation
+object UsedFor extends ConceptNetRelation
+object Genus extends ConceptNetRelation
+object EtymologicallyRelatedTo extends ConceptNetRelation
