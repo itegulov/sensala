@@ -30,6 +30,7 @@ case class CommonNoun(word: String) extends Word with NounPhraseWithoutVerbPhras
 
   override def gender: Gender = word match {
     case "farmer" => Male
+    case "lawyer" => Male
     case "donkey" => Other
     case _ => Other
   }
