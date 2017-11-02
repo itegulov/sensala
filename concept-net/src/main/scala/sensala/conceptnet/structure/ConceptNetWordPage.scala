@@ -6,5 +6,5 @@ final case class ConceptNetWordPage(
   id: ConceptNetId,
   context: List[String],
   edges: List[ConceptNetEdge],
-  view: ConceptNetView
+  view: Option[ConceptNetView]
 ) extends ConceptNetStructure

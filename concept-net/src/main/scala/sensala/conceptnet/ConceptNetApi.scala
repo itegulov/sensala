@@ -31,10 +31,15 @@ class ConceptNetApi(implicit system: ActorSystem, materializer: ActorMaterialize
         body.validate[ConceptNetWordPage] match {
           case JsSuccess(page, _) =>
             logger.debug(s"Parsed page: $page")
-            page.view.nextPage match {
-              case Some(nextPageUrl) =>
-                requestUrl(s"http://api.conceptnet.io$nextPageUrl").map {
-                  x => x.copy(edges = page.edges ++ x.edges)
+            page.view match {
+              case Some(view) =>
+                view.nextPage match {
+                  case Some(nextPageUrl) =>
+                    requestUrl(s"http://api.conceptnet.io$nextPageUrl").map {
+                      x => x.copy(edges = page.edges ++ x.edges)
+                    }
+                  case None =>
+                    Future.successful(ConceptNetWord(page.id, page.context, page.edges))
                 }
               case None =>
                 Future.successful(ConceptNetWord(page.id, page.context, page.edges))
@@ -44,5 +49,9 @@ class ConceptNetApi(implicit system: ActorSystem, materializer: ActorMaterialize
             sys.error("Invalid state")
         }
       }
+  }
+  
+  def close(): Unit = {
+    wsClient.close()
   }
 }

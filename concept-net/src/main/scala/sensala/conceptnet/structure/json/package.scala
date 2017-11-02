@@ -10,7 +10,7 @@ package object json {
   
   implicit val languageReads: Reads[ConceptNetLanguage] = JsPath.read[String].map {
     case "en" => English
-    case _ => Other
+    case _ => OtherLanguage
   }
   
   implicit val relationReads: Reads[ConceptNetRelation] = (JsPath \ "label").read[String].map {
@@ -27,6 +27,9 @@ package object json {
     case "UsedFor" => UsedFor
     case "genus" => Genus
     case "EtymologicallyRelatedTo" => EtymologicallyRelatedTo
+    case "AtLocation" => AtLocation
+    case "Desires" => Desires
+    case _ => OtherRelation
   }
   
   implicit val sourceReads: Reads[ConceptNetSource] = (
@@ -66,6 +69,6 @@ package object json {
     (JsPath \ "@id").read[ConceptNetId] and
     (JsPath \ "@context").read[List[String]] and
     (JsPath \ "edges").read[List[ConceptNetEdge]] and
-    (JsPath \ "view").read[ConceptNetView]
+    (JsPath \ "view").readNullable[ConceptNetView]
   )(ConceptNetWordPage.apply _)
 }

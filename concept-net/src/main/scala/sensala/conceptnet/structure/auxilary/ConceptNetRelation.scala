@@ -15,3 +15,6 @@ object SimilarTo extends ConceptNetRelation
 object UsedFor extends ConceptNetRelation
 object Genus extends ConceptNetRelation
 object EtymologicallyRelatedTo extends ConceptNetRelation
+object AtLocation extends ConceptNetRelation
+object Desires extends ConceptNetRelation
+object OtherRelation extends ConceptNetRelation
