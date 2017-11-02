@@ -6,7 +6,7 @@ object SensalaBuild {
   lazy val commonSettings = Seq(
     organization := "",
     version := "0.1",
-    scalaVersion := "2.12.3",
+    scalaVersion := "2.12.4",
     scalacOptions := Seq(
       "-encoding",
       "UTF-8",
@@ -35,13 +35,13 @@ object SensalaBuild {
       "org.scalatest"              %% "scalatest"      % "3.0.4" % Test
     )
   )
-  
+
   lazy val conceptNet = Project(id = "concept-net", base = file("concept-net"))
     .settings(commonSettings ++ commonDeps)
     .settings(name := "sensala-concept-net")
     .settings(
       libraryDependencies ++= Seq(
-        "com.typesafe.play" %% "play-ahc-ws-standalone" % "1.1.2",
+        "com.typesafe.play" %% "play-ahc-ws-standalone"  % "1.1.2",
         "com.typesafe.play" %% "play-ws-standalone-json" % "1.1.2"
       )
     )
@@ -51,10 +51,10 @@ object SensalaBuild {
     .settings(name := "sensala-core")
     .settings(
       libraryDependencies ++= Seq(
-        "org.typelevel"              %% "cats-core"      % "1.0.0-MF",
-        "org.typelevel"              %% "cats-mtl-core"  % "0.0.2",
-        "com.ironcorelabs"           %% "cats-scalatest" % "2.3.0" % Test,
-        "org.aossie" %% "scavenger" % "0.2"
+        "org.typelevel"    %% "cats-core"      % "1.0.0-RC1",
+        "org.typelevel"    %% "cats-mtl-core"  % "0.0.2",
+        "com.ironcorelabs" %% "cats-scalatest" % "2.3.0" % Test,
+        "org.aossie"       %% "scavenger"      % "0.2"
       )
     )
 
