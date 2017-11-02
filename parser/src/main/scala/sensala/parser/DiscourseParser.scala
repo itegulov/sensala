@@ -38,6 +38,7 @@ object DiscourseParser {
     }
     (whNounPhrases.headOption, verbSentences.headOption) match {
       case (Some(whNoun), Some(verb)) => (x: NounPhrase) => whNoun(verb, x)
+      case _ => sys.error("Invalid wh-noun phrase")
     }
   }
   
@@ -177,6 +178,7 @@ object DiscourseParser {
     nounOpt match {
       case Some(np: NounPhraseWithVerbPhrase)    => np
       case Some(_: NounPhraseWithoutVerbPhrase) => sys.error("Sentence should contain a verb phrase")
+      case Some(_) => sys.error("Invalid state")
       case None => sys.error("Sentence should contain a noun phrase")
     }
   }
