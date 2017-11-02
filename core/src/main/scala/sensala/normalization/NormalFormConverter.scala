@@ -1,67 +1,47 @@
 package sensala.normalization
 
-import sensala.structure._
-import cats.data.State
 import org.aossie.scavenger.expression._
 
 object NormalFormConverter {
-  def substitute(l: E, v: Sym, e: E): CState = l match {
-    case lamV: Sym if v == lamV =>
-      State { context =>
-        if (context.referentProperties.contains(v)) {
-          e match {
-            case s: Sym => (context.addConversion(v, s).deleteReferent(v).addReferent(s, context.referentProperties(v)), e)
-            case _      => (context, e)
-          }
-        } else {
-          (context, e)
-        }
-      }
-    case v: Sym => State.pure(v)
+  def substitute(l: E, v: String, e: E, scope: Set[String] = Set()): E = l match {
+    case lamV: Sym if v == lamV.name => e
+    case v: Sym                      => v
     case App(x, y) =>
-      for {
-        substX <- substitute(x, v, e)
-        substY <- substitute(y, v, e)
-      } yield App(substX, substY)
+      App(substitute(x, v, e, scope), substitute(y, v, e, scope))
     case t @ Abs(bind, typ, body) =>
-      val bodyFree = body.freeVariables
-      if (bind == v || !bodyFree.contains(v)) {
-        State.pure(t)
+      val bodyFree = body.freeVariables.map(_.name).toSet
+      if (bind.name == v || !bodyFree.contains(v)) {
+        t
       } else {
-        substitute(body, v, e).map(Abs(bind, typ, _))
+        Abs(bind, typ, substitute(body, v, e))
       }
   }
 
-  def headNormalForm(l: E): CState = l match {
-    case v: Sym               => State.pure(v)
-    case Abs(bind, typ, body) => headNormalForm(body).map(Abs(bind, typ, _))
+  def headNormalForm(l: E, scope: Set[String] = Set()): E = l match {
+    case v: Sym          => v
+    case Abs(bind, typ, body) => Abs(bind, typ, headNormalForm(body, scope + bind.name))
     case App(lhs, rhs) =>
-      headNormalForm(lhs).flatMap {
+      headNormalForm(lhs, scope) match {
         case Abs(bind, _, body) =>
-          for {
-            substL <- substitute(body, bind, rhs)
-            hnfL   <- headNormalForm(substL)
-          } yield hnfL
-        case c => State.pure(App(c, rhs))
+          headNormalForm(
+            substitute(body, bind.name, rhs, scope + bind.name),
+            scope + bind.name
+          )
+        case c =>
+          App(c, rhs)
       }
   }
 
-  def normalForm(l: E): CState =
+  def normalForm(l: E, scope: Set[String] = Set()): E = {
     l match {
-      case v: Sym               => State.pure(v)
-      case Abs(bind, typ, body) => normalForm(body).map(Abs(bind, typ, _))
+      case v: Sym => v
+      case Abs(bind, typ, body) => Abs(bind, typ, normalForm(body, scope + bind.name))
       case App(lhs, rhs) =>
-        headNormalForm(lhs).flatMap {
+        headNormalForm(lhs) match {
           case Abs(bind, _, body) =>
-            for {
-              substL <- substitute(body, bind, rhs)
-              result <- normalForm(substL)
-            } yield result
-          case o =>
-            for {
-              oL   <- normalForm(o)
-              rhsL <- normalForm(rhs)
-            } yield App(oL, rhsL)
+            normalForm(substitute(body, bind.name, rhs, scope + bind.name), scope + bind.name)
+          case o => App(normalForm(o, scope), normalForm(rhs, scope))
         }
     }
+  }
 }

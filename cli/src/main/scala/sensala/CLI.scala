@@ -42,7 +42,7 @@ object CLI {
            |  $sentence
         """.stripMargin
       )
-      val (context1, lambdaTerm) = sentence.interpret(True).run(Context(Map.empty, Set.empty, Nil)).value
+      val (context, lambdaTerm) = sentence.interpret(True).run(Context(Map.empty, Set.empty)).value
       logger.info(
         s"""
            |Result of discourse interpretation:
@@ -50,8 +50,7 @@ object CLI {
            |  ${lambdaTerm.pretty}
         """.stripMargin
       )
-      val (context2, normalizedTerm) = NormalFormConverter.normalForm(lambdaTerm).run(context1).value
-      val (context, result) = applyConversions(normalizedTerm).run(context2).value
+      val result = NormalFormConverter.normalForm(lambdaTerm)
       logger.info(
         s"""
            |Result of applying β-reduction:

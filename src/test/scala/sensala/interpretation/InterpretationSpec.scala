@@ -15,11 +15,10 @@ class InterpretationSpec extends SensalaSpec {
     println(parsed)
     val resultM = for {
       lambda <- parsed.interpret(True)
-      normalized <- NormalFormConverter.normalForm(lambda)
-      converted <- applyConversions(normalized)
-      prettified = PrettyTransformer.transform(converted)
+      normalized = NormalFormConverter.normalForm(lambda)
+      prettified = PrettyTransformer.transform(normalized)
     } yield prettified
-    val (_, result) = resultM.run(Context(Map.empty, Set.empty, Nil)).value
+    val (_, result) = resultM.run(Context(Map.empty, Set.empty)).value
     println(result.pretty)
     result
   }

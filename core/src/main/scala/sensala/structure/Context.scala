@@ -5,8 +5,7 @@ import org.aossie.scavenger.expression._
 // TODO: make context more general, generic and abstract
 case class Context(
   referentProperties: Map[Sym, E],
-  boundSymbols: Set[Sym],
-  conversions: List[(Sym, Sym)]
+  boundSymbols: Set[Sym]
 ) {
   def findAnaphoricReferent(properties: E): Option[Sym] =
     referentProperties.find {
@@ -28,6 +27,4 @@ case class Context(
     copy(referentProperties = referentProperties - oldRef)
   def addBoundSym(sym: Sym): Context =
     copy(boundSymbols = boundSymbols + sym)
-  def addConversion(v: Sym, s: Sym): Context =
-    copy(conversions = (v, s) :: conversions)
 }

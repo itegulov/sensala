@@ -49,13 +49,6 @@ package object structure {
       }
   }
 
-  def applyConversions(lambda: E): CState = 
-    State.get.flatMap { context =>
-      context.conversions.foldRight[CState](State.pure(lambda)) {
-        case ((v, s), lambdaL) => lambdaL.flatMap(NormalFormConverter.substitute(_, v, s))
-      }
-    }
-
   def bindFreeVar: ContextState[Var] =
     State { context =>
       @tailrec
