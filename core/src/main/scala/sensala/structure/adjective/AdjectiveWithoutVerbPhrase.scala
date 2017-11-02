@@ -1,11 +1,13 @@
-package sensala.structure
+package sensala.structure.adjective
 
 import org.aossie.scavenger.expression._
 import org.aossie.scavenger.expression.formula.And
+import sensala.structure.noun.{NounPhrase, NounPhraseWithoutVerbPhrase}
+import sensala.structure._
 
-trait AdjectiveWithoutVerbPhrase extends NounPhraseWithoutVerbPhrase
+trait AdjectiveWithoutVerbPhrase extends AdjectivePhrase with NounPhraseWithoutVerbPhrase
 
-final case class AdjectivePhrase(
+final case class AdjectiveNounPhrase(
   adjective: Adjective,
   nounPhrase: NounPhrase
 ) extends AdjectiveWithoutVerbPhrase {

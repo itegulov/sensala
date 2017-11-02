@@ -3,6 +3,7 @@ package sensala.structure
 import cats.implicits._
 import org.aossie.scavenger.expression._
 import org.aossie.scavenger.expression.formula.True
+import sensala.structure.noun.NounPhraseWithVerbPhrase
 
 final case class Discourse(sentences: List[NounPhraseWithVerbPhrase]) extends NL {
   override def interpret(cont: E): CState =

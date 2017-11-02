@@ -5,11 +5,16 @@ import java.util.Properties
 
 import com.typesafe.scalalogging.Logger
 import edu.stanford.nlp.trees.Tree
-import sensala.structure._
 import edu.stanford.nlp.ling.CoreAnnotations._
 import edu.stanford.nlp.pipeline.{Annotation, StanfordCoreNLP}
 import edu.stanford.nlp.trees.TreeCoreAnnotations._
 import edu.stanford.nlp.util.CoreMap
+
+import sensala.structure._
+import sensala.structure.adjective._
+import sensala.structure.noun._
+import sensala.structure.verb._
+import sensala.structure.wh._
 
 object DiscourseParser {
   private val logger = Logger[this.type]
@@ -83,8 +88,8 @@ object DiscourseParser {
               case (None, Some(properNoun: ProperNoun), Some(vp)) => ProperNounVP(properNoun.word, vp)
               case (None, Some(rf: ReflexivePronoun), None) => rf
               case (None, Some(rf: ReflexivePronoun), Some(vp)) => ReflexivePronounVP(rf.word, vp)
-              case (Some(adj), Some(np), None) => AdjectivePhrase(adj, np)
-              case (Some(adj), Some(np), Some(vp)) => AdjectivePhraseVP(adj, np, vp)
+              case (Some(adj), Some(np), None) => AdjectiveNounPhrase(adj, np)
+              case (Some(adj), Some(np), Some(vp)) => AdjectiveNounPhraseVP(adj, np, vp)
               case _ => sys.error("Invalid noun phrase")
             }
         }
@@ -135,7 +140,7 @@ object DiscourseParser {
       case "VP" if tree.children.length == 2 =>
         val transitiveVerb = tree.getChild(0).getChild(0).label.value
         convert(tree.getChild(1)) match {
-          case nounPhrase: NounPhraseWithoutVerbPhrase => VerbObjPhrase(transitiveVerb, nounPhrase)
+          case nounPhrase: NounPhraseWithoutVerbPhrase => TransitiveVerb(transitiveVerb, nounPhrase)
           case adjective: Adjective => VerbAdjectivePhrase(transitiveVerb, adjective)
           case sentence: NounPhraseWithVerbPhrase => VerbSentencePhrase(transitiveVerb, sentence)
         }

@@ -1,8 +1,10 @@
-package sensala.structure
+package sensala.structure.noun
 
-import org.aossie.scavenger.expression.formula.And
 import org.aossie.scavenger.expression._
+import org.aossie.scavenger.expression.formula.And
+import sensala.structure._
 import contextMonad._
+import sensala.structure.verb.VerbPhrase
 
 trait NounPhraseWithVerbPhrase extends NounPhrase {
   val verbPhrase: VerbPhrase

@@ -1,8 +1,8 @@
-package sensala.structure
+package sensala.structure.noun
 
 import org.aossie.scavenger.expression._
 import org.aossie.scavenger.expression.formula._
-
+import sensala.structure._
 import contextMonad._
 
 trait QuantifierWithoutVerbPhrase extends NounPhraseWithoutVerbPhrase

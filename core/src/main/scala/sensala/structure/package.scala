@@ -9,9 +9,6 @@ import org.aossie.scavenger.expression.formula._
 import scala.annotation.tailrec
 
 package object structure {
-  // TODO: Specify correct type for symbols
-  // TODO: extend this with articles, NL quantifiers, adverbs, ...
-
   // State monad over the Context type aliases
   type ContextState[A] = State[Context, A]
   type CState          = State[Context, E]
