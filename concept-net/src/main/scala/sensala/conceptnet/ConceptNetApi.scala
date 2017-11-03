@@ -19,11 +19,11 @@ class ConceptNetApi(implicit system: ActorSystem, materializer: ActorMaterialize
   
   private val wsClient = StandaloneAhcWSClient()
   
-  def requestWord(word: String): Future[ConceptNetWord] = {
-    requestUrl(s"http://api.conceptnet.io/c/en/$word?limit=100")
+  def requestWord(word: String, limit: Int = 5000): Future[ConceptNetWord] = {
+    requestUrl(s"http://api.conceptnet.io/c/en/$word?limit=100", limit)
   }
   
-  private def requestUrl(url: String): Future[ConceptNetWord] = {
+  private def requestUrl(url: String, limit: Int): Future[ConceptNetWord] = {
     wsClient.url(url)
       .get()
       .flatMap { response =>
@@ -31,18 +31,22 @@ class ConceptNetApi(implicit system: ActorSystem, materializer: ActorMaterialize
         body.validate[ConceptNetWordPage] match {
           case JsSuccess(page, _) =>
             logger.debug(s"Parsed page: $page")
-            page.view match {
-              case Some(view) =>
-                view.nextPage match {
-                  case Some(nextPageUrl) =>
-                    requestUrl(s"http://api.conceptnet.io$nextPageUrl").map {
-                      x => x.copy(edges = page.edges ++ x.edges)
-                    }
-                  case None =>
-                    Future.successful(ConceptNetWord(page.id, page.context, page.edges))
-                }
-              case None =>
-                Future.successful(ConceptNetWord(page.id, page.context, page.edges))
+            if (page.edges.size >= limit) {
+              Future.successful(ConceptNetWord(page.id, page.context, page.edges))
+            } else {
+              page.view match {
+                case Some(view) =>
+                  view.nextPage match {
+                    case Some(nextPageUrl) =>
+                      requestUrl(s"http://api.conceptnet.io$nextPageUrl", limit - page.edges.size).map {
+                        x => x.copy(edges = page.edges ++ x.edges)
+                      }
+                    case None =>
+                      Future.successful(ConceptNetWord(page.id, page.context, page.edges))
+                  }
+                case None =>
+                  Future.successful(ConceptNetWord(page.id, page.context, page.edges))
+              }
             }
           case JsError(errors) =>
             logger.error(errors.mkString("\n"))
