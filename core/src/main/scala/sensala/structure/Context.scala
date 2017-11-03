@@ -7,6 +7,8 @@ import org.aossie.scavenger.prover.{EPCR, Unsatisfiable}
 import org.aossie.scavenger.structure.immutable.{AxiomClause, NegConjectureClause}
 import sensala.property.Property
 
+import scala.concurrent.duration._
+
 final case class Context(
   referentProperties: Map[Sym, E],
   boundSymbols: Set[Sym]
@@ -17,7 +19,7 @@ final case class Context(
     referentProperties.find {
       case (_, refProperties) =>
         val cnf = clausifier(List((refProperties, AxiomClause), (All(v, i, Neg(properties)), NegConjectureClause)))
-        EPCR.prove(cnf) match {
+        EPCR.prove(cnf, 5 seconds) match {
           case Unsatisfiable(_) => true
           case _ => false
         }

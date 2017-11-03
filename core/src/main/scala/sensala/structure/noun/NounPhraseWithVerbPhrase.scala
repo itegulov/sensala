@@ -1,7 +1,7 @@
 package sensala.structure.noun
 
 import org.aossie.scavenger.expression._
-import org.aossie.scavenger.expression.formula.And
+import org.aossie.scavenger.expression.formula.{And, Or}
 import sensala.structure._
 import contextMonad._
 import sensala.property.Property
@@ -38,7 +38,7 @@ final case class ReflexivePronounVP(
       ref <- if (word.toLowerCase == "it")
               inspect(_.findAnaphoricReferent(x, App(nonHuman, x)).get)
             else if (word.toLowerCase == "he")
-              inspect(_.findAnaphoricReferent(x, App(male, x)).get)
+              inspect(_.findAnaphoricReferent(x, Or(App(male, x), App(human, x))).get)
             else ???
       verbL <- verbPhrase.interpret(cont)
     } yield App(verbL, ref)

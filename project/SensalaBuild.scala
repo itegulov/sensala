@@ -23,6 +23,7 @@ object SensalaBuild {
       "-Xfuture",
       "-Xexperimental"
     ),
+    resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots",
     scalacOptions in (Compile, console) -= "-Ywarn-unused-import",
     scalacOptions in (Compile, doc) ++= Seq("-diagrams", "-implicits"),
     scalacOptions in Test ++= Seq("-Yrangepos")
@@ -54,7 +55,7 @@ object SensalaBuild {
         "org.typelevel"    %% "cats-core"      % "1.0.0-MF",
         "org.typelevel"    %% "cats-mtl-core"  % "0.0.2",
         "com.ironcorelabs" %% "cats-scalatest" % "2.3.0" % Test,
-        "org.aossie"       %% "scavenger"      % "0.2"
+        "org.aossie"       %% "scavenger"      % "0.2.1-SNAPSHOT"
       )
     )
     .dependsOn(conceptNet)
