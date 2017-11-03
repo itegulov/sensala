@@ -43,7 +43,8 @@ object SensalaBuild {
     .settings(
       libraryDependencies ++= Seq(
         "com.typesafe.play" %% "play-ahc-ws-standalone"  % "1.1.2",
-        "com.typesafe.play" %% "play-ws-standalone-json" % "1.1.2"
+        "com.typesafe.play" %% "play-ws-standalone-json" % "1.1.2",
+        "net.sf.ehcache" % "ehcache" % "2.10.4"
       )
     )
 
