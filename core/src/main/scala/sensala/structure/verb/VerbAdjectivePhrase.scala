@@ -2,13 +2,13 @@ package sensala.structure.verb
 
 import org.aossie.scavenger.expression.formula.And
 import org.aossie.scavenger.expression._
-import sensala.structure.adjective.{Adjective, AdjectivePhrase}
+import sensala.structure.adjective.Adjective
 import sensala.structure.{CState, bindFreeVar}
 
 final case class VerbAdjectivePhrase(
   verb: String,
   adjective: Adjective
-) extends VerbPhrase with AdjectivePhrase {
+) extends VerbPhrase {
   override def interpret(cont: E): CState =
     verb match {
       case "is" | "was" =>
