@@ -7,9 +7,10 @@ import sensala.structure.{CState, Word, bindFreeVar}
 final case class IntransitiveVerb(
   word: String
 ) extends Word with VerbPhrase {
-  override def interpret(cont: E): CState =
+  override def interpret(cont: CState): CState =
     for {
       x <- bindFreeVar
       w = Sym(word)
-    } yield Abs(x, i, And(App(w, x), App(cont, x)))
+      contL <- cont
+    } yield Abs(x, i, And(App(w, x), App(contL, x)))
 }

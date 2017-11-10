@@ -12,16 +12,18 @@ final case class ForallQuantifierVP(
   nounPhrase: NounPhrase,
   verbPhrase: VerbPhrase
 ) extends QuantifierWithVerbPhrase {
-  override def interpret(cont: E): CState = for {
+  override def interpret(cont: CState): CState = for {
     x <- bindFreeVar
     y <- bindFreeVar
-    z <- bindFreeVar
     _ <- modify(_.addReferent(x, properties))
-    nounL <- nounPhrase.interpret(z)
-    verbL <- verbPhrase.interpret(cont)
+    nounL <- nounPhrase.interpret(
+      for {
+        verbL <- verbPhrase.interpret(cont)
+      } yield Abs(y, i, Neg(App(verbL, y)))
+    )
     // TODO: understand the scope of forall quantifier
 //    _ <- modify(_.deleteReferent(x))
-  } yield All(x, i, Neg(App(App(Abs(z, i, nounL), Abs(y, i, Neg(App(verbL, y)))), x)))
+  } yield All(x, i, Neg(App(nounL, x)))
 
   override def properties = nounPhrase.properties
 }
@@ -30,13 +32,12 @@ final case class ExistentialQuantifierVP(
   nounPhrase: NounPhrase,
   verbPhrase: VerbPhrase
 ) extends QuantifierWithVerbPhrase {
-  override def interpret(cont: E): CState = for {
+  override def interpret(cont: CState): CState = for {
     x <- bindFreeVar
     y <- bindFreeVar
     _ <- modify(_.addReferent(x, properties))
-    nounL <- nounPhrase.interpret(y)
-    verbL <- verbPhrase.interpret(cont)
-  } yield Ex(x, i, App(App(Abs(y, i, nounL), verbL), x))
+    nounL <- nounPhrase.interpret(verbPhrase.interpret(cont))
+  } yield Ex(x, i, App(nounL, x))
 
   override def properties = nounPhrase.properties
 }

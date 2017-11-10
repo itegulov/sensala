@@ -1,5 +1,6 @@
 package sensala.structure.adjective
 
+import cats.data.State
 import org.aossie.scavenger.expression._
 import org.aossie.scavenger.expression.formula.And
 import sensala.structure.noun.{NounPhrase, NounPhraseWithoutVerbPhrase}
@@ -11,13 +12,14 @@ final case class AdjectiveNounPhrase(
   adjective: Adjective,
   nounPhrase: NounPhrase
 ) extends AdjectiveWithoutVerbPhrase {
-  override def interpret(cont: E): CState =
+  override def interpret(cont: CState): CState =
     for {
       f <- bindFreeVar
       x <- bindFreeVar
       y <- bindFreeVar
       w = Sym(adjective.word)
-      nounL <- nounPhrase.interpret(Abs(y, i, And(App(w, y), App(cont, y))))
+      contL <- cont
+      nounL <- nounPhrase.interpret(State.pure(Abs(y, i, And(App(w, y), App(contL, y)))))
     } yield Abs(x, i, App(nounL, x))
 
   override def properties = nounPhrase.properties

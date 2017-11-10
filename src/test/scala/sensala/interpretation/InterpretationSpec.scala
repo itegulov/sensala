@@ -1,5 +1,6 @@
 package sensala.interpretation
 
+import cats.data.State
 import org.aossie.scavenger.expression._
 import org.aossie.scavenger.expression.formula._
 import org.scalactic.Equality
@@ -14,7 +15,7 @@ class InterpretationSpec extends SensalaSpec {
     val parsed = DiscourseParser.parse(text)
     println(parsed)
     val resultM = for {
-      lambda <- parsed.interpret(True)
+      lambda <- parsed.interpret(State.pure(True))
       normalized = NormalFormConverter.normalForm(lambda)
       prettified = PrettyTransformer.transform(normalized)
     } yield prettified

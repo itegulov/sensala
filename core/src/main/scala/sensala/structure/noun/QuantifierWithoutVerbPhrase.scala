@@ -1,5 +1,6 @@
 package sensala.structure.noun
 
+import cats.data.State
 import org.aossie.scavenger.expression._
 import org.aossie.scavenger.expression.formula._
 import sensala.structure._
@@ -10,13 +11,14 @@ trait QuantifierWithoutVerbPhrase extends NounPhraseWithoutVerbPhrase
 final case class ForallQuantifier(
   nounPhrase: NounPhrase
 ) extends QuantifierWithoutVerbPhrase {
-  override def interpret(cont: E): CState = for {
-    nounL <- nounPhrase.interpret(True)
+  override def interpret(cont: CState): CState = for {
+    nounL <- nounPhrase.interpret(State.pure(True))
     x <- bindFreeVar
     _ <- modify(_.addReferent(x, properties))
     // TODO: understand the scope of forall quantifier
 //    _ <- modify(_.deleteReferent(x))
-  } yield All(x, i, And(Neg(App(nounL, x)), App(cont, x)))
+    contL <- cont
+  } yield All(x, i, And(Neg(App(nounL, x)), App(contL, x)))
 
   override def properties = nounPhrase.properties
 }
@@ -24,10 +26,10 @@ final case class ForallQuantifier(
 final case class ExistentialQuantifier(
   nounPhrase: NounPhrase
 ) extends QuantifierWithoutVerbPhrase {
-  override def interpret(cont: E): CState = for {
-    nounL <- nounPhrase.interpret(cont)
+  override def interpret(cont: CState): CState = for {
     x <- bindFreeVar
     _ <- modify(_.addReferent(x, properties))
+    nounL <- nounPhrase.interpret(cont)
   } yield Ex(x, i, App(nounL, x))
 
   override def properties = nounPhrase.properties

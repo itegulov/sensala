@@ -9,13 +9,14 @@ final case class VerbAdjectivePhrase(
   verb: String,
   adjective: Adjective
 ) extends VerbPhrase {
-  override def interpret(cont: E): CState =
+  override def interpret(cont: CState): CState =
     verb match {
       case "is" | "was" =>
         for {
           x <- bindFreeVar
           w = Sym(adjective.word)
-        } yield Abs(x, i, And(App(w, x), App(cont, x)))
+          contL <- cont
+        } yield Abs(x, i, And(App(w, x), App(contL, x)))
       case _ => ???
     }
 }

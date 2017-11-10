@@ -1,5 +1,6 @@
 package sensala.structure.adjective
 
+import cats.data.State
 import org.aossie.scavenger.expression._
 import org.aossie.scavenger.expression.formula.And
 import sensala.structure.noun.{NounPhrase, NounPhraseWithVerbPhrase}
@@ -13,13 +14,13 @@ final case class AdjectiveNounPhraseVP(
   nounPhrase: NounPhrase,
   verbPhrase: VerbPhrase
 ) extends AdjectiveWithVerbPhrase {
-  override def interpret(cont: E): CState =
+  override def interpret(cont: CState): CState =
     for {
       x <- bindFreeVar
       y <- bindFreeVar
       w = Sym(adjective.word)
       verbL <- verbPhrase.interpret(cont)
-      nounL <- nounPhrase.interpret(Abs(y, i, And(App(w, y), App(verbL, y))))
+      nounL <- nounPhrase.interpret(State.pure(Abs(y, i, And(App(w, y), App(verbL, y)))))
     } yield Abs(x, i, App(nounL, x))
 
   override def properties = nounPhrase.properties

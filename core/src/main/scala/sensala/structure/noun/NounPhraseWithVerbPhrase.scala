@@ -14,7 +14,7 @@ trait NounPhraseWithVerbPhrase extends NounPhrase {
 final case class ProperNounVP(
   word: String, verbPhrase: VerbPhrase
 ) extends Word with NounPhraseWithVerbPhrase {
-  override def interpret(cont: E): CState =
+  override def interpret(cont: CState): CState =
     for {
       x <- bindFreeVar
       w = Sym(word)
@@ -32,7 +32,7 @@ final case class ReflexivePronounVP(
   word: String,
   verbPhrase: VerbPhrase
 ) extends Word with NounPhraseWithVerbPhrase {
-  override def interpret(cont: E): CState =
+  override def interpret(cont: CState): CState =
     for {
       x <- bindFreeVar
       ref <- if (word.toLowerCase == "it")

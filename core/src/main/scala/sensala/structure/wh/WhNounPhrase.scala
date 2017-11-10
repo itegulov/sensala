@@ -9,12 +9,15 @@ final case class WhNounPhrase(
   verbPhrase: VerbPhrase,
   nounPhrase: NounPhrase
 ) extends WhPhrase with NounPhraseWithoutVerbPhrase {
-  override def interpret(cont: E): CState =
+  override def interpret(cont: CState): CState =
     for {
       x <- bindFreeVar
       y <- bindFreeVar
-      verbL <- verbPhrase.interpret(cont)
-      nounL <- nounPhrase.interpret(Abs(y, i, App(verbL, y)))
+      nounL <- nounPhrase.interpret(
+        for {
+          verbL <- verbPhrase.interpret(cont)
+        } yield Abs(y, i, App(verbL, y))
+      )
     } yield Abs(x, i, App(nounL, x))
 
   override def properties = nounPhrase.properties

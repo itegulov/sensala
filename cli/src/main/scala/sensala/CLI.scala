@@ -1,5 +1,6 @@
 package sensala
 
+import cats.data.State
 import sensala.normalization.NormalFormConverter
 import sensala.parser.DiscourseParser
 import sensala.postprocessing.PrettyTransformer
@@ -48,7 +49,7 @@ object CLI {
            |  $sentence
         """.stripMargin
       )
-      val (context, lambdaTerm) = sentence.interpret(True).run(Context(Map.empty, Set.empty)).value
+      val (context, lambdaTerm) = sentence.interpret(State.pure(True)).run(Context(Map.empty, Set.empty)).value
       logger.info(
         s"""
            |Result of discourse interpretation:

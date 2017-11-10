@@ -11,11 +11,12 @@ trait NounPhraseWithoutVerbPhrase extends NounPhrase
 final case class ProperNoun(
   word: String
 ) extends Word with NounPhraseWithoutVerbPhrase {
-  override def interpret(cont: E): CState =
+  override def interpret(cont: CState): CState =
     for {
       x <- bindFreeVar
       w = Sym(word)
-    } yield Abs(x, i, And(App(w, x), App(cont, x)))
+      contL <- cont
+    } yield Abs(x, i, And(App(w, x), App(contL, x)))
 
   override def properties: List[Property] = word match {
     case "Mary" => List(Property(female))
@@ -27,11 +28,12 @@ final case class ProperNoun(
 case class CommonNoun(
   word: String
 ) extends Word with NounPhraseWithoutVerbPhrase {
-  override def interpret(cont: E): CState =
+  override def interpret(cont: CState): CState =
     for {
       x <- bindFreeVar
       w = Sym(word)
-    } yield Abs(x, i, And(App(w, x), App(cont, x)))
+      contL <- cont
+    } yield Abs(x, i, And(App(w, x), App(contL, x)))
 
   override def properties: List[Property] = PropertyExtractor.extractProperties(word)
 }
@@ -39,15 +41,16 @@ case class CommonNoun(
 final case class ReflexivePronoun(
   word: String
 ) extends Word with NounPhraseWithoutVerbPhrase {
-  override def interpret(cont: E): CState =
+  override def interpret(cont: CState): CState =
     for {
+      contL <- cont
       x <- bindFreeVar
       ref <- if (word.toLowerCase == "it")
               inspect(_.findAnaphoricReferent(x, App(nonHuman, x)).get)
             else if (word.toLowerCase == "he")
               inspect(_.findAnaphoricReferent(x, App(male, x)).get)
             else ???
-    } yield App(cont, ref)
+    } yield App(contL, ref)
 
   override def properties: List[Property] = word match {
     case "he" => List(Property(male))

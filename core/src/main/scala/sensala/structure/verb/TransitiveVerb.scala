@@ -9,11 +9,15 @@ final case class TransitiveVerb(
   word: String,
   obj: NounPhraseWithoutVerbPhrase
 ) extends VerbPhrase {
-  def interpret(cont: E): CState =
+  def interpret(cont: CState): CState =
     for {
       x <- bindFreeVar
       y <- bindFreeVar
       w = Sym(word)
-      objL  <- obj.interpret(Abs(y, i, And(AppRec(w, List(x, y)), App(cont, x))))
+      objL  <- obj.interpret(
+        for {
+          contL <- cont
+        } yield Abs(y, i, And(AppRec(w, List(x, y)), App(contL, x)))
+      )
     } yield Abs(x, i, objL)
 }
