@@ -13,15 +13,20 @@ import sensala.structure._
 class InterpretationSpec extends SensalaSpec {
   def interpret(text: String): E = {
     val parsed = DiscourseParser.parse(text)
-    println(parsed)
-    val resultM = for {
-      lambda <- parsed.interpret(State.pure(True))
-      normalized = NormalFormConverter.normalForm(lambda)
-      prettified = PrettyTransformer.transform(normalized)
-    } yield prettified
-    val (_, result) = resultM.run(Context(Map.empty, Set.empty)).value
-    println(result.pretty)
-    result
+    parsed match {
+      case Left(error) =>
+        sys.error(error)
+      case Right(sentence) =>
+        println(s"Sentence: $sentence")
+        val resultM = for {
+          lambda <- sentence.interpret(State.pure(True))
+          normalized = NormalFormConverter.normalForm(lambda)
+          prettified = PrettyTransformer.transform(normalized)
+        } yield prettified
+        val (_, result) = resultM.run(Context(Map.empty, Set.empty)).value
+        println(result.pretty)
+        result   
+    }
   }
   
   implicit def stringToSym(s: String): Sym = Sym(s)

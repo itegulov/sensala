@@ -42,50 +42,59 @@ object CLI {
   
   def main(args: Array[String]): Unit = {
     parser.parse(args, Config()) foreach { c =>
-      val sentence = DiscourseParser.parse(c.discourse)
-      logger.info(
-        s"""
-           |Result of sentence parsing:
-           |  $sentence
-        """.stripMargin
-      )
-      val (context, lambdaTerm) = sentence.interpret(State.pure(True)).run(Context(Map.empty, Set.empty)).value
-      logger.info(
-        s"""
-           |Result of discourse interpretation:
-           |  $lambdaTerm
-           |  ${lambdaTerm.pretty}
-        """.stripMargin
-      )
-      val result = NormalFormConverter.normalForm(lambdaTerm)
-      logger.info(
-        s"""
-           |Result of applying β-reduction:
-           |  $result
-           |  ${result.pretty}
-        """.stripMargin
-      )
-      val prettyTerm = PrettyTransformer.transform(result)
-      logger.info(
-        s"""
-           |Result of applying pretty transform:
-           |  ${prettyTerm.pretty}
-        """.stripMargin
-      )
-      logger.info(
-        s"""
-           |Context after interpretation:
-           |  ${context.referentProperties.map(_._2.pretty).mkString("\n")}
-        """.stripMargin
-      )
-      val cnf = new TPTPClausifier().apply(List((prettyTerm, AxiomClause)))
-      logger.info(
-        s"""
-           |Result of clausification:
-           |${cnf.clauses.mkString("\n")}
-        """.stripMargin
-      )
-      PropertyExtractor.close()
+      val parsed = DiscourseParser.parse(c.discourse)
+      parsed match {
+        case Left(error) =>
+          logger.error(
+            s"""Parsing failed:
+              |  $error
+            """.stripMargin
+          )
+        case Right(sentence) =>
+          logger.info(
+            s"""
+               |Result of sentence parsing:
+               |  $sentence
+            """.stripMargin
+          )
+          val (context, lambdaTerm) = sentence.interpret(State.pure(True)).run(Context(Map.empty, Set.empty)).value
+          logger.info(
+            s"""
+               |Result of discourse interpretation:
+               |  $lambdaTerm
+               |  ${lambdaTerm.pretty}
+            """.stripMargin
+          )
+          val result = NormalFormConverter.normalForm(lambdaTerm)
+          logger.info(
+            s"""
+               |Result of applying β-reduction:
+               |  $result
+               |  ${result.pretty}
+            """.stripMargin
+          )
+          val prettyTerm = PrettyTransformer.transform(result)
+          logger.info(
+            s"""
+               |Result of applying pretty transform:
+               |  ${prettyTerm.pretty}
+            """.stripMargin
+          )
+          logger.info(
+            s"""
+               |Context after interpretation:
+               |  ${context.referentProperties.map(_._2.pretty).mkString("\n")}
+            """.stripMargin
+          )
+          val cnf = new TPTPClausifier().apply(List((prettyTerm, AxiomClause)))
+          logger.info(
+            s"""
+               |Result of clausification:
+               |${cnf.clauses.mkString("\n")}
+            """.stripMargin
+          )
+          PropertyExtractor.close()
+      }
     }
   }
 }
