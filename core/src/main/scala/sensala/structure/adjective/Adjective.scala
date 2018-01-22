@@ -1,9 +1,9 @@
 package sensala.structure.adjective
 
-import cats.data.State
-import org.aossie.scavenger.expression.Sym
-import sensala.structure.{CState, Word}
+import org.aossie.scavenger.expression._
+import org.atnos.eff._
+import sensala.structure._
 
 final case class Adjective(word: String) extends Word {
-  override def interpret(cont: CState) = State.pure(Sym(word))
+  override def interpret(cont: NLEffE): NLEffE = Eff.pure(Sym(word))
 }

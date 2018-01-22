@@ -1,8 +1,9 @@
 package sensala.interpretation
 
-import cats.data.State
 import org.aossie.scavenger.expression._
 import org.aossie.scavenger.expression.formula._
+import org.atnos.eff._
+import org.atnos.eff.syntax.all._
 import org.scalactic.Equality
 import sensala.SensalaSpec
 import sensala.normalization.NormalFormConverter
@@ -19,11 +20,12 @@ class InterpretationSpec extends SensalaSpec {
       case Right(sentence) =>
         println(s"Sentence: $sentence")
         val resultM = for {
-          lambda <- sentence.interpret(State.pure(True))
+          lambda <- sentence.interpret(Eff.pure(True))
           normalized = NormalFormConverter.normalForm(lambda)
           prettified = PrettyTransformer.transform(normalized)
         } yield prettified
-        val (_, result) = resultM.run(Context(Map.empty, Set.empty)).value
+        val (resultEither, _) = resultM.runEither[String].runState[Context](Context(Map.empty, Set.empty)).run
+        val result = resultEither.right.get
         println(result.pretty)
         result   
     }

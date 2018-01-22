@@ -2,14 +2,14 @@ package sensala.structure.verb
 
 import org.aossie.scavenger.expression.formula.And
 import org.aossie.scavenger.expression._
-import sensala.structure.{CState, bindFreeVar}
+import sensala.structure._
 import sensala.structure.noun.NounPhraseWithoutVerbPhrase
 
 final case class TransitiveVerb(
   word: String,
   obj: NounPhraseWithoutVerbPhrase
 ) extends VerbPhrase {
-  def interpret(cont: CState): CState =
+  override def interpret(cont: NLEffE): NLEffE =
     for {
       x <- bindFreeVar
       y <- bindFreeVar

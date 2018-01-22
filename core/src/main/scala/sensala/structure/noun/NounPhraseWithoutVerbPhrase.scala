@@ -3,7 +3,7 @@ package sensala.structure.noun
 import org.aossie.scavenger.expression._
 import org.aossie.scavenger.expression.formula.And
 import sensala.structure._
-import contextMonad._
+import org.atnos.eff.all._
 import sensala.property.{Property, PropertyExtractor}
 
 trait NounPhraseWithoutVerbPhrase extends NounPhrase
@@ -11,10 +11,11 @@ trait NounPhraseWithoutVerbPhrase extends NounPhrase
 final case class ProperNoun(
   word: String
 ) extends Word with NounPhraseWithoutVerbPhrase {
-  override def interpret(cont: CState): CState =
+  override def interpret(cont: NLEffE): NLEffE =
     for {
       x <- bindFreeVar
       w = Sym(word)
+      context <- get[NLFx, Context]
       contL <- cont
     } yield Abs(x, i, And(App(w, x), App(contL, x)))
 
@@ -28,7 +29,7 @@ final case class ProperNoun(
 case class CommonNoun(
   word: String
 ) extends Word with NounPhraseWithoutVerbPhrase {
-  override def interpret(cont: CState): CState =
+  override def interpret(cont: NLEffE): NLEffE =
     for {
       x <- bindFreeVar
       w = Sym(word)
@@ -41,15 +42,16 @@ case class CommonNoun(
 final case class ReflexivePronoun(
   word: String
 ) extends Word with NounPhraseWithoutVerbPhrase {
-  override def interpret(cont: CState): CState =
+  override def interpret(cont: NLEffE): NLEffE =
     for {
       contL <- cont
       x <- bindFreeVar
       ref <- if (word.toLowerCase == "it")
-              inspect(_.findAnaphoricReferent(x, App(nonHuman, x)).get)
-            else if (word.toLowerCase == "he")
-              inspect(_.findAnaphoricReferent(x, App(male, x)).get)
-            else ???
+        gets[NLFx, Context, E](_.findAnaphoricReferent(x, App(nonHuman, x)).get)
+      else if (word.toLowerCase == "he")
+        gets[NLFx, Context, E](_.findAnaphoricReferent(x, App(male, x)).get)
+      else
+        left[NLFx, String, E]("Unknown anaphoric referent")
     } yield App(contL, ref)
 
   override def properties: List[Property] = word match {

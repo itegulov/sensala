@@ -26,7 +26,8 @@ object SensalaBuild {
     resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots",
     scalacOptions in (Compile, console) -= "-Ywarn-unused-import",
     scalacOptions in (Compile, doc) ++= Seq("-diagrams", "-implicits"),
-    scalacOptions in Test ++= Seq("-Yrangepos")
+    scalacOptions in Test ++= Seq("-Yrangepos"),
+    addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.4")
   )
 
   lazy val commonDeps = Seq(
@@ -44,7 +45,7 @@ object SensalaBuild {
       libraryDependencies ++= Seq(
         "com.typesafe.play" %% "play-ahc-ws-standalone"  % "1.1.2",
         "com.typesafe.play" %% "play-ws-standalone-json" % "1.1.2",
-        "net.sf.ehcache" % "ehcache" % "2.10.4"
+        "net.sf.ehcache"    % "ehcache"                  % "2.10.4"
       )
     )
 
@@ -53,9 +54,10 @@ object SensalaBuild {
     .settings(name := "sensala-core")
     .settings(
       libraryDependencies ++= Seq(
-        "org.typelevel"    %% "cats-core"      % "1.0.0-MF",
-        "org.typelevel"    %% "cats-mtl-core"  % "0.0.2",
-        "com.ironcorelabs" %% "cats-scalatest" % "2.3.0" % Test,
+        "org.typelevel"    %% "cats-core"      % "1.0.1",
+        "org.typelevel"    %% "cats-mtl-core"  % "0.2.1",
+        "org.atnos"        %% "eff"            % "5.0.0-RC1",
+        "com.ironcorelabs" %% "cats-scalatest" % "2.3.1" % Test,
         "org.aossie"       %% "scavenger"      % "0.2.1-SNAPSHOT"
       )
     )

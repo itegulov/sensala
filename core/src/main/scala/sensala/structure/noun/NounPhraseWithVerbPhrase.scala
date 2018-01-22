@@ -3,7 +3,7 @@ package sensala.structure.noun
 import org.aossie.scavenger.expression._
 import org.aossie.scavenger.expression.formula.{And, Or}
 import sensala.structure._
-import contextMonad._
+import org.atnos.eff.all._
 import sensala.property.Property
 import sensala.structure.verb.VerbPhrase
 
@@ -14,7 +14,7 @@ trait NounPhraseWithVerbPhrase extends NounPhrase {
 final case class ProperNounVP(
   word: String, verbPhrase: VerbPhrase
 ) extends Word with NounPhraseWithVerbPhrase {
-  override def interpret(cont: CState): CState =
+  override def interpret(cont: NLEffE): NLEffE =
     for {
       x <- bindFreeVar
       w = Sym(word)
@@ -32,14 +32,15 @@ final case class ReflexivePronounVP(
   word: String,
   verbPhrase: VerbPhrase
 ) extends Word with NounPhraseWithVerbPhrase {
-  override def interpret(cont: CState): CState =
+  override def interpret(cont: NLEffE): NLEffE =
     for {
       x <- bindFreeVar
       ref <- if (word.toLowerCase == "it")
-              inspect(_.findAnaphoricReferent(x, App(nonHuman, x)).get)
-            else if (word.toLowerCase == "he")
-              inspect(_.findAnaphoricReferent(x, Or(App(male, x), App(human, x))).get)
-            else ???
+        gets[NLFx, Context, E](_.findAnaphoricReferent(x, App(nonHuman, x)).get)
+      else if (word.toLowerCase == "he")
+        gets[NLFx, Context, E](_.findAnaphoricReferent(x, Or(App(male, x), App(human, x))).get)
+      else
+        left[NLFx, String, E]("Unknown anaphoric referent")
       verbL <- verbPhrase.interpret(cont)
     } yield App(verbL, ref)
 

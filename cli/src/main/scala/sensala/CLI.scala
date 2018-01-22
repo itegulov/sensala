@@ -9,7 +9,12 @@ import com.typesafe.scalalogging.Logger
 import org.aossie.scavenger.expression.formula.True
 import org.aossie.scavenger.preprocessing.TPTPClausifier
 import org.aossie.scavenger.structure.immutable.AxiomClause
+import org.atnos.eff._
+import org.atnos.eff.all._
+import org.atnos.eff.syntax.all._
 import sensala.property.PropertyExtractor
+import sensala.structure.noun.{ExistentialQuantifier, ExistentialQuantifierVP, ProperNoun}
+import sensala.structure.verb.TransitiveVerb
 
 object CLI {
   private val logger = Logger[this.type]
@@ -57,7 +62,8 @@ object CLI {
                |  $sentence
             """.stripMargin
           )
-          val (context, lambdaTerm) = sentence.interpret(State.pure(True)).run(Context(Map.empty, Set.empty)).value
+          val (lambdaTermEither, context) = sentence.interpret(Eff.pure(True)).runEither[String].runState[Context](Context(Map.empty, Set.empty)).run
+          val lambdaTerm = lambdaTermEither.right.get
           logger.info(
             s"""
                |Result of discourse interpretation:
