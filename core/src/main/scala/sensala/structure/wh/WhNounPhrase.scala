@@ -16,9 +16,9 @@ final case class WhNounPhrase(
       nounL <- nounPhrase.interpret(
         for {
           verbL <- verbPhrase.interpret(cont)
-        } yield Abs(y, i, App(verbL, y))
+        } yield Abs(y, i, verbL(y))
       )
-    } yield Abs(x, i, App(nounL, x))
+    } yield Abs(x, i, nounL(x))
 
   override def properties = nounPhrase.properties
 }

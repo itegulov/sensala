@@ -1,8 +1,6 @@
 package sensala.structure.adjective
 
-import cats.data.State
 import org.aossie.scavenger.expression._
-import org.aossie.scavenger.expression.formula.And
 import org.atnos.eff.Eff
 import sensala.structure.noun.{NounPhrase, NounPhraseWithVerbPhrase}
 import sensala.structure.verb.VerbPhrase
@@ -21,8 +19,8 @@ final case class AdjectiveNounPhraseVP(
       y <- bindFreeVar
       w = Sym(adjective.word)
       verbL <- verbPhrase.interpret(cont)
-      nounL <- nounPhrase.interpret(Eff.pure(Abs(y, i, And(App(w, y), App(verbL, y)))))
-    } yield Abs(x, i, App(nounL, x))
+      nounL <- nounPhrase.interpret(Eff.pure(Abs(y, i, w(y) /\ verbL(y))))
+    } yield Abs(x, i, nounL(x))
 
   override def properties = nounPhrase.properties
 }

@@ -1,7 +1,6 @@
 package sensala.structure.noun
 
 import org.aossie.scavenger.expression._
-import org.aossie.scavenger.expression.formula.{And, Or}
 import sensala.structure._
 import org.atnos.eff.all._
 import sensala.property.Property
@@ -12,14 +11,16 @@ trait NounPhraseWithVerbPhrase extends NounPhrase {
 }
 
 final case class ProperNounVP(
-  word: String, verbPhrase: VerbPhrase
-) extends Word with NounPhraseWithVerbPhrase {
+  word: String,
+  verbPhrase: VerbPhrase
+) extends Word
+    with NounPhraseWithVerbPhrase {
   override def interpret(cont: NLEffE): NLEffE =
     for {
       x <- bindFreeVar
       w = Sym(word)
       verbL <- verbPhrase.interpret(cont)
-    } yield Abs(x, i, And(App(w, x), App(verbL, x)))
+    } yield Abs(x, i, w(x) /\ verbL(x))
 
   override def properties: List[Property] = word match {
     case "Mary" => List(Property(female))
@@ -31,23 +32,24 @@ final case class ProperNounVP(
 final case class ReflexivePronounVP(
   word: String,
   verbPhrase: VerbPhrase
-) extends Word with NounPhraseWithVerbPhrase {
+) extends Word
+    with NounPhraseWithVerbPhrase {
   override def interpret(cont: NLEffE): NLEffE =
     for {
       x <- bindFreeVar
       ref <- if (word.toLowerCase == "it")
-        gets[NLFx, Context, E](_.findAnaphoricReferent(x, App(nonHuman, x)).get)
-      else if (word.toLowerCase == "he")
-        gets[NLFx, Context, E](_.findAnaphoricReferent(x, Or(App(male, x), App(human, x))).get)
-      else
-        left[NLFx, String, E]("Unknown anaphoric referent")
+              gets[NLFx, Context, E](_.findAnaphoricReferent(x, nonHuman(x)).get)
+            else if (word.toLowerCase == "he")
+              gets[NLFx, Context, E](_.findAnaphoricReferent(x, male(x) \/ human(x)).get)
+            else
+              left[NLFx, String, E]("Unknown anaphoric referent")
       verbL <- verbPhrase.interpret(cont)
-    } yield App(verbL, ref)
+    } yield verbL(ref)
 
   override def properties: List[Property] = word match {
-    case "he" => List(Property(male))
+    case "he"  => List(Property(male))
     case "she" => List(Property(female))
-    case "it" => List(Property(nonHuman))
-    case _      => List(Property(nonHuman))
+    case "it"  => List(Property(nonHuman))
+    case _     => List(Property(nonHuman))
   }
 }

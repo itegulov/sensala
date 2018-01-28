@@ -1,7 +1,6 @@
 package sensala.structure.verb
 
 import org.aossie.scavenger.expression._
-import org.aossie.scavenger.expression.formula.And
 import sensala.structure._
 
 final case class IntransitiveVerb(
@@ -12,5 +11,5 @@ final case class IntransitiveVerb(
       x <- bindFreeVar
       w = Sym(word)
       contL <- cont
-    } yield Abs(x, i, And(App(w, x), App(contL, x)))
+    } yield Abs(x, i, w(x) /\ contL(x))
 }

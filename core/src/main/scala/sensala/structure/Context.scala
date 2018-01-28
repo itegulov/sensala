@@ -1,7 +1,7 @@
 package sensala.structure
 
 import org.aossie.scavenger.expression._
-import org.aossie.scavenger.expression.formula.{All, And, Neg}
+import org.aossie.scavenger.expression.formula.{All, And}
 import org.aossie.scavenger.preprocessing.TPTPClausifier
 import org.aossie.scavenger.prover.{EPCR, Unsatisfiable}
 import org.aossie.scavenger.structure.immutable.{AxiomClause, NegConjectureClause}
@@ -18,7 +18,7 @@ final case class Context(
   def findAnaphoricReferent(v: Var, properties: E): Option[Sym] =
     referentProperties.find {
       case (_, refProperties) =>
-        val cnf = clausifier(List((refProperties, AxiomClause), (All(v, i, Neg(properties)), NegConjectureClause)))
+        val cnf = clausifier(List((refProperties, AxiomClause), (All(v, i, ~properties), NegConjectureClause)))
         EPCR.prove(cnf, 5 seconds) match {
           case Unsatisfiable(_) => true
           case _ => false

@@ -1,6 +1,5 @@
 package sensala.structure.verb
 
-import org.aossie.scavenger.expression.formula.And
 import org.aossie.scavenger.expression._
 import sensala.structure.adjective.Adjective
 import sensala.structure._
@@ -17,7 +16,7 @@ final case class VerbAdjectivePhrase(
           x <- bindFreeVar
           w = Sym(adjective.word)
           contL <- cont
-        } yield Abs(x, i, And(App(w, x), App(contL, x)))
+        } yield Abs(x, i, w(x) /\ contL(x))
       case _ =>
         left[NLFx, String, E]("Unknown adjective verb")
     }

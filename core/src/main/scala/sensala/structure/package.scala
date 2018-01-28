@@ -18,9 +18,9 @@ package object structure {
   type _stateContext[R] = StateContext |= R
   type _eitherString[R] = EitherString |= R
 
-  type NLFx = Fx.fx2[StateContext, EitherString]
+  type NLFx     = Fx.fx2[StateContext, EitherString]
   type NLEff[A] = Eff[NLFx, A]
-  type NLEffE = NLEff[E]
+  type NLEffE   = NLEff[E]
 
   def bindFreeVar: NLEff[Var] =
     for {
@@ -32,7 +32,7 @@ package object structure {
             case Some(c) => c
             case _       => bindFreeVarInternal(range.map(s => Var(s.name + "'")))
           }
-        val range  = ('a' to 'z').map(_.toString).map(Var.apply)
+        val range = ('a' to 'z').map(_.toString).map(Var.apply)
         bindFreeVarInternal(range)
       }
       _ <- put[NLFx, Context](context.addBoundSym(newSym))
@@ -57,5 +57,13 @@ package object structure {
         case App(f, a)        => s"(${f.pretty}(${a.pretty}))"
         case Abs(v, _, e)     => s"(λ${v.pretty}.${e.pretty})"
       }
+
+    def apply(args: E*): E = AppRec(lambda, args)
+
+    def \/(right: E): E = Or(lambda, right)
+
+    def /\(right: E): E = And(lambda, right)
+
+    def unary_~(): E = Neg(lambda)
   }
 }

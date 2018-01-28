@@ -1,6 +1,5 @@
 package sensala
 
-import cats.data.State
 import sensala.normalization.NormalFormConverter
 import sensala.parser.DiscourseParser
 import sensala.postprocessing.PrettyTransformer
@@ -10,11 +9,8 @@ import org.aossie.scavenger.expression.formula.True
 import org.aossie.scavenger.preprocessing.TPTPClausifier
 import org.aossie.scavenger.structure.immutable.AxiomClause
 import org.atnos.eff._
-import org.atnos.eff.all._
 import org.atnos.eff.syntax.all._
 import sensala.property.PropertyExtractor
-import sensala.structure.noun.{ExistentialQuantifier, ExistentialQuantifierVP, ProperNoun}
-import sensala.structure.verb.TransitiveVerb
 
 object CLI {
   private val logger = Logger[this.type]
