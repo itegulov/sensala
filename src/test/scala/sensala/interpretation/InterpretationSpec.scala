@@ -6,6 +6,7 @@ import org.atnos.eff._
 import org.atnos.eff.syntax.all._
 import org.scalactic.Equality
 import sensala.SensalaSpec
+import sensala.error.NLError
 import sensala.normalization.NormalFormConverter
 import sensala.parser.DiscourseParser
 import sensala.postprocessing.PrettyTransformer
@@ -24,7 +25,7 @@ class InterpretationSpec extends SensalaSpec {
           normalized = NormalFormConverter.normalForm(lambda)
           prettified = PrettyTransformer.transform(normalized)
         } yield prettified
-        val (resultEither, _) = resultM.runEither[String].runState[Context](Context(Map.empty, Set.empty)).run
+        val (resultEither, _) = resultM.runEither[NLError].runState[Context](Context(Map.empty, Set.empty)).run
         val result = resultEither.right.get
         println(result.pretty)
         result   

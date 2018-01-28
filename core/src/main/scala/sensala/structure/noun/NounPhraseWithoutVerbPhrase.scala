@@ -3,6 +3,7 @@ package sensala.structure.noun
 import org.aossie.scavenger.expression._
 import sensala.structure._
 import org.atnos.eff.all._
+import sensala.error.{NLError, NLUnexpectedWord}
 import sensala.property.{Property, PropertyExtractor}
 
 trait NounPhraseWithoutVerbPhrase extends NounPhrase
@@ -52,7 +53,7 @@ final case class ReflexivePronoun(
             else if (word.toLowerCase == "he")
               gets[NLFx, Context, E](_.findAnaphoricReferent(x, male(x)).get)
             else
-              left[NLFx, String, E]("Unknown anaphoric referent")
+              left[NLFx, NLError, E](NLUnexpectedWord(word))
     } yield contL(ref)
 
   override def properties: List[Property] = word match {

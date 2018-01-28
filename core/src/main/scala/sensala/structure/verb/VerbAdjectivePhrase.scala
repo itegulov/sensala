@@ -4,6 +4,7 @@ import org.aossie.scavenger.expression._
 import sensala.structure.adjective.Adjective
 import sensala.structure._
 import org.atnos.eff.all._
+import sensala.error.{NLError, NLUnexpectedWord}
 
 final case class VerbAdjectivePhrase(
   verb: String,
@@ -17,7 +18,7 @@ final case class VerbAdjectivePhrase(
           w = Sym(adjective.word)
           contL <- cont
         } yield Abs(x, i, w(x) /\ contL(x))
-      case _ =>
-        left[NLFx, String, E]("Unknown adjective verb")
+      case other =>
+        left[NLFx, NLError, E](NLUnexpectedWord(other))
     }
 }

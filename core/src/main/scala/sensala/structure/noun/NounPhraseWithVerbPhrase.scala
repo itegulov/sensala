@@ -3,6 +3,7 @@ package sensala.structure.noun
 import org.aossie.scavenger.expression._
 import sensala.structure._
 import org.atnos.eff.all._
+import sensala.error.{NLError, NLUnexpectedWord}
 import sensala.property.Property
 import sensala.structure.verb.VerbPhrase
 
@@ -42,7 +43,7 @@ final case class ReflexivePronounVP(
             else if (word.toLowerCase == "he")
               gets[NLFx, Context, E](_.findAnaphoricReferent(x, male(x) \/ human(x)).get)
             else
-              left[NLFx, String, E]("Unknown anaphoric referent")
+              left[NLFx, NLError, E](NLUnexpectedWord(word))
       verbL <- verbPhrase.interpret(cont)
     } yield verbL(ref)
 

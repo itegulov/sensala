@@ -5,20 +5,20 @@ import org.atnos.eff._
 import org.atnos.eff.all._
 import org.aossie.scavenger.expression._
 import org.aossie.scavenger.expression.formula._
+import sensala.error.NLError
 
 import scala.annotation.tailrec
 
 package object structure {
-  // State monad over the Context type aliases
   type StateContext[A] = State[Context, A]
-  type EitherString[A] = Either[String, A]
+  type EitherNLError[A] = Either[NLError, A]
 
   type CState = State[Context, E]
 
   type _stateContext[R] = StateContext |= R
-  type _eitherString[R] = EitherString |= R
+  type _eitherNLError[R] = EitherNLError |= R
 
-  type NLFx     = Fx.fx2[StateContext, EitherString]
+  type NLFx     = Fx.fx2[StateContext, EitherNLError]
   type NLEff[A] = Eff[NLFx, A]
   type NLEffE   = NLEff[E]
 

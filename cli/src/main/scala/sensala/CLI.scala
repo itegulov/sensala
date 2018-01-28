@@ -10,6 +10,7 @@ import org.aossie.scavenger.preprocessing.TPTPClausifier
 import org.aossie.scavenger.structure.immutable.AxiomClause
 import org.atnos.eff._
 import org.atnos.eff.syntax.all._
+import sensala.error.NLError
 import sensala.property.PropertyExtractor
 
 object CLI {
@@ -58,8 +59,11 @@ object CLI {
                |  $sentence
             """.stripMargin
           )
-          val (lambdaTermEither, context) = sentence.interpret(Eff.pure(True)).runEither[String].runState[Context](Context(Map.empty, Set.empty)).run
-          val lambdaTerm = lambdaTermEither.right.get
+          val (lambdaTermEither, context) = sentence.interpret(Eff.pure(True)).runEither[NLError].runState[Context](Context(Map.empty, Set.empty)).run
+          val lambdaTerm = lambdaTermEither match {
+            case Right(e) => e
+            case Left(error) => sys.error(s"Erorr: $error")
+          }
           logger.info(
             s"""
                |Result of discourse interpretation:
