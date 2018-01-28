@@ -56,7 +56,7 @@ object SensalaBuild {
       libraryDependencies ++= Seq(
         "org.typelevel"    %% "cats-core"      % "1.0.1",
         "org.typelevel"    %% "cats-mtl-core"  % "0.2.1",
-        "org.atnos"        %% "eff"            % "5.0.0-RC1",
+        "org.atnos"        %% "eff"            % "5.0.0-RC1-20180125204657-3712000",
         "com.ironcorelabs" %% "cats-scalatest" % "2.3.1" % Test,
         "org.aossie"       %% "scavenger"      % "0.2.1-SNAPSHOT"
       )
