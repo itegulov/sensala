@@ -19,7 +19,7 @@ final case class AdjectiveNounPhraseVP(
       y <- bindFreeVar
       w = Sym(adjective.word)
       verbL <- verbPhrase.interpret(cont)
-      nounL <- nounPhrase.interpret(Eff.pure(Abs(y, i, w(y) /\ verbL(y))))
+      nounL <- nounPhrase.interpret(Eff.pure(Abs(y, i, w(y) /\: verbL(y))))
     } yield Abs(x, i, nounL(x))
 
   override def properties = nounPhrase.properties

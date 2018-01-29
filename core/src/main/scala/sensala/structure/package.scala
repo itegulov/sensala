@@ -54,10 +54,20 @@ package object structure {
 
     def apply(args: E*): E = AppRec(lambda, args)
 
-    def \/(right: E): E = Or(lambda, right)
+    def \/:(right: E): E = Or(right, lambda)
 
-    def /\(right: E): E = And(lambda, right)
+    def /\:(right: E): E = And(right, lambda)
+    
+    def ->:(right: E): E = Imp(right, lambda)
 
     def unary_~(): E = Neg(lambda)
+  }
+
+  object Exist {
+    def apply(v: Var, e: E): E = Ex(v, i, e)
+  }
+
+  object Forall {
+    def apply(v: Var, e: E): E = All(v, i, e)
   }
 }

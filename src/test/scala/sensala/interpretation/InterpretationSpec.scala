@@ -32,8 +32,6 @@ class InterpretationSpec extends SensalaSpec {
     }
   }
   
-  implicit def stringToSym(s: String): Sym = Sym(s)
-  
   // Scalatest treats === as an alpha equality
   implicit val lambdaEq: Equality[E] =
     (a: E, b: Any) => 
@@ -44,38 +42,68 @@ class InterpretationSpec extends SensalaSpec {
   
   val x = Var("x")
   val y = Var("y")
+  
+  val John = Sym("John")
+  val Mary = Sym("Mary")
+  val walks = Sym("walks")
+  val loves = Sym("loves")
+  val farmer = Sym("farmer")
+  val anthropologist = Sym("anthropologist")
+  val discovered = Sym("discovered")
+  val skeleton = Sym("skeleton")
+  val owns = Sym("owns")
+  val beats = Sym("beats")
+  val donkey = Sym("donkey")
+  val wealthy = Sym("wealthy")
+  val fat = Sym("fat")
+  val smart = Sym("smart")
+  val lawyer = Sym("lawyer")
+  val left = Sym("left")
+  val ill = Sym("ill")
 
   it should "interpret simple sentences" in {
-    interpret("John loves Mary") shouldEqual Ex(x, i, And(App("John", x), Ex(y, i, And(App("Mary", y), AppRec("loves", List(x, y))))))
-    interpret("John walks") shouldEqual Ex(x, i, And(App("John", x), App("walks", x)))
+    interpret("John loves Mary") shouldEqual
+      Exist(x, John(x) /\: Exist(y, Mary(y) /\: loves(x, y)))
+    interpret("John walks") shouldEqual
+      Exist(x, John(x) /\: walks(x))
   }
 
   it should "interpret quantified sentences" in {
-    interpret("John walks") shouldEqual Ex(x, i, And(App("John", x), App("walks", x)))
-    interpret("A farmer walks") shouldEqual Ex(x, i, And(App("farmer", x), App("walks", x)))
-    interpret("An anthropologist discovered a skeleton") shouldEqual Ex(x, i, And(App("anthropologist", x), Ex(y, i, And(App("skeleton", y), AppRec("discovered", List(x, y))))))
-    interpret("John owns a donkey") shouldEqual Ex(x, i, And(App("John", x), Ex(y, i, And(App("donkey", y), AppRec("owns", List(x, y))))))
-    interpret("Every farmer owns a donkey") shouldEqual All(x, i, Imp(App("farmer", x), Ex(y, i, And(App("donkey", y), AppRec("owns", List(x, y))))))
+    interpret("John walks") shouldEqual
+      Exist(x, John(x) /\: walks(x))
+    interpret("A farmer walks") shouldEqual
+      Exist(x, farmer(x) /\: walks(x))
+    interpret("An anthropologist discovered a skeleton") shouldEqual
+      Exist(x, anthropologist(x) /\: Exist(y, skeleton(y) /\: discovered(x, y)))
+    interpret("John owns a donkey") shouldEqual
+      Exist(x, John(x) /\: Exist(y, donkey(y) /\: owns(x, y)))
+    interpret("Every farmer owns a donkey") shouldEqual
+      Forall(x, farmer(x) ->: Exist(y, donkey(y) /\: owns(x, y)))
   }
 
   it should "interpret donkey anaphora" in {
-    interpret("Every farmer who owns a donkey beats it") shouldEqual All(x, i, Imp(App("farmer", x), All(y, i, Imp(App("donkey", y), Imp(AppRec("owns", List(x, y)), AppRec("beats", List(x, y)))))))
-    interpret("A farmer who owns a donkey beats it") shouldEqual Ex(x, i, And(App("farmer", x), Ex(y, i, And(App("donkey", y), And(AppRec("owns", List(x, y)), AppRec("beats", List(x, y)))))))
+    interpret("Every farmer who owns a donkey beats it") shouldEqual
+      Forall(x, farmer(x) ->: Forall(y, donkey(y) ->: owns(x, y) ->: beats(x, y)))
+    interpret("A farmer who owns a donkey beats it") shouldEqual
+      Exist(x, farmer(x) /\: Exist(y, donkey(y) /\: owns(x, y) /\: beats(x, y)))
   }
 
   it should "interpret sentences with adjectives" in {
     interpret("Every wealthy farmer owns a fat donkey") shouldEqual
-      All(x, i, Imp(App("farmer", x), Imp(App("wealthy", x), Ex(y, i, And(App("donkey", y), And(App("fat", y), AppRec("owns", List(x, y))))))))
+      Forall(x, farmer(x) ->: wealthy(x) ->: Exist(y, donkey(y) /\: fat(y) /\: owns(x, y)))
     interpret("Every wealthy farmer who owns a fat donkey beats it") shouldEqual
-      All(x, i, Imp(App("farmer", x), Imp(App("wealthy", x), All(y, i, Imp(App("donkey", y), Imp(App("fat", y), Imp(AppRec("owns", List(x, y)), AppRec("beats", List(x, y)))))))))
+      Forall(x, farmer(x) ->: wealthy(x) ->: Forall(y, donkey(y) ->: fat(y) ->: owns(x, y) ->: beats(x, y)))
   }
 
   it should "interpret adjective verb sentences" in {
-    interpret("John is smart") shouldEqual Ex(x, i, And(App("John", x), App("smart", x)))
+    interpret("John is smart") shouldEqual
+      Exist(x, John(x) /\: smart(x))
   }
 
   it should "interpret other anaphora sentences" in {
-    interpret("Every lawyer believes he is smart") shouldEqual All(x, i, Imp(App("lawyer", x), App("smart", x)))
-    interpret("John left. He said he was ill.") shouldEqual Ex(x, i, And(App("John", x), And(App("left", x), App("ill", x))))
+    interpret("Every lawyer believes he is smart") shouldEqual
+      Forall(x, lawyer(x) ->: smart(x))
+    interpret("John left. He said he was ill.") shouldEqual
+      Exist(x, John(x) /\: left(x) /\: ill(x))
   }
 }

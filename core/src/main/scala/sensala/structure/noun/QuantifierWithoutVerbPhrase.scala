@@ -19,7 +19,7 @@ final case class ForallQuantifier(
       // TODO: understand the scope of forall quantifier
 //      _ <- modify(_.deleteReferent(x))
       contL <- cont
-    } yield All(x, i, ~nounL(x) /\ contL(x))
+    } yield All(x, i, ~nounL(x) /\: contL(x))
 
   override def properties = nounPhrase.properties
 }

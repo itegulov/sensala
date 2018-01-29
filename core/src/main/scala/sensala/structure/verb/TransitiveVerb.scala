@@ -16,7 +16,7 @@ final case class TransitiveVerb(
       objL <- obj.interpret(
                for {
                  contL <- cont
-               } yield Abs(y, i, w(x, y) /\ contL(x))
+               } yield Abs(y, i, w(x, y) /\: contL(x))
              )
     } yield Abs(x, i, objL)
 }

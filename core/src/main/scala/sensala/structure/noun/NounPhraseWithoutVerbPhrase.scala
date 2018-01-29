@@ -17,7 +17,7 @@ final case class ProperNoun(
       x <- bindFreeVar
       w = Sym(word)
       contL <- cont
-    } yield Abs(x, i, w(x) /\ contL(x))
+    } yield Abs(x, i, w(x) /\: contL(x))
 
   override def properties: List[Property] = word match {
     case "Mary" => List(Property(female))
@@ -35,7 +35,7 @@ case class CommonNoun(
       x <- bindFreeVar
       w = Sym(word)
       contL <- cont
-    } yield Abs(x, i, w(x) /\ contL(x))
+    } yield Abs(x, i, w(x) /\: contL(x))
 
   override def properties: List[Property] = PropertyExtractor.extractProperties(word)
 }

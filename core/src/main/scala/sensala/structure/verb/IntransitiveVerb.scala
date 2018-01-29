@@ -12,5 +12,5 @@ final case class IntransitiveVerb(
       x <- bindFreeVar
       w = Sym(word)
       contL <- cont
-    } yield Abs(x, i, w(x) /\ contL(x))
+    } yield Abs(x, i, w(x) /\: contL(x))
 }

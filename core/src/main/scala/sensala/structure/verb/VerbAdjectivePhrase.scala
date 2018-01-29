@@ -17,7 +17,7 @@ final case class VerbAdjectivePhrase(
           x <- bindFreeVar
           w = Sym(adjective.word)
           contL <- cont
-        } yield Abs(x, i, w(x) /\ contL(x))
+        } yield Abs(x, i, w(x) /\: contL(x))
       case other =>
         left[NLFx, NLError, E](NLUnexpectedWord(other))
     }

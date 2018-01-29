@@ -21,7 +21,7 @@ final case class ProperNounVP(
       x <- bindFreeVar
       w = Sym(word)
       verbL <- verbPhrase.interpret(cont)
-    } yield Abs(x, i, w(x) /\ verbL(x))
+    } yield Abs(x, i, w(x) /\: verbL(x))
 
   override def properties: List[Property] = word match {
     case "Mary" => List(Property(female))
@@ -41,7 +41,7 @@ final case class ReflexivePronounVP(
       ref <- if (word.toLowerCase == "it")
               gets[NLFx, Context, E](_.findAnaphoricReferent(x, nonHuman(x)).get)
             else if (word.toLowerCase == "he")
-              gets[NLFx, Context, E](_.findAnaphoricReferent(x, male(x) \/ human(x)).get)
+              gets[NLFx, Context, E](_.findAnaphoricReferent(x, male(x) \/: human(x)).get)
             else
               left[NLFx, NLError, E](NLUnexpectedWord(word))
       verbL <- verbPhrase.interpret(cont)
