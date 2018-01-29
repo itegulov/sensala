@@ -8,16 +8,17 @@ import sensala.structure._
 final case class WhNounPhrase(
   verbPhrase: VerbPhrase,
   nounPhrase: NounPhrase
-) extends WhPhrase with NounPhraseWithoutVerbPhrase {
-  override def interpret(cont: NLEffE): NLEffE =
+) extends WhPhrase
+    with NounPhraseWithoutVerbPhrase {
+  override def interpret(cont: NLEff[E]): NLEff[E] =
     for {
       x <- bindFreeVar
       y <- bindFreeVar
       nounL <- nounPhrase.interpret(
-        for {
-          verbL <- verbPhrase.interpret(cont)
-        } yield Abs(y, i, verbL(y))
-      )
+                for {
+                  verbL <- verbPhrase.interpret(cont)
+                } yield Abs(y, i, verbL(y))
+              )
     } yield Abs(x, i, nounL(x))
 
   override def properties = nounPhrase.properties

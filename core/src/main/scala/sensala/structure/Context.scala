@@ -14,20 +14,25 @@ final case class Context(
   boundSymbols: Set[Sym]
 ) {
   private val clausifier = new TPTPClausifier()
-  
+
   def findAnaphoricReferent(v: Var, properties: E): Option[Sym] =
     referentProperties.find {
       case (_, refProperties) =>
-        val cnf = clausifier(List((refProperties, AxiomClause), (All(v, i, ~properties), NegConjectureClause)))
+        val cnf = clausifier(
+          List(
+            (refProperties, AxiomClause),
+            (All(v, i, ~properties), NegConjectureClause)
+          )
+        )
         EPCR.prove(cnf, 5 seconds) match {
           case Unsatisfiable(_) => true
-          case _ => false
+          case _                => false
         }
     }.map(_._1)
   def addReferent(newRef: Var, properties: List[Property]): Context =
-    copy(referentProperties = 
-      referentProperties.updated(
-        newRef, 
+    copy(
+      referentProperties = referentProperties.updated(
+        newRef,
         All(newRef, i, properties.map(p => App(p.symbol, newRef)).reduceLeft(And.apply))
       )
     )

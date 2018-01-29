@@ -8,7 +8,7 @@ final case class TransitiveVerb(
   word: String,
   obj: NounPhraseWithoutVerbPhrase
 ) extends VerbPhrase {
-  override def interpret(cont: NLEffE): NLEffE =
+  override def interpret(cont: NLEff[E]): NLEff[E] =
     for {
       x <- bindFreeVar
       y <- bindFreeVar

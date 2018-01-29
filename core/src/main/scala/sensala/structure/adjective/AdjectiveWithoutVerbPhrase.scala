@@ -11,7 +11,7 @@ final case class AdjectiveNounPhrase(
   adjective: Adjective,
   nounPhrase: NounPhrase
 ) extends AdjectiveWithoutVerbPhrase {
-  override def interpret(cont: NLEffE): NLEffE =
+  override def interpret(cont: NLEff[E]): NLEff[E] =
     for {
       x <- bindFreeVar
       y <- bindFreeVar

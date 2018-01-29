@@ -8,10 +8,10 @@ final case class VerbSentencePhrase(
   word: String,
   sentence: NounPhraseWithVerbPhrase
 ) extends VerbPhrase {
-  override def interpret(cont: NLEffE): NLEffE =
+  override def interpret(cont: NLEff[E]): NLEff[E] =
     for {
       // TODO: probably I should use the verb somehow
       sentenceL <- sentence.interpret(cont)
-      x <- bindFreeVar
+      x         <- bindFreeVar
     } yield Abs(x, i, sentenceL)
 }

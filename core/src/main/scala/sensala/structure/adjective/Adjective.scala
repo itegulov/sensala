@@ -5,5 +5,5 @@ import org.atnos.eff._
 import sensala.structure._
 
 final case class Adjective(word: String) extends Word {
-  override def interpret(cont: NLEffE): NLEffE = Eff.pure(Sym(word))
+  override def interpret(cont: NLEff[E]): NLEff[E] = Eff.pure(Sym(word))
 }

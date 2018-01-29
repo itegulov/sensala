@@ -10,17 +10,11 @@ import sensala.error.NLError
 import scala.annotation.tailrec
 
 package object structure {
-  type StateContext[A] = State[Context, A]
+  type StateContext[A]  = State[Context, A]
   type EitherNLError[A] = Either[NLError, A]
-
-  type CState = State[Context, E]
-
-  type _stateContext[R] = StateContext |= R
-  type _eitherNLError[R] = EitherNLError |= R
 
   type NLFx     = Fx.fx2[StateContext, EitherNLError]
   type NLEff[A] = Eff[NLFx, A]
-  type NLEffE   = NLEff[E]
 
   def bindFreeVar: NLEff[Var] =
     for {

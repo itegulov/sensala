@@ -11,7 +11,7 @@ trait QuantifierWithoutVerbPhrase extends NounPhraseWithoutVerbPhrase
 final case class ForallQuantifier(
   nounPhrase: NounPhrase
 ) extends QuantifierWithoutVerbPhrase {
-  override def interpret(cont: NLEffE): NLEffE =
+  override def interpret(cont: NLEff[E]): NLEff[E] =
     for {
       nounL <- nounPhrase.interpret(Eff.pure(True))
       x     <- bindFreeVar
@@ -27,7 +27,7 @@ final case class ForallQuantifier(
 final case class ExistentialQuantifier(
   nounPhrase: NounPhrase
 ) extends QuantifierWithoutVerbPhrase {
-  override def interpret(cont: NLEffE): NLEffE =
+  override def interpret(cont: NLEff[E]): NLEff[E] =
     for {
       x     <- bindFreeVar
       _     <- modify[NLFx, Context](_.addReferent(x, properties))

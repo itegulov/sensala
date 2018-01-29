@@ -16,7 +16,7 @@ final case class ProperNounVP(
   verbPhrase: VerbPhrase
 ) extends Word
     with NounPhraseWithVerbPhrase {
-  override def interpret(cont: NLEffE): NLEffE =
+  override def interpret(cont: NLEff[E]): NLEff[E] =
     for {
       x <- bindFreeVar
       w = Sym(word)
@@ -35,7 +35,7 @@ final case class ReflexivePronounVP(
   verbPhrase: VerbPhrase
 ) extends Word
     with NounPhraseWithVerbPhrase {
-  override def interpret(cont: NLEffE): NLEffE =
+  override def interpret(cont: NLEff[E]): NLEff[E] =
     for {
       x <- bindFreeVar
       ref <- if (word.toLowerCase == "it")

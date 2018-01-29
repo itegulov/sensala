@@ -12,7 +12,7 @@ final case class ForallQuantifierVP(
   nounPhrase: NounPhrase,
   verbPhrase: VerbPhrase
 ) extends QuantifierWithVerbPhrase {
-  override def interpret(cont: NLEffE): NLEffE =
+  override def interpret(cont: NLEff[E]): NLEff[E] =
     for {
       x <- bindFreeVar
       y <- bindFreeVar
@@ -33,10 +33,9 @@ final case class ExistentialQuantifierVP(
   nounPhrase: NounPhrase,
   verbPhrase: VerbPhrase
 ) extends QuantifierWithVerbPhrase {
-  override def interpret(cont: NLEffE): NLEffE =
+  override def interpret(cont: NLEff[E]): NLEff[E] =
     for {
       x     <- bindFreeVar
-      y     <- bindFreeVar
       _     <- modify[NLFx, Context](_.addReferent(x, properties))
       nounL <- nounPhrase.interpret(verbPhrase.interpret(cont))
     } yield Ex(x, i, nounL(x))

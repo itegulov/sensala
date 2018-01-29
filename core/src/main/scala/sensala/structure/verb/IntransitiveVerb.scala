@@ -5,8 +5,9 @@ import sensala.structure._
 
 final case class IntransitiveVerb(
   word: String
-) extends Word with VerbPhrase {
-  override def interpret(cont: NLEffE): NLEffE =
+) extends Word
+    with VerbPhrase {
+  override def interpret(cont: NLEff[E]): NLEff[E] =
     for {
       x <- bindFreeVar
       w = Sym(word)

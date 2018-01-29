@@ -12,7 +12,7 @@ final case class ProperNoun(
   word: String
 ) extends Word
     with NounPhraseWithoutVerbPhrase {
-  override def interpret(cont: NLEffE): NLEffE =
+  override def interpret(cont: NLEff[E]): NLEff[E] =
     for {
       x <- bindFreeVar
       w = Sym(word)
@@ -30,7 +30,7 @@ case class CommonNoun(
   word: String
 ) extends Word
     with NounPhraseWithoutVerbPhrase {
-  override def interpret(cont: NLEffE): NLEffE =
+  override def interpret(cont: NLEff[E]): NLEff[E] =
     for {
       x <- bindFreeVar
       w = Sym(word)
@@ -44,7 +44,7 @@ final case class ReflexivePronoun(
   word: String
 ) extends Word
     with NounPhraseWithoutVerbPhrase {
-  override def interpret(cont: NLEffE): NLEffE =
+  override def interpret(cont: NLEff[E]): NLEff[E] =
     for {
       contL <- cont
       x     <- bindFreeVar

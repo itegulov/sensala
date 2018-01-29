@@ -13,7 +13,7 @@ final case class AdjectiveNounPhraseVP(
   nounPhrase: NounPhrase,
   verbPhrase: VerbPhrase
 ) extends AdjectiveWithVerbPhrase {
-  override def interpret(cont: NLEffE): NLEffE =
+  override def interpret(cont: NLEff[E]): NLEff[E] =
     for {
       x <- bindFreeVar
       y <- bindFreeVar

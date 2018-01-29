@@ -10,7 +10,7 @@ final case class VerbAdjectivePhrase(
   verb: String,
   adjective: Adjective
 ) extends VerbPhrase {
-  override def interpret(cont: NLEffE): NLEffE =
+  override def interpret(cont: NLEff[E]): NLEff[E] =
     verb match {
       case "is" | "was" =>
         for {
