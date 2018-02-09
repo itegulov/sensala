@@ -15,10 +15,10 @@ final case class ProperNoun(
     with NounPhraseWithoutVerbPhrase {
   override def interpret(cont: NLEff[E]): NLEff[E] =
     for {
-      x <- bindFreeVar
+      x <- getEntity
       w = Sym(word)
       contL <- cont
-    } yield Abs(x, entity, w(x) /\: contL(x))
+    } yield w(x) /\: contL
 
   override def properties: List[Property] = word match {
     case "Mary" => List(Property(female))
@@ -33,10 +33,10 @@ case class CommonNoun(
     with NounPhraseWithoutVerbPhrase {
   override def interpret(cont: NLEff[E]): NLEff[E] =
     for {
-      x <- bindFreeVar
+      x <- getEntity
       w = Sym(word)
       contL <- cont
-    } yield Abs(x, entity, w(x) /\: contL(x))
+    } yield w(x) /\: contL
 
   override def properties: List[Property] = PropertyExtractor.extractProperties(word)
 }
@@ -47,7 +47,6 @@ final case class ReflexivePronoun(
     with NounPhraseWithoutVerbPhrase {
   override def interpret(cont: NLEff[E]): NLEff[E] =
     for {
-      contL <- cont
       x     <- bindFreeVar
       ref <- if (word.toLowerCase == "it")
               gets[NLFx, Context, E](_.findAnaphoricReferent(x, nonHuman(x)).get)
@@ -55,7 +54,9 @@ final case class ReflexivePronoun(
               gets[NLFx, Context, E](_.findAnaphoricReferent(x, male(x)).get)
             else
               left[NLFx, NLError, E](NLUnexpectedWord(word))
-    } yield contL(ref)
+      _ <- putEntity(ref.asInstanceOf[Var]) // FIXME: remove type casting?
+      contL <- cont
+    } yield contL
 
   override def properties: List[Property] = word match {
     case "he"  => List(Property(male))

@@ -1,6 +1,5 @@
 package sensala.conceptnet
 
-import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import com.typesafe.scalalogging.Logger
 import play.api.libs.json.{JsError, JsSuccess, JsValue}
@@ -11,7 +10,7 @@ import sensala.conceptnet.structure.json._
 
 import scala.concurrent.Future
 
-class ConceptNetApi(implicit system: ActorSystem, materializer: ActorMaterializer) {
+class ConceptNetApi(implicit materializer: ActorMaterializer) {
   import JsonBodyReadables._
   import scala.concurrent.ExecutionContext.Implicits._
   

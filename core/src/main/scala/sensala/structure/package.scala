@@ -10,12 +10,37 @@ import sensala.error.NLError
 import scala.annotation.tailrec
 
 package object structure {
-  type StateContext[A]  = State[Context, A]
-  type EitherNLError[A] = Either[NLError, A]
+  type StateContext[A]      = State[Context, A]
+  type StateLocalContext[A] = State[LocalContext, A]
+  type EitherNLError[A]     = Either[NLError, A]
 
-  type NLFx     = Fx.fx2[StateContext, EitherNLError]
+  type NLFx     = Fx.fx3[StateContext, StateLocalContext, EitherNLError]
   type NLEff[A] = Eff[NLFx, A]
 
+  def getEntity: NLEff[Var] =
+    for {
+      localContext <- get[NLFx, LocalContext]
+    } yield localContext.entity.get
+
+  def getEvent: NLEff[Var] =
+    for {
+      localContext <- get[NLFx, LocalContext]
+    } yield localContext.event.get
+
+  def putEntity(v: Var): NLEff[Unit] =
+    for {
+      localContext <- get[NLFx, LocalContext]
+      _ <- put[NLFx, LocalContext](localContext.copy(entity = Some(v)))
+    } yield ()
+
+  def putEvent(v: Var): NLEff[Unit] =
+    for {
+      localContext <- get[NLFx, LocalContext]
+      _ <- put[NLFx, LocalContext](localContext.copy(event = Some(v)))
+    } yield ()
+  
+  def flushLocalContext(): NLEff[Unit] = put[NLFx, LocalContext](LocalContext(None, None))
+  
   def bindFreeVar: NLEff[Var] =
     for {
       context <- get[NLFx, Context]
@@ -31,6 +56,9 @@ package object structure {
       }
       _ <- put[NLFx, Context](context.addBoundSym(newSym))
     } yield newSym
+  
+  val agent = Sym("agent")
+  val patient = Sym("patient")
 
   val nonHuman = Sym("non_human")
   val female   = Sym("female")
@@ -57,7 +85,7 @@ package object structure {
     def \/:(right: E): E = Or(right, lambda)
 
     def /\:(right: E): E = And(right, lambda)
-    
+
     def ->:(right: E): E = Imp(right, lambda)
 
     def unary_~(): E = Neg(lambda)

@@ -5,7 +5,6 @@ import sensala.structure.adjective.Adjective
 import sensala.structure._
 import org.atnos.eff.all._
 import sensala.error.{NLError, NLUnexpectedWord}
-import sensala.structure.types._
 
 final case class VerbAdjectivePhrase(
   verb: String,
@@ -15,10 +14,10 @@ final case class VerbAdjectivePhrase(
     verb match {
       case "is" | "was" =>
         for {
-          x <- bindFreeVar
+          x <- getEntity
           w = Sym(adjective.word)
           contL <- cont
-        } yield Abs(x, entity, w(x) /\: contL(x))
+        } yield w(x) /\: contL
       case other =>
         left[NLFx, NLError, E](NLUnexpectedWord(other))
     }

@@ -59,7 +59,12 @@ object CLI {
                |  $sentence
             """.stripMargin
           )
-          val (lambdaTermEither, context) = sentence.interpret(Eff.pure(True)).runEither[NLError].runState[Context](Context(Map.empty, Set.empty)).run
+          val ((lambdaTermEither, context), localContext) = 
+            sentence.interpret(Eff.pure(True))
+              .runEither[NLError]
+              .runState[Context](Context(Map.empty, Set.empty))
+              .runState[LocalContext](LocalContext.empty)
+              .run
           val lambdaTerm = lambdaTermEither match {
             case Right(e) => e
             case Left(error) => sys.error(s"Erorr: $error")

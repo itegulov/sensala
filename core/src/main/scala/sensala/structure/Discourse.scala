@@ -2,7 +2,6 @@ package sensala.structure
 
 import cats.implicits._
 import org.aossie.scavenger.expression._
-import org.aossie.scavenger.expression.formula.True
 import sensala.structure.noun.NounPhraseWithVerbPhrase
 import org.atnos.eff._
 import sensala.structure.types._
@@ -12,14 +11,14 @@ final case class Discourse(sentences: List[NounPhraseWithVerbPhrase]) extends NL
     for {
       x <- bindFreeVar
       y <- bindFreeVar
-      result <- sentences.foldLeftM[NLEff, E](Abs(x, i, x(True))) {
+      result <- sentences.foldLeftM[NLEff, E](Abs(x, i, x)) {
                  case (e, b) =>
                    for {
                      z      <- bindFreeVar
-                     a      <- bindFreeVar
+                     _      <- flushLocalContext()
                      intRes <- b.interpret(Eff.pure(z))
-                   } yield Abs(z, entity, e(Abs(a, entity, intRes)))
+                   } yield Abs(z, entity, e(intRes))
                }
       contL <- cont
-    } yield result(Abs(y, i, contL))
+    } yield result(contL)
 }

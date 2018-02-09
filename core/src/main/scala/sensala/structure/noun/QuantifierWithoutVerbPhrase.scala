@@ -17,10 +17,11 @@ final case class ForallQuantifier(
       nounL <- nounPhrase.interpret(Eff.pure(True))
       x     <- bindFreeVar
       _     <- modify[NLFx, Context](_.addReferent(x, properties))
+      _     <- putEntity(x)
       // TODO: understand the scope of forall quantifier
 //      _ <- modify(_.deleteReferent(x))
       contL <- cont
-    } yield All(x, entity, ~nounL(x) /\: contL(x))
+    } yield All(x, entity, ~nounL /\: contL)
 
   override def properties = nounPhrase.properties
 }
@@ -32,8 +33,9 @@ final case class ExistentialQuantifier(
     for {
       x     <- bindFreeVar
       _     <- modify[NLFx, Context](_.addReferent(x, properties))
+      _     <- putEntity(x)
       nounL <- nounPhrase.interpret(cont)
-    } yield Ex(x, entity, nounL(x))
+    } yield Ex(x, entity, nounL)
 
   override def properties = nounPhrase.properties
 }

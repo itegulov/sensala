@@ -13,6 +13,5 @@ final case class VerbSentencePhrase(
     for {
       // TODO: probably I should use the verb somehow
       sentenceL <- sentence.interpret(cont)
-      x         <- bindFreeVar
-    } yield Abs(x, entity, sentenceL)
+    } yield sentenceL
 }

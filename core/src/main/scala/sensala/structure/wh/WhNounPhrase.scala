@@ -4,7 +4,6 @@ import org.aossie.scavenger.expression._
 import sensala.structure.noun.{NounPhrase, NounPhraseWithoutVerbPhrase}
 import sensala.structure.verb.VerbPhrase
 import sensala.structure._
-import sensala.structure.types._
 
 final case class WhNounPhrase(
   verbPhrase: VerbPhrase,
@@ -13,14 +12,16 @@ final case class WhNounPhrase(
     with NounPhraseWithoutVerbPhrase {
   override def interpret(cont: NLEff[E]): NLEff[E] =
     for {
-      x <- bindFreeVar
-      y <- bindFreeVar
+      x <- getEntity
       nounL <- nounPhrase.interpret(
-                for {
-                  verbL <- verbPhrase.interpret(cont)
-                } yield Abs(y, entity, verbL(y))
-              )
-    } yield Abs(x, entity, nounL(x))
+        verbPhrase.interpret(
+          for {
+            _ <- putEntity(x) // Because who clause can redefine current entity
+            result <- cont
+          } yield result
+        )
+      )
+    } yield nounL
 
   override def properties = nounPhrase.properties
 }

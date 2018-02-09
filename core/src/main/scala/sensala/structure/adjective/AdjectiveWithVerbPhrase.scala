@@ -15,13 +15,13 @@ final case class AdjectiveNounPhraseVP(
   verbPhrase: VerbPhrase
 ) extends AdjectiveWithVerbPhrase {
   override def interpret(cont: NLEff[E]): NLEff[E] =
-    for {
-      x <- bindFreeVar
-      y <- bindFreeVar
-      w = Sym(adjective.word)
-      verbL <- verbPhrase.interpret(cont)
-      nounL <- nounPhrase.interpret(Eff.pure(Abs(y, entity, w(y) /\: verbL(y))))
-    } yield Abs(x, entity, nounL(x))
+    nounPhrase.interpret(
+      for {
+        y <- getEntity
+        w = Sym(adjective.word)
+        verbL <- verbPhrase.interpret(cont)
+      } yield w(y) /\: verbL
+    )
 
   override def properties = nounPhrase.properties
 }

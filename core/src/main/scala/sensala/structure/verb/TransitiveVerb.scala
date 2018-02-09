@@ -1,6 +1,7 @@
 package sensala.structure.verb
 
 import org.aossie.scavenger.expression._
+import org.aossie.scavenger.expression.formula.Ex
 import sensala.structure._
 import sensala.structure.noun.NounPhraseWithoutVerbPhrase
 import sensala.structure.types._
@@ -11,13 +12,15 @@ final case class TransitiveVerb(
 ) extends VerbPhrase {
   override def interpret(cont: NLEff[E]): NLEff[E] =
     for {
-      x <- bindFreeVar
-      y <- bindFreeVar
+      x <- getEntity
+      e <- bindFreeVar
+      _ <- putEvent(e)
       w = Sym(word)
       objL <- obj.interpret(
                for {
+                 y <- getEntity
                  contL <- cont
-               } yield Abs(y, entity, w(x, y) /\: contL(x))
+               } yield Ex(e, event, w(e) /\: agent(e, x) /\: patient(e, y) /\: contL)
              )
-    } yield Abs(x, entity, objL)
+    } yield objL
 }

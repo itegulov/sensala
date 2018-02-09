@@ -5,7 +5,6 @@ import sensala.structure._
 import org.atnos.eff.all._
 import sensala.error.{NLError, NLUnexpectedWord}
 import sensala.property.Property
-import sensala.structure.types._
 import sensala.structure.verb.VerbPhrase
 
 trait NounPhraseWithVerbPhrase extends NounPhrase {
@@ -19,10 +18,10 @@ final case class ProperNounVP(
     with NounPhraseWithVerbPhrase {
   override def interpret(cont: NLEff[E]): NLEff[E] =
     for {
-      x <- bindFreeVar
+      x <- getEntity
       w = Sym(word)
       verbL <- verbPhrase.interpret(cont)
-    } yield Abs(x, entity, w(x) /\: verbL(x))
+    } yield w(x) /\: verbL
 
   override def properties: List[Property] = word match {
     case "Mary" => List(Property(female))
@@ -45,8 +44,9 @@ final case class ReflexivePronounVP(
               gets[NLFx, Context, E](_.findAnaphoricReferent(x, male(x) \/: human(x)).get)
             else
               left[NLFx, NLError, E](NLUnexpectedWord(word))
+      _ <- putEntity(ref.asInstanceOf[Var]) // FIXME: remove type casting?
       verbL <- verbPhrase.interpret(cont)
-    } yield verbL(ref)
+    } yield verbL
 
   override def properties: List[Property] = word match {
     case "he"  => List(Property(male))
