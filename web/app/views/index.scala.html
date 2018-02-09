@@ -1,0 +1,19 @@
+@import views.html.helper.CSRF
+
+@()(implicit request: RequestHeader)
+
+<!DOCTYPE html>
+
+<html lang="en">
+    <head>
+        <title>Sensala</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body>
+        <form method="POST" action="/interpret">
+            @CSRF.formField
+            Discourse: <input type="text" name="discourse"><br>
+            <input type="submit" value="Submit">
+        </form>
+    </body>
+</html>

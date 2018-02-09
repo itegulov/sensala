@@ -1,6 +1,8 @@
 import sbt._
 import sbt.Keys._
 import sbtassembly.AssemblyKeys._
+import play.sbt._
+import play.sbt.PlayImport._
 
 object SensalaBuild {
   lazy val commonSettings = Seq(
@@ -88,6 +90,17 @@ object SensalaBuild {
       )
     )
     .dependsOn(core, parser)
+  
+  lazy val web = Project(id = "web", base = file("web"))
+    .settings(commonSettings ++ commonDeps)
+    .settings(name := "sensala-web")
+    .settings(
+      libraryDependencies ++= Seq(
+        guice
+      )
+    )
+    .dependsOn(core, parser)
+    .enablePlugins(PlayScala)
 
   lazy val root = Project(id = "sensala", base = file("."))
     .aggregate(core, parser, commandLine)
