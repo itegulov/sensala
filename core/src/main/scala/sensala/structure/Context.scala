@@ -6,6 +6,7 @@ import org.aossie.scavenger.preprocessing.TPTPClausifier
 import org.aossie.scavenger.prover.{EPCR, Unsatisfiable}
 import org.aossie.scavenger.structure.immutable.{AxiomClause, NegConjectureClause}
 import sensala.property.Property
+import sensala.structure.types.entity
 
 import scala.concurrent.duration._
 
@@ -21,7 +22,7 @@ final case class Context(
         val cnf = clausifier(
           List(
             (refProperties, AxiomClause),
-            (All(v, i, ~properties), NegConjectureClause)
+            (All(v, entity, ~properties), NegConjectureClause)
           )
         )
         EPCR.prove(cnf, 5 seconds) match {
@@ -33,7 +34,7 @@ final case class Context(
     copy(
       referentProperties = referentProperties.updated(
         newRef,
-        All(newRef, i, properties.map(p => App(p.symbol, newRef)).reduceLeft(And.apply))
+        All(newRef, entity, properties.map(p => App(p.symbol, newRef)).reduceLeft(And.apply))
       )
     )
   def deleteReferent(oldRef: Sym): Context =

@@ -5,6 +5,7 @@ import sensala.structure._
 import org.atnos.eff.all._
 import sensala.error.{NLError, NLUnexpectedWord}
 import sensala.property.Property
+import sensala.structure.types._
 import sensala.structure.verb.VerbPhrase
 
 trait NounPhraseWithVerbPhrase extends NounPhrase {
@@ -21,7 +22,7 @@ final case class ProperNounVP(
       x <- bindFreeVar
       w = Sym(word)
       verbL <- verbPhrase.interpret(cont)
-    } yield Abs(x, i, w(x) /\: verbL(x))
+    } yield Abs(x, entity, w(x) /\: verbL(x))
 
   override def properties: List[Property] = word match {
     case "Mary" => List(Property(female))

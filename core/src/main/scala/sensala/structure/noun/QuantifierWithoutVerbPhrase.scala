@@ -5,6 +5,7 @@ import org.aossie.scavenger.expression.formula._
 import sensala.structure._
 import org.atnos.eff._
 import org.atnos.eff.all._
+import sensala.structure.types._
 
 trait QuantifierWithoutVerbPhrase extends NounPhraseWithoutVerbPhrase
 
@@ -19,7 +20,7 @@ final case class ForallQuantifier(
       // TODO: understand the scope of forall quantifier
 //      _ <- modify(_.deleteReferent(x))
       contL <- cont
-    } yield All(x, i, ~nounL(x) /\: contL(x))
+    } yield All(x, entity, ~nounL(x) /\: contL(x))
 
   override def properties = nounPhrase.properties
 }
@@ -32,7 +33,7 @@ final case class ExistentialQuantifier(
       x     <- bindFreeVar
       _     <- modify[NLFx, Context](_.addReferent(x, properties))
       nounL <- nounPhrase.interpret(cont)
-    } yield Ex(x, i, nounL(x))
+    } yield Ex(x, entity, nounL(x))
 
   override def properties = nounPhrase.properties
 }

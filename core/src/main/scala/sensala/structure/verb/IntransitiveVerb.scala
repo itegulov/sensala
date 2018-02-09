@@ -2,6 +2,7 @@ package sensala.structure.verb
 
 import org.aossie.scavenger.expression._
 import sensala.structure._
+import sensala.structure.types._
 
 final case class IntransitiveVerb(
   word: String
@@ -12,5 +13,5 @@ final case class IntransitiveVerb(
       x <- bindFreeVar
       w = Sym(word)
       contL <- cont
-    } yield Abs(x, i, w(x) /\: contL(x))
+    } yield Abs(x, entity, w(x) /\: contL(x))
 }

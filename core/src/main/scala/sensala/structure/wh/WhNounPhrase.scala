@@ -4,6 +4,7 @@ import org.aossie.scavenger.expression._
 import sensala.structure.noun.{NounPhrase, NounPhraseWithoutVerbPhrase}
 import sensala.structure.verb.VerbPhrase
 import sensala.structure._
+import sensala.structure.types._
 
 final case class WhNounPhrase(
   verbPhrase: VerbPhrase,
@@ -17,9 +18,9 @@ final case class WhNounPhrase(
       nounL <- nounPhrase.interpret(
                 for {
                   verbL <- verbPhrase.interpret(cont)
-                } yield Abs(y, i, verbL(y))
+                } yield Abs(y, entity, verbL(y))
               )
-    } yield Abs(x, i, nounL(x))
+    } yield Abs(x, entity, nounL(x))
 
   override def properties = nounPhrase.properties
 }

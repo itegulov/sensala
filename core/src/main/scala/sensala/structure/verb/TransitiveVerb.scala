@@ -3,6 +3,7 @@ package sensala.structure.verb
 import org.aossie.scavenger.expression._
 import sensala.structure._
 import sensala.structure.noun.NounPhraseWithoutVerbPhrase
+import sensala.structure.types._
 
 final case class TransitiveVerb(
   word: String,
@@ -16,7 +17,7 @@ final case class TransitiveVerb(
       objL <- obj.interpret(
                for {
                  contL <- cont
-               } yield Abs(y, i, w(x, y) /\: contL(x))
+               } yield Abs(y, entity, w(x, y) /\: contL(x))
              )
-    } yield Abs(x, i, objL)
+    } yield Abs(x, entity, objL)
 }

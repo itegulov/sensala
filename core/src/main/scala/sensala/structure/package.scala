@@ -62,12 +62,4 @@ package object structure {
 
     def unary_~(): E = Neg(lambda)
   }
-
-  object Exist {
-    def apply(v: Var, e: E): E = Ex(v, i, e)
-  }
-
-  object Forall {
-    def apply(v: Var, e: E): E = All(v, i, e)
-  }
 }

@@ -5,6 +5,7 @@ import sensala.structure._
 import org.atnos.eff.all._
 import sensala.error.{NLError, NLUnexpectedWord}
 import sensala.property.{Property, PropertyExtractor}
+import sensala.structure.types._
 
 trait NounPhraseWithoutVerbPhrase extends NounPhrase
 
@@ -17,7 +18,7 @@ final case class ProperNoun(
       x <- bindFreeVar
       w = Sym(word)
       contL <- cont
-    } yield Abs(x, i, w(x) /\: contL(x))
+    } yield Abs(x, entity, w(x) /\: contL(x))
 
   override def properties: List[Property] = word match {
     case "Mary" => List(Property(female))
@@ -35,7 +36,7 @@ case class CommonNoun(
       x <- bindFreeVar
       w = Sym(word)
       contL <- cont
-    } yield Abs(x, i, w(x) /\: contL(x))
+    } yield Abs(x, entity, w(x) /\: contL(x))
 
   override def properties: List[Property] = PropertyExtractor.extractProperties(word)
 }

@@ -3,6 +3,7 @@ package sensala.structure.verb
 import org.aossie.scavenger.expression._
 import sensala.structure._
 import sensala.structure.noun.NounPhraseWithVerbPhrase
+import sensala.structure.types._
 
 final case class VerbSentencePhrase(
   word: String,
@@ -13,5 +14,5 @@ final case class VerbSentencePhrase(
       // TODO: probably I should use the verb somehow
       sentenceL <- sentence.interpret(cont)
       x         <- bindFreeVar
-    } yield Abs(x, i, sentenceL)
+    } yield Abs(x, entity, sentenceL)
 }
