@@ -5,3 +5,5 @@
 # Home page
 GET     /                    sensala.web.controllers.Application.index
 POST    /interpret           sensala.web.controllers.Application.interpret
+
+GET     /assets/*file        controllers.Assets.at(path="/public", file)

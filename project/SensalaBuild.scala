@@ -96,7 +96,10 @@ object SensalaBuild {
     .settings(name := "sensala-web")
     .settings(
       libraryDependencies ++= Seq(
-        guice
+        guice,
+        "org.webjars" % "bootstrap" % "4.0.0",
+        "org.webjars" % "jquery" % "3.3.1",
+        "org.webjars.npm" % "popper.js" % "1.13.0"
       )
     )
     .dependsOn(core, parser)

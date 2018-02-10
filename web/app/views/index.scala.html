@@ -2,18 +2,41 @@
 
 @()(implicit request: RequestHeader)
 
-<!DOCTYPE html>
+<!doctype html>
 
 <html lang="en">
     <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        
+        <link rel="stylesheet" type="text/css" href="@routes.Assets.at("lib/bootstrap/css/bootstrap.min.css")">
+        
         <title>Sensala</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
     </head>
     <body>
-        <form method="POST" action="/interpret">
-            @CSRF.formField
-            Discourse: <input type="text" name="discourse"><br>
-            <input type="submit" value="Submit">
-        </form>
+        <div class="container-fluid mt-5">
+            <div class="row justify-content-center text-center mb-3">
+                <div class="col-md-6">
+                    <h1>Sensala</h1>
+                </div>
+            </div>
+            
+            <form method="POST" action="/interpret">
+                @CSRF.formField
+                
+                <div class="form-group row justify-content-md-center">
+                    <div class="col-md-6">
+                        <input type="text" class="form-control" name="discourse" id="discourse" placeholder="Discourse to interpret">
+                    </div>
+                </div>
+                <div class="form-group row justify-content-md-center">
+                    <button type="submit" class="btn btn-primary">Interpret!</button>
+                </div>
+            </form>
+        </div>
+
+        <script type="text/javascript" src="@routes.Assets.at("lib/jquery/jquery.min.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.at("lib/bootstrap/js/bootstrap.min.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.at("lib/popper.js/dist/popper.min.js")"></script>
     </body>
 </html>

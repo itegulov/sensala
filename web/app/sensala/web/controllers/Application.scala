@@ -11,7 +11,6 @@ import sensala.error.NLError
 import sensala.normalization.NormalFormConverter
 import sensala.parser.DiscourseParser
 import sensala.postprocessing.PrettyTransformer
-import sensala.property.PropertyExtractor
 import sensala.structure._
 
 class Application extends InjectedController {
@@ -31,7 +30,7 @@ class Application extends InjectedController {
              |  $error
             """.stripMargin
         )
-        Ok(views.html.error())
+        InternalServerError(views.html.errors.serverError())
       case Right(sentence) =>
         logger.info(
           s"""
