@@ -3,6 +3,13 @@ import sbt.Keys._
 import sbtassembly.AssemblyKeys._
 import play.sbt._
 import play.sbt.PlayImport._
+import org.scalajs.sbtplugin.ScalaJSPlugin
+import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport._
+import webscalajs.WebScalaJS.autoImport._
+import com.typesafe.sbt.gzip.Import._
+import com.typesafe.sbt.web.Import._
+import com.typesafe.sbt.digest.Import._
+import webscalajs.ScalaJSWeb
 
 object SensalaBuild {
   lazy val commonSettings = Seq(
@@ -91,19 +98,35 @@ object SensalaBuild {
     )
     .dependsOn(core, parser)
   
-  lazy val web = Project(id = "web", base = file("web"))
+  lazy val webServer = Project(id = "web-server", base = file("web-server"))
     .settings(commonSettings ++ commonDeps)
-    .settings(name := "sensala-web")
+    .settings(name := "sensala-web-server")
     .settings(
+      scalaJSProjects := Seq(webClient),
+      pipelineStages in Assets := Seq(scalaJSPipeline),
+      pipelineStages := Seq(digest, gzip),
+      compile in Compile := ((compile in Compile) dependsOn scalaJSPipeline).value,
       libraryDependencies ++= Seq(
         guice,
         "org.webjars" % "bootstrap" % "4.0.0",
         "org.webjars" % "jquery" % "3.3.1",
-        "org.webjars.npm" % "popper.js" % "1.13.0"
+        "org.webjars.npm" % "popper.js" % "1.13.0",
+        "com.vmunier" %% "scalajs-scripts" % "1.1.1"
       )
     )
     .dependsOn(core, parser)
     .enablePlugins(PlayScala)
+  
+  lazy val webClient = Project(id = "web-client", base = file("web-client"))
+    .settings(commonSettings ++ commonDeps)
+    .settings(name := "sensala-web-client")
+    .settings(
+      scalaJSUseMainModuleInitializer := true,
+      libraryDependencies ++= Seq(
+        "org.scala-js" %%% "scalajs-dom" % "0.9.4"
+      )
+    )
+    .enablePlugins(ScalaJSPlugin, ScalaJSWeb)
 
   lazy val root = Project(id = "sensala", base = file("."))
     .aggregate(core, parser, commandLine)

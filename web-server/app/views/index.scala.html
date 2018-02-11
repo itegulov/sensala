@@ -1,0 +1,51 @@
+@()(implicit request: RequestHeader)
+
+<!doctype html>
+
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        
+        <link rel="stylesheet" type="text/css" href="@routes.Assets.versioned("lib/bootstrap/css/bootstrap.min.css")">
+        <link rel="stylesheet" type="text/css" href="@routes.Assets.versioned("css/main.css")">
+        
+        <title>Sensala</title>
+    </head>
+    <body>
+        <div class="container-fluid mt-5">
+            <div class="row justify-content-center text-center mb-3">
+                <div class="col-md-6">
+                    <h1>Sensala</h1>
+                </div>
+            </div>
+            
+            @helper.CSRF.formField
+            
+            <div class="form-group row justify-content-md-center">
+                <div class="col-md-6">
+                    <input type="text" class="form-control" name="discourse" id="discourse" placeholder="Discourse to interpret">
+                </div>
+            </div>
+            <div class="form-group row justify-content-md-center">
+                <button type="submit" class="btn btn-primary" id="interpret">Interpret!</button>
+            </div>
+            
+            <div class="row justify-content-center text-center mt-5">
+                <div class="col-md-12">
+                    <div id="loader" class="loader"></div>
+                    <h2 id="term">
+                        
+                    </h2>
+                </div>
+            </div>
+        </div>
+        
+        <script type="text/javascript" src="@routes.Assets.versioned("lib/jquery/jquery.min.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.versioned("lib/bootstrap/js/bootstrap.min.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.versioned("lib/popper.js/dist/popper.min.js")"></script>
+
+        @scalajs.html.scripts("Sensala-web-client", routes.Assets.versioned(_).toString, name => getClass.getResource(s"/public/$name") != null)
+
+    </body>
+</html>

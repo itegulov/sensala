@@ -21,7 +21,7 @@ class Application extends InjectedController {
   }
   
   def interpret = Action { implicit request =>
-    val discourse = request.body.asFormUrlEncoded.get.apply("discourse").fold("")(_ + _)
+    val discourse = request.body.asText.get
     val parsed = DiscourseParser.parse(discourse)
     parsed match {
       case Left(error) =>
@@ -30,7 +30,7 @@ class Application extends InjectedController {
              |  $error
             """.stripMargin
         )
-        InternalServerError(views.html.errors.serverError())
+        InternalServerError("")
       case Right(sentence) =>
         logger.info(
           s"""
@@ -83,7 +83,7 @@ class Application extends InjectedController {
              |${cnf.clauses.mkString("\n")}
             """.stripMargin
         )
-        Ok(views.html.interpret(prettyTerm))
+        Ok(prettyTerm.pretty)
     }
   }
 }
