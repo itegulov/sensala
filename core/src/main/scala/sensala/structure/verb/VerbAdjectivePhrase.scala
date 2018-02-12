@@ -1,10 +1,12 @@
 package sensala.structure.verb
 
 import org.aossie.scavenger.expression._
+import org.aossie.scavenger.expression.formula.Ex
 import sensala.structure.adjective.Adjective
 import sensala.structure._
 import org.atnos.eff.all._
 import sensala.error.{NLError, NLUnexpectedWord}
+import sensala.structure.types.event
 
 final case class VerbAdjectivePhrase(
   verb: String,
@@ -15,9 +17,11 @@ final case class VerbAdjectivePhrase(
       case "is" | "was" =>
         for {
           x <- getEntity
+          e <- bindFreeVar
+          _ <- putEvent(e)
           w = Sym(adjective.word)
           contL <- cont
-        } yield w(x) /\: contL
+        } yield Ex(e, event, description(e) /\: w(e, x) /\: contL)
       case other =>
         left[NLFx, NLError, E](NLUnexpectedWord(other))
     }

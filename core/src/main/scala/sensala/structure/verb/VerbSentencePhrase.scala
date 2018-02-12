@@ -1,8 +1,10 @@
 package sensala.structure.verb
 
 import org.aossie.scavenger.expression._
+import org.aossie.scavenger.expression.formula.Ex
 import sensala.structure._
 import sensala.structure.noun.NounPhraseWithVerbPhrase
+import sensala.structure.types.event
 
 final case class VerbSentencePhrase(
   word: String,
@@ -10,7 +12,15 @@ final case class VerbSentencePhrase(
 ) extends VerbPhrase {
   override def interpret(cont: NLEff[E]): NLEff[E] =
     for {
-      // TODO: probably I should use the verb somehow
-      sentenceL <- sentence.interpret(cont)
-    } yield sentenceL
+      e <- bindFreeVar
+      x <- getEntity
+      _ <- putEvent(e)
+      sentenceL <- sentence.interpret(
+        for {
+          eSucc <- getEvent
+          w = Sym(word)
+          contL <- cont
+        } yield w(e) /\: agent(e, x) /\: patient(e, eSucc) /\: contL
+      )
+    } yield Ex(e, event, sentenceL)
 }

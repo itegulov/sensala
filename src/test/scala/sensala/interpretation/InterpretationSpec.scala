@@ -48,6 +48,8 @@ class InterpretationSpec extends SensalaSpec {
   val x = Var("x")
   val y = Var("y")
   val e = Var("e")
+  val eSucc = Var("e'")
+  val eSuccSucc = Var("e''")
   
   val named = Sym("named")
   def John(v: Var) = named(v, Sym("John"))
@@ -69,6 +71,9 @@ class InterpretationSpec extends SensalaSpec {
   val ill = Sym("ill")
   val runs = Sym("runs")
   val quickly = Sym("quickly")
+  val description = Sym("description")
+  val believes = Sym("believes")
+  val said = Sym("said")
   
   def ex(x: Var, e: E): E = Ex(x, entity, e)
   def exEv(x: Var, e: E): E = Ex(x, event, e)
@@ -109,14 +114,14 @@ class InterpretationSpec extends SensalaSpec {
 
   it should "interpret adjective verb sentences" in {
     interpret("John is smart") shouldEqual
-      ex(x, John(x) /\: smart(x))
+      ex(x, John(x) /\: exEv(e, description(e) /\: smart(e, x)))
   }
 
   it should "interpret other anaphora sentences" in {
     interpret("Every lawyer believes he is smart") shouldEqual
-      forall(x, lawyer(x) ->: smart(x))
+      forall(x, lawyer(x) ->: exEv(e, exEv(eSucc, description(eSucc) /\: smart(eSucc, x) /\: believes(e) /\: agent(e, x) /\: patient(e, eSucc))))
     interpret("John left. He said he was ill.") shouldEqual
-      ex(x, John(x) /\: exEv(e, left(e) /\: agent(e, x) /\: ill(x)))
+      ex(x, John(x) /\: exEv(e, left(e) /\: agent(e, x) /\: exEv(eSucc, exEv(eSuccSucc, description(eSuccSucc) /\: ill(eSuccSucc, x) /\: said(eSucc) /\: agent(eSucc, x) /\: patient(eSucc, eSuccSucc)))))
   }
   
   it should "interpret sentences with adverb for verbs" in {
