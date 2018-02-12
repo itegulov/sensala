@@ -49,8 +49,9 @@ class InterpretationSpec extends SensalaSpec {
   val y = Var("y")
   val e = Var("e")
   
-  val John = Sym("John")
-  val Mary = Sym("Mary")
+  val named = Sym("named")
+  def John(v: Var) = named(v, Sym("John"))
+  def Mary(v: Var) = named(v, Sym("Mary"))
   val walks = Sym("walks")
   val loves = Sym("loves")
   val farmer = Sym("farmer")

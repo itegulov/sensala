@@ -59,6 +59,8 @@ package object structure {
   
   val agent = Sym("agent")
   val patient = Sym("patient")
+  
+  val named = Sym("named")
 
   val nonHuman = Sym("non_human")
   val female   = Sym("female")

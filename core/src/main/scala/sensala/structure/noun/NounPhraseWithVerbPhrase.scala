@@ -21,7 +21,7 @@ final case class ProperNounVP(
       x <- getEntity
       w = Sym(word)
       verbL <- verbPhrase.interpret(cont)
-    } yield w(x) /\: verbL
+    } yield named(x, w) /\: verbL
 
   override def properties: List[Property] = word match {
     case "Mary" => List(Property(female))
