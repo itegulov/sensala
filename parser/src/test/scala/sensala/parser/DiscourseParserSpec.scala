@@ -4,6 +4,7 @@ import sensala.SensalaSpec
 import sensala.structure._
 import sensala.structure.adjective._
 import sensala.structure.noun._
+import sensala.structure.propositional.In
 import sensala.structure.verb._
 import sensala.structure.wh._
 
@@ -92,6 +93,18 @@ class DiscourseParserSpec extends SensalaSpec {
   it should "parse adverb sentences" in {
     DiscourseParser.parse("John runs quickly").right.value shouldBe Discourse(List(
       ExistentialQuantifierVP(ProperNoun("John"), VerbAdverbPhrase("quickly", IntransitiveVerb("runs")))
+    ))
+  }
+  
+  it should "parse propositional sentences" in {
+    DiscourseParser.parse("John left a wallet on a table").right.value shouldBe Discourse(List(
+      ExistentialQuantifierVP(
+        ProperNoun("John"),
+        VerbInPhrase(
+          In("on", ExistentialQuantifier(CommonNoun("table"))), 
+          TransitiveVerb("left", ExistentialQuantifier(CommonNoun("wallet")))
+        )
+      )
     ))
   }
 }

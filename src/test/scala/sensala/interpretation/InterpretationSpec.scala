@@ -47,6 +47,7 @@ class InterpretationSpec extends SensalaSpec {
   
   val x = Var("x")
   val y = Var("y")
+  val z = Var("z")
   val e = Var("e")
   val eSucc = Var("e'")
   val eSuccSucc = Var("e''")
@@ -74,6 +75,9 @@ class InterpretationSpec extends SensalaSpec {
   val description = Sym("description")
   val believes = Sym("believes")
   val said = Sym("said")
+  val wallet = Sym("wallet")
+  val table = Sym("table")
+  val on = Sym("on")
   
   def ex(x: Var, e: E): E = Ex(x, entity, e)
   def exEv(x: Var, e: E): E = Ex(x, event, e)
@@ -123,9 +127,14 @@ class InterpretationSpec extends SensalaSpec {
     interpret("John left. He said he was ill.") shouldEqual
       ex(x, John(x) /\: exEv(e, left(e) /\: agent(e, x) /\: exEv(eSucc, exEv(eSuccSucc, description(eSuccSucc) /\: ill(eSuccSucc, x) /\: said(eSucc) /\: agent(eSucc, x) /\: patient(eSucc, eSuccSucc)))))
   }
-  
+
   it should "interpret sentences with adverb for verbs" in {
     interpret("John runs quickly") shouldEqual
       ex(x, John(x) /\: exEv(e, runs(e) /\: agent(e, x) /\: quickly(e)))
+  }
+
+  it should "interpret sentences with propositions" in {
+    interpret("John left a wallet on a table") shouldEqual
+      ex(x, John(x) /\: ex(y, wallet(y) /\: exEv(e, left(e) /\: agent(e, x) /\: patient(e, y) /\: ex(z, table(z) /\: on(e, z)))))
   }
 }

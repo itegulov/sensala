@@ -12,6 +12,7 @@ import sensala.structure._
 import sensala.structure.adjective._
 import sensala.structure.adverb.Adverb
 import sensala.structure.noun._
+import sensala.structure.propositional.{In, PropositionalPhrase}
 import sensala.structure.verb._
 import sensala.structure.wh._
 
@@ -164,21 +165,51 @@ object DiscourseParser {
     tree.label.value match {
       case "VP" if tree.children.length == 1 =>
         Right(IntransitiveVerb(tree.getChild(0).getChild(0).label.value))
-      case "VP" if tree.children.length == 2 =>
-        val transitiveVerb = tree.getChild(0).getChild(0).label.value
-        convert(tree.getChild(1)) match {
-          case Right(nounPhrase: NounPhraseWithoutVerbPhrase) =>
-            Right(TransitiveVerb(transitiveVerb, nounPhrase))
-          case Right(adjective: Adjective) =>
-            Right(VerbAdjectivePhrase(transitiveVerb, adjective))
-          case Right(sentence: NounPhraseWithVerbPhrase) =>
-            Right(VerbSentencePhrase(transitiveVerb, sentence))
-          case Right(adverb: Adverb) =>
-            Right(VerbAdverbPhrase(adverb.word, IntransitiveVerb(transitiveVerb)))
-          case Right(_) =>
-            Left(s"Unexpected token ${tree.getChild(1)} after a transitive verb")
-          case Left(error) =>
+      case "VP" =>
+        val verbWord = tree.getChild(0).getChild(0).label.value
+        val leftChildren = tree.children.toList.filter(!_.label.value.startsWith("VB"))
+        val nounPhrases = leftChildren.collect {
+          case t if t.label.value == "NP" => extractNounPhrase(t, None)
+        }
+        nounPhrases match {
+          case Nil =>
+            leftChildren.head match {
+              case t if t.label.value == "SBAR" => 
+                for {
+                  sentence <- convertSentence(t)
+                } yield VerbSentencePhrase(verbWord, sentence)
+              case t if t.label.value == "ADJP" =>
+                for {
+                  adjective <- extractAdjective(t)
+                } yield VerbAdjectivePhrase(verbWord, adjective)
+              case t if t.label.value == "ADVP" =>
+                for {
+                  adverb <- extractAdverb(t)
+                } yield VerbAdverbPhrase(adverb.word, IntransitiveVerb(verbWord))
+              case t if t.label.value == "PP" =>
+                for {
+                  propositionalPhrase <- extractPropositionalPhrase(t)
+                } yield VerbInPhrase(propositionalPhrase, IntransitiveVerb(verbWord))
+            }
+          case Right(nounPhrase: NounPhraseWithoutVerbPhrase) :: Nil =>
+            leftChildren.find(_.label.value != "NP") match {
+              case Some(t) if t.label.value == "SBAR" => Left("Sentence cannot be applied to a transitive verb")
+              case Some(t) if t.label.value == "ADJP" => Left("Adjective cannot be applied to a transitive verb")
+              case Some(t) if t.label.value == "ADVP" =>
+                for {
+                  adverb <- extractAdverb(t)
+                } yield VerbAdverbPhrase(adverb.word, TransitiveVerb(verbWord, nounPhrase))
+              case Some(t) if t.label.value == "PP" =>
+                for {
+                  propositionalPhrase <- extractPropositionalPhrase(t)
+                } yield VerbInPhrase(propositionalPhrase, TransitiveVerb(verbWord, nounPhrase))
+              case None =>
+                Right(TransitiveVerb(verbWord, nounPhrase))
+            }
+          case Left(error) :: _ =>
             Left(error)
+          case _ =>
+            Left("Unexpected number of noun phrases in verb phrase")
         }
     }
 
@@ -221,6 +252,19 @@ object DiscourseParser {
     }
   }
   
+  def extractPropositionalPhrase(tree: Tree): Either[String, PropositionalPhrase] = {
+    tree.label.value match {
+      case "PP" =>
+        if (tree.getChild(0).label.value == "IN") {
+          val inWord = tree.getChild(0).getChild(0).label.value
+          for {
+            nounPhrase <- extractNounPhrase(tree.getChild(1), None)
+          } yield In(inWord, nounPhrase)
+        } else {
+          Left("Illegal proposition")
+        }
+    }
+  }
 
   def convertSentence(tree: Tree): Either[String, NounPhraseWithVerbPhrase] = {
     assert(tree.label.value == "ROOT" || tree.label.value == "SBAR")
