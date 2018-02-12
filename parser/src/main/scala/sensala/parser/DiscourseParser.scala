@@ -1,7 +1,6 @@
 package sensala.parser
 
 import scala.collection.JavaConverters._
-
 import com.typesafe.scalalogging.Logger
 import edu.stanford.nlp.trees.Tree
 import edu.stanford.nlp.ling.CoreAnnotations._
@@ -9,9 +8,9 @@ import edu.stanford.nlp.pipeline.Annotation
 import edu.stanford.nlp.trees.TreeCoreAnnotations._
 import edu.stanford.nlp.util.CoreMap
 import cats.implicits._
-
 import sensala.structure._
 import sensala.structure.adjective._
+import sensala.structure.adverb.Adverb
 import sensala.structure.noun._
 import sensala.structure.verb._
 import sensala.structure.wh._
@@ -174,6 +173,8 @@ object DiscourseParser {
             Right(VerbAdjectivePhrase(transitiveVerb, adjective))
           case Right(sentence: NounPhraseWithVerbPhrase) =>
             Right(VerbSentencePhrase(transitiveVerb, sentence))
+          case Right(adverb: Adverb) =>
+            Right(VerbAdverbPhrase(adverb.word, IntransitiveVerb(transitiveVerb)))
           case Right(_) =>
             Left(s"Unexpected token ${tree.getChild(1)} after a transitive verb")
           case Left(error) =>
@@ -200,6 +201,26 @@ object DiscourseParser {
           case None            => Left("Invalid adjective phrase")
         }
     }
+  
+  def extractAdverb(tree: Tree): Either[String, Adverb] = {
+    tree.label.value match {
+      case "ADVP" =>
+        val adverbWords = tree.children.flatMap { child =>
+          child.label.value match {
+            case "RB" =>
+              Some(Adverb(child.getChild(0).label.value))
+            case _ =>
+              None
+          }
+        }
+        val adverbWordOpt = adverbWords.headOption
+        adverbWordOpt match {
+          case Some(adverb) => Right(adverb)
+          case None         => Left("Invalid adverb phrase")
+        }
+    }
+  }
+  
 
   def convertSentence(tree: Tree): Either[String, NounPhraseWithVerbPhrase] = {
     assert(tree.label.value == "ROOT" || tree.label.value == "SBAR")
@@ -231,6 +252,7 @@ object DiscourseParser {
       case "SBAR" => convertSentence(tree)
       case "NP"   => extractNounPhrase(tree, None)
       case "ADJP" => extractAdjective(tree)
+      case "ADVP" => extractAdverb(tree)
     }
 
   /**

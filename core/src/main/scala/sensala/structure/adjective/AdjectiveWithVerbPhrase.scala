@@ -1,11 +1,9 @@
 package sensala.structure.adjective
 
 import org.aossie.scavenger.expression._
-import org.atnos.eff.Eff
 import sensala.structure.noun.{NounPhrase, NounPhraseWithVerbPhrase}
 import sensala.structure.verb.VerbPhrase
 import sensala.structure._
-import sensala.structure.types._
 
 trait AdjectiveWithVerbPhrase extends AdjectivePhrase with NounPhraseWithVerbPhrase
 

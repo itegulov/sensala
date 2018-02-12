@@ -3,7 +3,6 @@ package sensala.structure.verb
 import org.aossie.scavenger.expression._
 import sensala.structure._
 import sensala.structure.noun.NounPhraseWithVerbPhrase
-import sensala.structure.types._
 
 final case class VerbSentencePhrase(
   word: String,

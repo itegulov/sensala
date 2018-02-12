@@ -66,6 +66,8 @@ class InterpretationSpec extends SensalaSpec {
   val lawyer = Sym("lawyer")
   val left = Sym("left")
   val ill = Sym("ill")
+  val runs = Sym("runs")
+  val quickly = Sym("quickly")
   
   def ex(x: Var, e: E): E = Ex(x, entity, e)
   def exEv(x: Var, e: E): E = Ex(x, event, e)
@@ -114,5 +116,10 @@ class InterpretationSpec extends SensalaSpec {
       forall(x, lawyer(x) ->: smart(x))
     interpret("John left. He said he was ill.") shouldEqual
       ex(x, John(x) /\: exEv(e, left(e) /\: agent(e, x) /\: ill(x)))
+  }
+  
+  it should "interpret sentences with adverb for verbs" in {
+    interpret("John runs quickly") shouldEqual
+      ex(x, John(x) /\: exEv(e, runs(e) /\: agent(e, x) /\: quickly(e)))
   }
 }

@@ -5,7 +5,6 @@ import sensala.structure._
 import org.atnos.eff.all._
 import sensala.error.{NLError, NLUnexpectedWord}
 import sensala.property.{Property, PropertyExtractor}
-import sensala.structure.types._
 
 trait NounPhraseWithoutVerbPhrase extends NounPhrase
 

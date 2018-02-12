@@ -88,4 +88,10 @@ class DiscourseParserSpec extends SensalaSpec {
       )
     ))
   }
+  
+  it should "parse adverb sentences" in {
+    DiscourseParser.parse("John runs quickly").right.value shouldBe Discourse(List(
+      ExistentialQuantifierVP(ProperNoun("John"), VerbAdverbPhrase("quickly", IntransitiveVerb("runs")))
+    ))
+  }
 }
