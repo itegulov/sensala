@@ -8,6 +8,7 @@ import edu.stanford.nlp.pipeline.Annotation
 import edu.stanford.nlp.trees.TreeCoreAnnotations._
 import edu.stanford.nlp.util.CoreMap
 import cats.implicits._
+import sensala.property.PropertyExtractor
 import sensala.structure._
 import sensala.structure.adjective._
 import sensala.structure.adverb.Adverb
@@ -15,7 +16,7 @@ import sensala.structure.noun._
 import sensala.structure.verb._
 import sensala.structure.wh._
 
-object DiscourseParser {
+case class DiscourseParser(implicit propertyExtractor: PropertyExtractor) {
   private val logger = Logger[this.type]
   type EitherS[T] = Either[String, T]
 

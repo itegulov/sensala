@@ -11,10 +11,13 @@ import sensala.error.NLError
 import sensala.normalization.NormalFormConverter
 import sensala.parser.DiscourseParser
 import sensala.postprocessing.PrettyTransformer
+import sensala.property.{CachedPropertyExtractor, ConceptNetPropertyExtractor}
 import sensala.structure._
 
 class Application extends InjectedController {
   private val logger = Logger[this.type]
+  implicit val propertyExtractor = CachedPropertyExtractor(ConceptNetPropertyExtractor)
+  val discourseParser = DiscourseParser()
   
   def index = Action { implicit request =>
     Ok(views.html.index())
@@ -22,7 +25,7 @@ class Application extends InjectedController {
   
   def interpret = Action { implicit request =>
     val discourse = request.body.asText.get
-    val parsed = DiscourseParser.parse(discourse)
+    val parsed = discourseParser.parse(discourse)
     parsed match {
       case Left(error) =>
         logger.error(
