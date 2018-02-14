@@ -4,6 +4,6 @@
 
 # Home page
 GET     /                         sensala.web.controllers.Application.index
-POST    /interpret                sensala.web.controllers.Application.interpret
+GET     /ws                       sensala.web.controllers.Application.ws
 
 GET     /versionedAssets/*file    controllers.Assets.versioned(file)

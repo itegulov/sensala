@@ -111,10 +111,12 @@ object SensalaBuild {
         "org.webjars" % "bootstrap" % "4.0.0",
         "org.webjars" % "jquery" % "3.3.1",
         "org.webjars.npm" % "popper.js" % "1.13.0",
+        "org.webjars" % "d3js" % "3.5.17",
+        "org.webjars.npm" % "dagre-d3" % "0.4.17",
         "com.vmunier" %% "scalajs-scripts" % "1.1.1"
       )
     )
-    .dependsOn(core, parser)
+    .dependsOn(core, parser, webSharedJvm)
     .enablePlugins(PlayScala)
   
   lazy val webClient = Project(id = "web-client", base = file("web-client"))
@@ -123,10 +125,25 @@ object SensalaBuild {
     .settings(
       scalaJSUseMainModuleInitializer := true,
       libraryDependencies ++= Seq(
-        "org.scala-js" %%% "scalajs-dom" % "0.9.4"
+        "org.scala-js" %%% "scalajs-dom" % "0.9.4",
+        "org.singlespaced" %%% "scalajs-d3" % "0.3.4",
+        "com.typesafe.play" %%% "play-json" % "2.6.8"
       )
     )
     .enablePlugins(ScalaJSPlugin, ScalaJSWeb)
+    .dependsOn(webSharedJs)
+  
+  lazy val webShared = (crossProject.crossType(CrossType.Pure) in file("web-shared"))
+    .settings(name := "sensala-web-shared")
+    .settings(
+      libraryDependencies ++= Seq(
+        "org.julienrf" %%% "play-json-derived-codecs" % "4.0.0"
+      )
+    )
+    .jsConfigure(_ enablePlugins(ScalaJSPlugin, ScalaJSWeb))
+  
+  lazy val webSharedJvm = webShared.jvm
+  lazy val webSharedJs = webShared.js
 
   lazy val root = Project(id = "sensala", base = file("."))
     .aggregate(core, parser, commandLine)

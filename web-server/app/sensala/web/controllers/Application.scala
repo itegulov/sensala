@@ -1,92 +1,59 @@
 package sensala.web.controllers
 
+import javax.inject.{Inject, Named}
+
+import akka.NotUsed
+import akka.actor._
+import akka.pattern.ask
+import akka.stream.scaladsl._
+import akka.util.Timeout
 import com.typesafe.scalalogging.Logger
+import org.aossie.scavenger.expression.E
 import org.aossie.scavenger.expression.formula.True
 import org.aossie.scavenger.preprocessing.TPTPClausifier
 import org.aossie.scavenger.structure.immutable.AxiomClause
 import org.atnos.eff._
 import org.atnos.eff.syntax.all._
-import play.api.mvc.InjectedController
+import play.api.libs.json._
+import play.api.mvc._
 import sensala.error.NLError
 import sensala.normalization.NormalFormConverter
 import sensala.parser.DiscourseParser
 import sensala.postprocessing.PrettyTransformer
 import sensala.property.{CachedPropertyExtractor, ConceptNetPropertyExtractor}
 import sensala.structure._
+import sensala.web.actors.UserParentActor
 
-class Application extends InjectedController {
-  private val logger = Logger[this.type]
-  implicit val propertyExtractor = CachedPropertyExtractor(ConceptNetPropertyExtractor)
-  val discourseParser = DiscourseParser()
-  
+import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContext, Future}
+
+class Application @Inject()(@Named("userParentActor") userParentActor: ActorRef)(
+  implicit val executionContext: ExecutionContext
+) extends InjectedController {
+  private val logger             = Logger[this.type]
+
   def index = Action { implicit request =>
     Ok(views.html.index())
   }
-  
-  def interpret = Action { implicit request =>
-    val discourse = request.body.asText.get
-    val parsed = discourseParser.parse(discourse)
-    parsed match {
-      case Left(error) =>
-        logger.error(
-          s"""Parsing failed:
-             |  $error
-            """.stripMargin
-        )
-        InternalServerError("")
-      case Right(sentence) =>
-        logger.info(
-          s"""
-             |Result of sentence parsing:
-             |  $sentence
-            """.stripMargin
-        )
-        val ((lambdaTermEither, context), localContext) =
-          sentence.interpret(Eff.pure(True))
-            .runEither[NLError]
-            .runState[Context](Context(Map.empty, Set.empty))
-            .runState[LocalContext](LocalContext.empty)
-            .run
-        val lambdaTerm = lambdaTermEither match {
-          case Right(e) => e
-          case Left(error) => sys.error(s"Erorr: $error")
-        }
-        logger.info(
-          s"""
-             |Result of discourse interpretation:
-             |  $lambdaTerm
-             |  ${lambdaTerm.pretty}
-            """.stripMargin
-        )
-        val result = NormalFormConverter.normalForm(lambdaTerm)
-        logger.info(
-          s"""
-             |Result of applying β-reduction:
-             |  $result
-             |  ${result.pretty}
-            """.stripMargin
-        )
-        val prettyTerm = PrettyTransformer.transform(result)
-        logger.info(
-          s"""
-             |Result of applying pretty transform:
-             |  ${prettyTerm.pretty}
-            """.stripMargin
-        )
-        logger.info(
-          s"""
-             |Context after interpretation:
-             |  ${context.referentProperties.map(_._2.pretty).mkString("\n")}
-            """.stripMargin
-        )
-        val cnf = new TPTPClausifier().apply(List((prettyTerm, AxiomClause)))
-        logger.info(
-          s"""
-             |Result of clausification:
-             |${cnf.clauses.mkString("\n")}
-            """.stripMargin
-        )
-        Ok(prettyTerm.pretty)
+
+  private def wsFutureFlow(request: RequestHeader): Future[Flow[JsValue, JsValue, NotUsed]] = {
+    // Use guice assisted injection to instantiate and configure the child actor.
+    implicit val timeout: Timeout = Timeout(1 second) // the first run in dev can take a while :-(
+    val future: Future[Any]       = userParentActor ? UserParentActor.Create(request.id.toString)
+    val futureFlow: Future[Flow[JsValue, JsValue, NotUsed]] =
+      future.mapTo[Flow[JsValue, JsValue, NotUsed]]
+    futureFlow
+  }
+
+  def ws: WebSocket = WebSocket.acceptOrResult[JsValue, JsValue] { rh =>
+    wsFutureFlow(rh).map { flow =>
+      Right(flow)
+    }.recover {
+      case e: Exception =>
+        logger.error("Cannot create websocket", e)
+        val jsError = Json.obj("error" -> "Cannot create websocket")
+        val result  = InternalServerError(jsError)
+        Left(result)
     }
   }
 }

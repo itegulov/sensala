@@ -6,3 +6,6 @@ lazy val commandLine = SensalaBuild.commandLine
 lazy val conceptNet = SensalaBuild.conceptNet
 lazy val webServer = SensalaBuild.webServer
 lazy val webClient = SensalaBuild.webClient
+lazy val webShared = SensalaBuild.webShared
+lazy val webSharedJs = SensalaBuild.webSharedJs
+lazy val webSharedJvm = SensalaBuild.webSharedJvm
