@@ -101,7 +101,7 @@ class DiscourseParserSpec extends SensalaSpec {
   }
   
   it should "parse propositional sentences" in {
-    DiscourseParser.parse("John left a wallet on a table").right.value shouldBe Discourse(List(
+    discourseParser.parse("John left a wallet on a table").right.value shouldBe Discourse(List(
       ExistentialQuantifierVP(
         ProperNoun("John"),
         VerbInPhrase(
