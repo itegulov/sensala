@@ -8,7 +8,7 @@ import org.scalactic.Equality
 import sensala.SensalaSpec
 import sensala.error.NLError
 import sensala.normalization.NormalFormConverter
-import sensala.parser.DiscourseParser
+import sensala.parser.{DiscourseParser, SensalaStanfordParser}
 import sensala.postprocessing.PrettyTransformer
 import sensala.property.{CachedPropertyExtractor, ConceptNetPropertyExtractor}
 import sensala.structure._
@@ -19,7 +19,8 @@ class InterpretationSpec extends SensalaSpec {
   val discourseParser = DiscourseParser()
   
   def interpret(text: String): E = {
-    val parsed = discourseParser.parse(text)
+    val sentences = SensalaStanfordParser.parse(text)
+    val parsed = discourseParser.parse(sentences)
     parsed match {
       case Left(error) =>
         sys.error(error)

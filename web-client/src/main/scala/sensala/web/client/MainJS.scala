@@ -1,12 +1,18 @@
 package sensala.web.client
 
 import org.scalajs.dom._
-import org.scalajs.dom.ext.Ajax
 import org.scalajs.dom.html._
 
-import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
+import scala.scalajs.js
+import scala.scalajs.js.annotation.JSName
 
 object MainJS {
+  @JSName("moveOnZoom")
+  @js.native
+  object moveOnZoom extends js.Object {
+    def apply(svg: js.Any, svgGroup: js.Any): Unit = js.native
+  }
+  
   def main(args: Array[String]): Unit = {
     val discourseBox = document.getElementById("discourse") match {
       case input: Input =>
@@ -25,12 +31,6 @@ object MainJS {
         heading
       case other =>
         sys.error(s"Element with ID 'parsed-term' is not a heading, it's $other")
-    }
-    val csrfTokenField = document.getElementsByName("csrfToken")(0) match {
-      case input: Input =>
-        input
-      case other =>
-        sys.error(s"Element with ID 'csrfToken' is not an input, it's $other")
     }
     val buttonInterpret = document.getElementById("interpret") match {
       case button: Button =>

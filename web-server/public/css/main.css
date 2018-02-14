@@ -20,3 +20,36 @@
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+.main-svg {
+    height: 450px;
+}
+
+g.type-TK > rect {
+    fill: #00ffd0;
+}
+
+g.type-NP > rect {
+    fill: #00bb00;
+}
+
+g.type-VP > rect {
+    fill: #3366ff;
+}
+
+text {
+    font-weight: 300;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serf;
+    font-size: 14px;
+}
+
+.node rect {
+    stroke: #999;
+    fill: #fff;
+    stroke-width: 1.5px;
+}
+
+.edgePath path {
+    stroke: #333;
+    stroke-width: 1.5px;
+}

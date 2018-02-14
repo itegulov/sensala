@@ -1,6 +1,7 @@
 package sensala.web.actors
 
 import akka.actor.{Actor, ActorLogging, ActorRef}
+import edu.stanford.nlp.trees.Tree
 import org.aossie.scavenger.expression.formula.True
 import org.aossie.scavenger.preprocessing.TPTPClausifier
 import org.aossie.scavenger.structure.immutable.AxiomClause
@@ -9,7 +10,7 @@ import org.atnos.eff.syntax.all._
 import play.api.libs.json._
 import sensala.error.NLError
 import sensala.normalization.NormalFormConverter
-import sensala.parser.DiscourseParser
+import sensala.parser.{DiscourseParser, SensalaStanfordParser}
 import sensala.postprocessing.PrettyTransformer
 import sensala.property.{CachedPropertyExtractor, ConceptNetPropertyExtractor}
 import sensala.structure._
@@ -26,11 +27,27 @@ case class InterpretationActor() extends Actor with ActorLogging {
       context.become(connected(actorRef))
   }
   
+  private def convertTree(tree: Tree): StanfordNode = {
+    StanfordNode(
+      tree.label.value,
+      if (tree.children.toList.isEmpty) "type-TK" else "type-" + tree.label.value,
+      tree.children.toList.map(convertTree)
+    )
+  }
+  
   def connected(outgoing: ActorRef): Receive = {
     case IncomingMessage(message) =>
       message.validate[SensalaInterpretMessage] match {
         case JsSuccess(SensalaRunInterpretation(discourse), _) =>
-          val parsed = discourseParser.parse(discourse)
+          val sentences = SensalaStanfordParser.parse(discourse)
+          log.info(
+            s"""
+               |Result of Stanford parsing:
+               |  $sentences
+                """.stripMargin
+          )
+          outgoing ! OutgoingMessage(Json.toJson(StanfordParsed(convertTree(sentences.head))))
+          val parsed = discourseParser.parse(sentences)
           parsed match {
             case Left(error) =>
               log.error(

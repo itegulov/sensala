@@ -13,41 +13,46 @@ class DiscourseParserSpec extends SensalaSpec {
   implicit val propertyExtractor = CachedPropertyExtractor(ConceptNetPropertyExtractor)
   val discourseParser = DiscourseParser()
   
+  def parse(discourse: String): Either[String, Discourse] = {
+    val sentences = SensalaStanfordParser.parse(discourse)
+    discourseParser(sentences)
+  }
+  
   it should "parse simple sentences" in {
-    discourseParser.parse("John walks").right.value shouldBe Discourse(List(
+    parse("John walks").right.value shouldBe Discourse(List(
       ExistentialQuantifierVP(ProperNoun("John"), IntransitiveVerb("walks"))
     ))
-    discourseParser.parse("Mary loves herself").right.value shouldBe Discourse(List(
+    parse("Mary loves herself").right.value shouldBe Discourse(List(
       ExistentialQuantifierVP(ProperNoun("Mary"), TransitiveVerb("loves", ReflexivePronoun("herself")))
     ))
   }
 
   it should "parse quantified common nouns" in {
-    discourseParser.parse("A donkey walks").right.value shouldBe Discourse(List(
+    parse("A donkey walks").right.value shouldBe Discourse(List(
       ExistentialQuantifierVP(CommonNoun("donkey"), IntransitiveVerb("walks"))
     ))
-    discourseParser.parse("Every farmer walks").right.value shouldBe Discourse(List(
+    parse("Every farmer walks").right.value shouldBe Discourse(List(
       ForallQuantifierVP(CommonNoun("farmer"), IntransitiveVerb("walks"))
     ))
-    discourseParser.parse("Every farmer owns a donkey").right.value shouldBe Discourse(List(
+    parse("Every farmer owns a donkey").right.value shouldBe Discourse(List(
       ForallQuantifierVP(CommonNoun("farmer"), TransitiveVerb("owns", ExistentialQuantifier(CommonNoun("donkey"))))
     ))
   }
 
   it should "parse wh noun phrases" in {
-    discourseParser.parse("Every farmer who owns a donkey beats it").right.value shouldBe Discourse(List(
+    parse("Every farmer who owns a donkey beats it").right.value shouldBe Discourse(List(
       ForallQuantifierVP(
         WhNounPhrase(TransitiveVerb("owns", ExistentialQuantifier(CommonNoun("donkey"))), CommonNoun("farmer")),
         TransitiveVerb("beats", ReflexivePronoun("it"))
       )
     ))
-    discourseParser.parse("A farmer who owns a donkey beats it").right.value shouldBe Discourse(List(
+    parse("A farmer who owns a donkey beats it").right.value shouldBe Discourse(List(
       ExistentialQuantifierVP(
         WhNounPhrase(TransitiveVerb("owns", ExistentialQuantifier(CommonNoun("donkey"))), CommonNoun("farmer")),
         TransitiveVerb("beats", ReflexivePronoun("it"))
       )
     ))
-    discourseParser.parse("A farmer who eats walks").right.value shouldBe Discourse(List(
+    parse("A farmer who eats walks").right.value shouldBe Discourse(List(
       ExistentialQuantifierVP(
         WhNounPhrase(IntransitiveVerb("eats"), CommonNoun("farmer")),
         IntransitiveVerb("walks")
@@ -56,7 +61,7 @@ class DiscourseParserSpec extends SensalaSpec {
   }
 
   it should "parse multi-sentence discourses" in {
-    discourseParser.parse("Every farmer who owns a donkey beats it. John is a farmer. John owns a donkey.").right.value shouldBe Discourse(List(
+    parse("Every farmer who owns a donkey beats it. John is a farmer. John owns a donkey.").right.value shouldBe Discourse(List(
       ForallQuantifierVP(
         WhNounPhrase(TransitiveVerb("owns", ExistentialQuantifier(CommonNoun("donkey"))), CommonNoun("farmer")),
         TransitiveVerb("beats", ReflexivePronoun("it"))
@@ -73,14 +78,14 @@ class DiscourseParserSpec extends SensalaSpec {
   }
   
   it should "parse sentences with adjectives" in {
-    discourseParser.parse("Every wealthy farmer owns a donkey").right.value shouldBe Discourse(List(
+    parse("Every wealthy farmer owns a donkey").right.value shouldBe Discourse(List(
       ForallQuantifierVP(
         AdjectiveNounPhrase(Adjective("wealthy"), CommonNoun("farmer")),
         TransitiveVerb("owns", ExistentialQuantifier(CommonNoun("donkey")))
       )
     ))
 
-    discourseParser.parse("Every lawyer believes he is smart").right.value shouldBe Discourse(List(
+    parse("Every lawyer believes he is smart").right.value shouldBe Discourse(List(
       ForallQuantifierVP(
         CommonNoun("lawyer"),
         VerbSentencePhrase(
@@ -95,13 +100,13 @@ class DiscourseParserSpec extends SensalaSpec {
   }
   
   it should "parse adverb sentences" in {
-    discourseParser.parse("John runs quickly").right.value shouldBe Discourse(List(
+    parse("John runs quickly").right.value shouldBe Discourse(List(
       ExistentialQuantifierVP(ProperNoun("John"), VerbAdverbPhrase("quickly", IntransitiveVerb("runs")))
     ))
   }
   
   it should "parse propositional sentences" in {
-    discourseParser.parse("John left a wallet on a table").right.value shouldBe Discourse(List(
+    parse("John left a wallet on a table").right.value shouldBe Discourse(List(
       ExistentialQuantifierVP(
         ProperNoun("John"),
         VerbInPhrase(

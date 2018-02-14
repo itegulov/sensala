@@ -114,7 +114,7 @@ case class DiscourseParser(implicit propertyExtractor: PropertyExtractor) {
                          case (Some(adj), Some(np), Some(vp)) =>
                            Right(AdjectiveNounPhraseVP(adj, np, vp))
                          case _ =>
-                           Left("Invalid noun phrase")
+                           Left(s"Invalid noun phrase:\n${tree.pennString()}")
                        }
                    }
         } yield result
@@ -303,18 +303,14 @@ case class DiscourseParser(implicit propertyExtractor: PropertyExtractor) {
   /**
    * Tries to parse a discourse into its representation in Sensala syntax trees.
    *
-   * @param text discourse to be parsed
+   * @param sentences list of discourse sentences parsed by the Stanford Parser
    * @return Right(discourse) if correctly parsed a syntax tree
     *        Left(error) if discourse is malformed
    */
-  def parse(text: String): Either[String, Discourse] = {
-    val document = new Annotation(text)
-    SensalaStanfordParser.annotate(document)
-    val sentences: List[CoreMap] = document.get(classOf[SentencesAnnotation]).asScala.toList
-    sentences.map(sentence => convertSentence(sentence.get(classOf[TreeAnnotation])))
+  def parse(sentences: List[Tree]): Either[String, Discourse] = {
     for {
       result <- sentences
-                 .map(sentence => convertSentence(sentence.get(classOf[TreeAnnotation])))
+                 .map(convertSentence)
                  .sequence[EitherS, NounPhraseWithVerbPhrase]
     } yield Discourse(result)
   }
