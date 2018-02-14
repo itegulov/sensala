@@ -10,12 +10,16 @@ import sensala.error.NLError
 import sensala.normalization.NormalFormConverter
 import sensala.parser.DiscourseParser
 import sensala.postprocessing.PrettyTransformer
+import sensala.property.{CachedPropertyExtractor, ConceptNetPropertyExtractor}
 import sensala.structure._
 import sensala.structure.types._
 
 class InterpretationSpec extends SensalaSpec {
+  implicit val propertyExtractor = CachedPropertyExtractor(ConceptNetPropertyExtractor)
+  val discourseParser = DiscourseParser()
+  
   def interpret(text: String): E = {
-    val parsed = DiscourseParser.parse(text)
+    val parsed = discourseParser.parse(text)
     parsed match {
       case Left(error) =>
         sys.error(error)

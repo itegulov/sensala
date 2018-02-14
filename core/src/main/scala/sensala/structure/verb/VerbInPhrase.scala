@@ -2,9 +2,9 @@ package sensala.structure.verb
 
 import org.aossie.scavenger.expression._
 import sensala.structure._
-import sensala.structure.propositional.PropositionalPhrase
+import sensala.structure.prepositional.PrepositionalPhrase
 
-case class VerbInPhrase(propositionalPhrase: PropositionalPhrase, verbPhrase: VerbPhrase) extends VerbPhrase {
+case class VerbInPhrase(propositionalPhrase: PrepositionalPhrase, verbPhrase: VerbPhrase) extends VerbPhrase {
   override def interpret(cont: NLEff[E]): NLEff[E] =
     verbPhrase.interpret(
       for {

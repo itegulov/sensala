@@ -11,10 +11,13 @@ import org.aossie.scavenger.structure.immutable.AxiomClause
 import org.atnos.eff._
 import org.atnos.eff.syntax.all._
 import sensala.error.NLError
-import sensala.property.PropertyExtractor
+import sensala.property.{CachedPropertyExtractor, ConceptNetPropertyExtractor}
 
 object CLI {
   private val logger = Logger[this.type]
+
+  implicit val propertyExtractor = CachedPropertyExtractor(ConceptNetPropertyExtractor)
+  val discourseParser = DiscourseParser()
 
   case class Config(discourse: String = "")
 
@@ -44,7 +47,7 @@ object CLI {
   
   def main(args: Array[String]): Unit = {
     parser.parse(args, Config()) foreach { c =>
-      val parsed = DiscourseParser.parse(c.discourse)
+      val parsed = discourseParser.parse(c.discourse)
       parsed match {
         case Left(error) =>
           logger.error(
@@ -104,7 +107,7 @@ object CLI {
                |${cnf.clauses.mkString("\n")}
             """.stripMargin
           )
-          PropertyExtractor.close()
+          ConceptNetPropertyExtractor.close()
       }
     }
   }

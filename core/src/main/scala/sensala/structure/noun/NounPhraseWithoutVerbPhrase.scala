@@ -28,7 +28,7 @@ final case class ProperNoun(
 
 case class CommonNoun(
   word: String
-) extends Word
+)(implicit propertyExtractor: PropertyExtractor) extends Word
     with NounPhraseWithoutVerbPhrase {
   override def interpret(cont: NLEff[E]): NLEff[E] =
     for {
@@ -37,7 +37,7 @@ case class CommonNoun(
       contL <- cont
     } yield w(x) /\: contL
 
-  override def properties: List[Property] = PropertyExtractor.extractProperties(word)
+  override def properties: List[Property] = propertyExtractor.extractProperties(word)
 }
 
 final case class ReflexivePronoun(
