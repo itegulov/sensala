@@ -34,16 +34,6 @@ class Application @Inject()(@Named("userParentActor") userParentActor: ActorRef)
   private val logger             = Logger[this.type]
 
   def index = Action { implicit request =>
-    val debug =
-      """
-        |{"StanfordParsed":{"result":{"label":"ROOT","color":"white","children":[{"label":"NP","color":"green","children":[{"label":"NNP John","color":"green","children":[]}]}]}}}
-      """.stripMargin
-    Json.parse(debug).validate[SensalaInterpretMessage] match {
-      case JsSuccess(res, _) =>
-        println(res)
-      case JsError(errors) =>
-        println(errors.mkString("\n"))
-    }
     Ok(views.html.index())
   }
 
