@@ -22,7 +22,7 @@
 }
 
 .main-svg {
-    height: 450px;
+    height: 50vh;
 }
 
 g.type-TK > rect {
@@ -34,6 +34,26 @@ g.type-NP > rect {
 }
 
 g.type-VP > rect {
+    fill: #3366ff;
+}
+
+g.type-word > rect {
+    fill: #00ffd0;
+}
+
+g.type-commonnoun > rect {
+    fill: #00bb00;
+}
+
+g.type-propernoun > rect {
+    fill: #00bb00;
+}
+
+g.type-intransitive > rect {
+    fill: #3366ff;
+}
+
+g.type-transitive > rect {
     fill: #3366ff;
 }
 

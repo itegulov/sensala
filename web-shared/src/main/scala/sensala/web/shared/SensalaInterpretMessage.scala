@@ -11,9 +11,9 @@ object SensalaInterpretMessage {
 
 final case class SensalaRunInterpretation(discourse: String) extends SensalaInterpretMessage
 
-final case class StanfordParsed(result: StanfordNode) extends SensalaInterpretMessage
+final case class StanfordParsed(result: SensalaNode) extends SensalaInterpretMessage
 
-final case class SensalaParsed(result: String) extends SensalaInterpretMessage
+final case class SensalaParsed(result: SensalaNode) extends SensalaInterpretMessage
 
 final case class SensalaInterpreted(result: String) extends SensalaInterpretMessage
 

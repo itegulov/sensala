@@ -14,6 +14,11 @@ import sensala.parser.{DiscourseParser, SensalaStanfordParser}
 import sensala.postprocessing.PrettyTransformer
 import sensala.property.{CachedPropertyExtractor, ConceptNetPropertyExtractor}
 import sensala.structure._
+import sensala.structure.adjective.{Adjective, AdjectiveNounPhrase, AdjectiveNounPhraseVP}
+import sensala.structure.noun._
+import sensala.structure.prepositional.InPhrase
+import sensala.structure.verb._
+import sensala.structure.wh.WhNounPhrase
 import sensala.web.actors.InterpretationActor.{Connected, IncomingMessage, OutgoingMessage}
 import sensala.web.shared._
 
@@ -27,12 +32,150 @@ case class InterpretationActor() extends Actor with ActorLogging {
       context.become(connected(actorRef))
   }
   
-  private def convertTree(tree: Tree): StanfordNode = {
-    StanfordNode(
+  private def convertTree(tree: Tree): SensalaNode = {
+    SensalaNode(
       tree.label.value,
       if (tree.children.toList.isEmpty) "type-TK" else "type-" + tree.label.value,
       tree.children.toList.map(convertTree)
     )
+  }
+  
+  private def atomNode(word: String): SensalaNode =
+    SensalaNode(
+      word,
+      "type-word",
+      Nil
+    )
+  
+  private def convertNL(nl: NL): SensalaNode = {
+    nl match {
+      case Discourse(sentences) =>
+        SensalaNode(
+          "Discourse",
+          "type-discourse",
+          sentences.map(convertNL)
+        )
+      case CommonNoun(word) =>
+        SensalaNode(
+          "CommonNoun",
+          "type-commonnoun",
+          List(atomNode(word))
+        )
+      case ProperNoun(word) =>
+        SensalaNode(
+          "ProperNoun",
+          "type-propernoun",
+          List(atomNode(word))
+        )
+      case ReflexivePronoun(word) =>
+        SensalaNode(
+          "ReflexivePronoun",
+          "type-reflpronoun",
+          List(atomNode(word))
+        )
+      case ProperNounVP(word, vp) =>
+        SensalaNode(
+          "ProperNounVP",
+          "type-propernoun",
+          List(atomNode(word), convertNL(vp))
+        )
+      case ReflexivePronounVP(word, vp) =>
+        SensalaNode(
+          "ReflexivePronounVP",
+          "type-reflpronoun",
+          List(atomNode(word), convertNL(vp))
+        )
+      case ForallQuantifier(np) =>
+        SensalaNode(
+          "ForallQuantifier",
+          "type-forall",
+          List(convertNL(np))
+        )
+      case ExistentialQuantifier(np) =>
+        SensalaNode(
+          "ExistentialQuantifier",
+          "type-exists",
+          List(convertNL(np))
+        )
+      case ForallQuantifierVP(np, vp) =>
+        SensalaNode(
+          "ForallQuantifierVP",
+          "type-forall",
+          List(convertNL(np), convertNL(vp))
+        )
+      case ExistentialQuantifierVP(np, vp) =>
+        SensalaNode(
+          "ExistentialQuantifierVP",
+          "type-exists",
+          List(convertNL(np), convertNL(vp))
+        )
+      case IntransitiveVerb(word) =>
+        SensalaNode(
+          "IntransitiveVerb",
+          "type-intransitive",
+          List(atomNode(word))
+        )
+      case TransitiveVerb(word, np) =>
+        SensalaNode(
+          "TransitiveVerb",
+          "type-transitive",
+          List(atomNode(word), convertNL(np))
+        )
+      case VerbAdjectivePhrase(verb, adjective) =>
+        SensalaNode(
+          "VerbAdjectivePhrase",
+          "type-verbadjphrase",
+          List(atomNode(verb), convertNL(adjective))
+        )
+      case VerbAdverbPhrase(adverb, verbPhrase) =>
+        SensalaNode(
+          "VerbAdverbPhrase",
+          "type-verbadverbphrase",
+          List(atomNode(adverb), convertNL(verbPhrase))
+        )
+      case VerbInPhrase(propositionalPhrase, verbPhrase) =>
+        SensalaNode(
+          "VerbInPhrase",
+          "type-verbinphrase",
+          List(convertNL(propositionalPhrase), convertNL(verbPhrase))
+        )
+      case VerbSentencePhrase(word, sentence) =>
+        SensalaNode(
+          "VerbSentencePhrase",
+          "type-verbsentencephrase",
+          List(atomNode(word), convertNL(sentence))
+        )
+      case WhNounPhrase(verbPhrase, nounPhrase) =>
+        SensalaNode(
+          "WhNounPhrase",
+          "type-whnounphrase",
+          List(convertNL(verbPhrase), convertNL(nounPhrase))
+        )
+      case InPhrase(word, nounPhrase) =>
+        SensalaNode(
+          "InPhrase",
+          "type-inphrase",
+          List(atomNode(word), convertNL(nounPhrase))
+        )
+      case Adjective(word) =>
+        SensalaNode(
+          "Adjective",
+          "type-adjective",
+          List(atomNode(word))
+        )
+      case AdjectiveNounPhrase(adjective, nounPhrase) =>
+        SensalaNode(
+          "AdjectiveNounPhrase",
+          "type-adjectivenounphrase",
+          List(convertNL(adjective), convertNL(nounPhrase))
+        )
+      case AdjectiveNounPhraseVP(adjective, nounPhrase, verbPhrase) =>
+        SensalaNode(
+          "AdjectiveNounPhraseVP",
+          "type-adjectivenounphrase",
+          List(convertNL(adjective), convertNL(nounPhrase), convertNL(verbPhrase))
+        )
+    }
   }
   
   def connected(outgoing: ActorRef): Receive = {
@@ -63,7 +206,7 @@ case class InterpretationActor() extends Actor with ActorLogging {
                    |  $sentence
                 """.stripMargin
               )
-              outgoing ! OutgoingMessage(Json.toJson(SensalaParsed(sentence.toString)))
+              outgoing ! OutgoingMessage(Json.toJson(SensalaParsed(convertNL(sentence))))
               val ((lambdaTermEither, context), localContext) =
                 sentence
                   .interpret(Eff.pure(True))

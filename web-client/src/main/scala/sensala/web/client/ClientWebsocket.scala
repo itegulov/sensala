@@ -14,27 +14,27 @@ import scala.scalajs.js.annotation.ScalaJSDefined
 import scala.scalajs.js.timers.setTimeout
 import scala.scalajs.js
 
-case class ClientWebsocket(loader: Div, termHeading: Heading, parsedTermHeading: Heading) {
+case class ClientWebsocket(loader: Div, termHeading: Heading) {
   private lazy val wsURL = s"ws://${window.location.host}/ws"
 
   lazy val socket = new WebSocket(wsURL)
 
   @ScalaJSDefined
-  class Node(val id: Int, val label: String, val nodeClass: String) extends js.Object
+  class DagreNode(val id: Int, val label: String, val nodeClass: String) extends js.Object
 
   @ScalaJSDefined
-  class Edge(val source: Int, val target: Int, val id: String) extends js.Object
+  class DagreEdge(val source: Int, val target: Int, val id: String) extends js.Object
 
-  private def renderText(tree: StanfordNode): Unit = {
-    val nodes = new ArrayBuffer[Node]()
-    val edges = new ArrayBuffer[Edge]()
+  private def renderText(tree: SensalaNode, id: String): Unit = {
+    val nodes = new ArrayBuffer[DagreNode]()
+    val edges = new ArrayBuffer[DagreEdge]()
 
     populate(tree, nodes, edges)
 
     val g = Dagre.newD3Digraph
 
     nodes.foreach(node =>
-      g.setNode(node.id.toString, js.Dictionary("label" -> node.label, "class" -> node.nodeClass, "rx" -> 5, "ry" -> 5))
+      g.setNode(node.id.toString, js.Dictionary("label" -> node.label, "class" -> node.nodeClass, "rx" -> 3, "ry" -> 3))
     )
 
     edges.foreach(edge =>
@@ -43,25 +43,23 @@ case class ClientWebsocket(loader: Div, termHeading: Heading, parsedTermHeading:
 
     val render = Dagre.newD3Renderer
 
-    d3.select("#svg-canvas g").remove()
+    d3.select(s"#$id g").remove()
 
-    val svg = d3.select("#svg-canvas")
+    val svg = d3.select(s"#$id")
     val svgGroup = svg.append("g")
 
-    render(d3.select("#svg-canvas g"), g)
-
-    svgGroup.attr("transform", "translate(5, 5)")
-    moveOnZoom(svg, svgGroup)
+    render(d3.select(s"#$id g"), g)
+    moveOnZoom(svg, svgGroup, g)
   }
 
-  private def populate(tree: StanfordNode, nodes: ArrayBuffer[Node], edges: ArrayBuffer[Edge]): Node = {
-    val newNode = new Node(nodes.length, tree.label, tree.nodeType)
+  private def populate(tree: SensalaNode, nodes: ArrayBuffer[DagreNode], edges: ArrayBuffer[DagreEdge]): DagreNode = {
+    val newNode = new DagreNode(nodes.length, tree.label, tree.nodeType)
 
     nodes += newNode
 
     tree.children.foreach(child => {
       val childNode = populate(child, nodes, edges)
-      edges += new Edge(newNode.id, childNode.id, newNode.id + "-" + childNode.id)
+      edges += new DagreEdge(newNode.id, childNode.id, newNode.id + "-" + childNode.id)
     })
 
     newNode
@@ -74,18 +72,17 @@ case class ClientWebsocket(loader: Div, termHeading: Heading, parsedTermHeading:
         val message = Json.parse(e.data.toString)
         message.validate[SensalaInterpretMessage] match {
           case JsSuccess(StanfordParsed(result), _) =>
-            renderText(result)
+            renderText(result, "svg-canvas-stanford")
           case JsSuccess(SensalaParsed(result), _) =>
-            parsedTermHeading.textContent = result
-            parsedTermHeading.style.display = "block"
+            renderText(result, "svg-canvas-sensala")
           case JsSuccess(SensalaInterpreted(result), _) =>
             termHeading.textContent = result
             loader.style.display = "none"
             termHeading.style.display = "block"
-          case JsSuccess(other, _) =>
-            println(s"Other message: $other")
           case JsSuccess(SensalaError(error), _) =>
             println(s"Error: $error")
+          case JsSuccess(other, _) =>
+            println(s"Other message: $other")
           case JsError(errors) =>
             errors foreach println
         }

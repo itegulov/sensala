@@ -34,6 +34,10 @@ class `dagreD3.graphlib.Graph`(opt: js.Object) extends Graph {
   def setEdge(sourceId: String, targetId: String, attr: js.Any = null): js.Any = js.native
 
   def graph(): `dagreD3.graphlib.Graph` = js.native
+  
+  def width(): Double = js.native
+  
+  def height(): Double = js.native
 }
 
 @js.native
