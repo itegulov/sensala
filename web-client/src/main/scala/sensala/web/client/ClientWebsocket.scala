@@ -17,7 +17,7 @@ import scala.scalajs.js
 case class ClientWebsocket(loader: Div, termHeading: Heading) {
   private lazy val wsURL = s"ws://${window.location.host}/ws"
 
-  lazy val socket = new WebSocket(wsURL)
+  var socket: WebSocket = _
 
   @ScalaJSDefined
   class DagreNode(val id: Int, val label: String, val nodeClass: String) extends js.Object
@@ -67,6 +67,7 @@ case class ClientWebsocket(loader: Div, termHeading: Heading) {
 
 
   def connectWS(): Unit = {
+    socket = new WebSocket(wsURL)
     socket.onmessage = {
       (e: MessageEvent) =>
         val message = Json.parse(e.data.toString)
