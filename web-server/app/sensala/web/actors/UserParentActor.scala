@@ -5,6 +5,7 @@ import javax.inject.Inject
 import akka.actor.{Actor, ActorLogging, ActorRef}
 import akka.event.LoggingReceive
 import akka.stream.scaladsl._
+import akka.pattern.{ask, pipe}
 import akka.util.Timeout
 import play.api.Configuration
 import play.api.libs.concurrent.InjectedActorSupport
@@ -23,7 +24,6 @@ class UserParentActor @Inject()(
     with ActorLogging {
 
   import UserParentActor._
-  import akka.pattern.{ask, pipe}
 
   implicit private val timeout: Timeout = Timeout(2 seconds)
 

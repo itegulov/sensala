@@ -8,22 +8,9 @@ import akka.pattern.ask
 import akka.stream.scaladsl._
 import akka.util.Timeout
 import com.typesafe.scalalogging.Logger
-import org.aossie.scavenger.expression.E
-import org.aossie.scavenger.expression.formula.True
-import org.aossie.scavenger.preprocessing.TPTPClausifier
-import org.aossie.scavenger.structure.immutable.AxiomClause
-import org.atnos.eff._
-import org.atnos.eff.syntax.all._
 import play.api.libs.json._
 import play.api.mvc._
-import sensala.error.NLError
-import sensala.normalization.NormalFormConverter
-import sensala.parser.DiscourseParser
-import sensala.postprocessing.PrettyTransformer
-import sensala.property.{CachedPropertyExtractor, ConceptNetPropertyExtractor}
-import sensala.structure._
 import sensala.web.actors.UserParentActor
-import sensala.web.shared.SensalaInterpretMessage
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
