@@ -5,7 +5,7 @@ import sensala.property.{CachedPropertyExtractor, ConceptNetPropertyExtractor}
 import sensala.structure._
 import sensala.structure.adjective._
 import sensala.structure.noun._
-import sensala.structure.prepositional.In
+import sensala.structure.prepositional.InPhrase
 import sensala.structure.verb._
 import sensala.structure.wh._
 
@@ -110,7 +110,7 @@ class DiscourseParserSpec extends SensalaSpec {
       ExistentialQuantifierVP(
         ProperNoun("John"),
         VerbInPhrase(
-          In("on", ExistentialQuantifier(CommonNoun("table"))), 
+          InPhrase("on", ExistentialQuantifier(CommonNoun("table"))), 
           TransitiveVerb("left", ExistentialQuantifier(CommonNoun("wallet")))
         )
       )

@@ -7,4 +7,4 @@ trait PrepositionalPhrase extends Word {
   val nounPhrase: NounPhrase
 }
 
-case class In(word: String, nounPhrase: NounPhrase) extends PrepositionalPhrase
+case class InPhrase(word: String, nounPhrase: NounPhrase) extends PrepositionalPhrase

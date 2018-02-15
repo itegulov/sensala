@@ -13,7 +13,7 @@ import sensala.structure._
 import sensala.structure.adjective._
 import sensala.structure.adverb.Adverb
 import sensala.structure.noun._
-import sensala.structure.prepositional.{In, PrepositionalPhrase}
+import sensala.structure.prepositional.{InPhrase, PrepositionalPhrase}
 import sensala.structure.verb._
 import sensala.structure.wh._
 
@@ -260,7 +260,7 @@ case class DiscourseParser(implicit propertyExtractor: PropertyExtractor) {
           val inWord = tree.getChild(0).getChild(0).label.value
           for {
             nounPhrase <- extractNounPhrase(tree.getChild(1), None)
-          } yield In(inWord, nounPhrase)
+          } yield InPhrase(inWord, nounPhrase)
         } else {
           Left("Illegal proposition")
         }
