@@ -10,8 +10,6 @@ import akka.stream.{Materializer, OverflowStrategy}
 import akka.util.Timeout
 import com.google.inject.assistedinject.Assisted
 import play.api.libs.json._
-import sensala.parser.DiscourseParser
-import sensala.property.{CachedPropertyExtractor, ConceptNetPropertyExtractor}
 import sensala.web.actors.UserActor.CreateAdapter
 
 import scala.concurrent.ExecutionContext
@@ -23,9 +21,6 @@ class UserActor @Inject()(
   private val marker = LogMarker(name = self.path.name)
   implicit private val log: MarkerLoggingAdapter = akka.event.Logging.withMarker(context.system, this.getClass)
   implicit private val timeout: Timeout = Timeout(50 millis)
-
-  implicit val propertyExtractor = CachedPropertyExtractor(ConceptNetPropertyExtractor)
-  val discourseParser            = DiscourseParser()
 
   private var clientId = "NOT_SET"
   

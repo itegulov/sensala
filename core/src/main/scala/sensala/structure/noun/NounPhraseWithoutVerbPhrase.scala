@@ -4,7 +4,7 @@ import org.aossie.scavenger.expression._
 import sensala.structure._
 import org.atnos.eff.all._
 import sensala.error.{NLError, NLUnexpectedWord}
-import sensala.property.{Property, PropertyExtractor}
+import sensala.property.{ConceptNetPropertyExtractor, Property}
 
 trait NounPhraseWithoutVerbPhrase extends NounPhrase
 
@@ -28,7 +28,7 @@ final case class ProperNoun(
 
 case class CommonNoun(
   word: String
-)(implicit propertyExtractor: PropertyExtractor) extends Word
+) extends Word
     with NounPhraseWithoutVerbPhrase {
   override def interpret(cont: NLEff[E]): NLEff[E] =
     for {
@@ -37,7 +37,7 @@ case class CommonNoun(
       contL <- cont
     } yield w(x) /\: contL
 
-  override def properties: List[Property] = propertyExtractor.extractProperties(word)
+  override def properties: List[Property] = ConceptNetPropertyExtractor.extractProperties(word)
 }
 
 final case class ReflexivePronoun(

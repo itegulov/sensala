@@ -1,14 +1,8 @@
 package sensala.parser
 
-import scala.collection.JavaConverters._
 import com.typesafe.scalalogging.Logger
 import edu.stanford.nlp.trees.Tree
-import edu.stanford.nlp.ling.CoreAnnotations._
-import edu.stanford.nlp.pipeline.Annotation
-import edu.stanford.nlp.trees.TreeCoreAnnotations._
-import edu.stanford.nlp.util.CoreMap
 import cats.implicits._
-import sensala.property.PropertyExtractor
 import sensala.structure._
 import sensala.structure.adjective._
 import sensala.structure.adverb.Adverb
@@ -17,7 +11,7 @@ import sensala.structure.prepositional.{InPhrase, PrepositionalPhrase}
 import sensala.structure.verb._
 import sensala.structure.wh._
 
-case class DiscourseParser(implicit propertyExtractor: PropertyExtractor) {
+object DiscourseParser {
   private val logger = Logger[this.type]
   type EitherS[T] = Either[String, T]
 

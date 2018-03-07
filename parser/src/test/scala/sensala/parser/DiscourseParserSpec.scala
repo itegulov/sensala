@@ -1,7 +1,6 @@
 package sensala.parser
 
 import sensala.SensalaSpec
-import sensala.property.{CachedPropertyExtractor, ConceptNetPropertyExtractor}
 import sensala.structure._
 import sensala.structure.adjective._
 import sensala.structure.noun._
@@ -10,12 +9,9 @@ import sensala.structure.verb._
 import sensala.structure.wh._
 
 class DiscourseParserSpec extends SensalaSpec {
-  implicit val propertyExtractor = CachedPropertyExtractor(ConceptNetPropertyExtractor)
-  val discourseParser = DiscourseParser()
-  
   def parse(discourse: String): Either[String, Discourse] = {
     val sentences = SensalaStanfordParser.parse(discourse)
-    discourseParser(sentences)
+    DiscourseParser.parse(sentences)
   }
   
   it should "parse simple sentences" in {

@@ -18,7 +18,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class Application @Inject()(@Named("userParentActor") userParentActor: ActorRef)(
   implicit val executionContext: ExecutionContext
 ) extends InjectedController {
-  private val logger             = Logger[this.type]
+  private val logger = Logger[this.type]
 
   def index = Action { implicit request =>
     Ok(views.html.index())

@@ -9,7 +9,7 @@ import sensala.conceptnet.structure.auxilary.{Antonym, English, IsA, RelatedTo}
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
-object ConceptNetPropertyExtractor extends PropertyExtractor {
+object ConceptNetPropertyExtractor {
   import scala.concurrent.ExecutionContext.Implicits.global
 
   private implicit val system       = ActorSystem()

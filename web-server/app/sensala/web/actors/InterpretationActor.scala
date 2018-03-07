@@ -12,7 +12,6 @@ import sensala.error.NLError
 import sensala.normalization.NormalFormConverter
 import sensala.parser.{DiscourseParser, SensalaStanfordParser}
 import sensala.postprocessing.PrettyTransformer
-import sensala.property.{CachedPropertyExtractor, ConceptNetPropertyExtractor}
 import sensala.structure._
 import sensala.structure.adjective.{Adjective, AdjectiveNounPhrase, AdjectiveNounPhraseVP}
 import sensala.structure.noun._
@@ -23,10 +22,6 @@ import sensala.web.actors.InterpretationActor.{Connected, IncomingMessage, Outgo
 import sensala.web.shared._
 
 case class InterpretationActor() extends Actor with ActorLogging {
-
-  implicit val propertyExtractor = CachedPropertyExtractor(ConceptNetPropertyExtractor)
-  val discourseParser            = DiscourseParser()
-
   override def receive: Receive = {
     case Connected(actorRef) =>
       context.become(connected(actorRef))
@@ -190,7 +185,7 @@ case class InterpretationActor() extends Actor with ActorLogging {
                 """.stripMargin
           )
           outgoing ! OutgoingMessage(Json.toJson(StanfordParsed(convertTree(sentences.head))))
-          val parsed = discourseParser.parse(sentences)
+          val parsed = DiscourseParser.parse(sentences)
           parsed match {
             case Left(error) =>
               log.error(
