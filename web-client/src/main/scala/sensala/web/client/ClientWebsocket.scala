@@ -19,10 +19,8 @@ case class ClientWebsocket(loader: Div, termHeading: Heading) {
 
   var socket: WebSocket = _
 
-  @ScalaJSDefined
   class DagreNode(val id: Int, val label: String, val nodeClass: String) extends js.Object
 
-  @ScalaJSDefined
   class DagreEdge(val source: Int, val target: Int, val id: String) extends js.Object
 
   private def renderText(tree: SensalaNode, id: String): Unit = {

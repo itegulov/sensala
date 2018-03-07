@@ -6,11 +6,11 @@ import org.singlespaced.d3js.d3
 import sensala.web.client.dagre.Graph
 
 import scala.scalajs.js
-import scala.scalajs.js.annotation.JSName
+import scala.scalajs.js.annotation.JSGlobal
 
 object MainJS {
-  @JSName("moveOnZoom")
   @js.native
+  @JSGlobal("moveOnZoom")
   object moveOnZoom extends js.Object {
     def apply(svg: js.Any, svgGroup: js.Any, graph: Graph): Unit = js.native
   }

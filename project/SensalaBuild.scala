@@ -123,6 +123,7 @@ object SensalaBuild {
     .settings(commonSettings ++ commonDeps)
     .settings(name := "sensala-web-client")
     .settings(
+      scalacOptions += "-P:scalajs:sjsDefinedByDefault",
       scalaJSUseMainModuleInitializer := true,
       libraryDependencies ++= Seq(
         "org.scala-js" %%% "scalajs-dom" % "0.9.4",
