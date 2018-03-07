@@ -36,14 +36,14 @@ object SensalaBuild {
     scalacOptions in (Compile, console) -= "-Ywarn-unused-import",
     scalacOptions in (Compile, doc) ++= Seq("-diagrams", "-implicits"),
     scalacOptions in Test ++= Seq("-Yrangepos"),
-    addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.4")
+    addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.6")
   )
 
   lazy val commonDeps = Seq(
     libraryDependencies ++= Seq(
       "ch.qos.logback"             % "logback-classic" % "1.2.3",
-      "com.typesafe.scala-logging" %% "scala-logging"  % "3.5.0",
-      "org.scalatest"              %% "scalatest"      % "3.0.4" % Test
+      "com.typesafe.scala-logging" %% "scala-logging"  % "3.8.0",
+      "org.scalatest"              %% "scalatest"      % "3.0.5" % Test
     )
   )
 
@@ -52,9 +52,9 @@ object SensalaBuild {
     .settings(name := "sensala-concept-net")
     .settings(
       libraryDependencies ++= Seq(
-        "com.typesafe.play" %% "play-ahc-ws-standalone"  % "1.1.2",
-        "com.typesafe.play" %% "play-ws-standalone-json" % "1.1.2",
-        "net.sf.ehcache"    % "ehcache"                  % "2.10.4"
+        "com.typesafe.play" %% "play-ahc-ws-standalone"  % "1.1.6",
+        "com.typesafe.play" %% "play-ws-standalone-json" % "1.1.6",
+        "org.ehcache"       % "ehcache"                  % "3.4.0"
       )
     )
 
@@ -65,7 +65,7 @@ object SensalaBuild {
       libraryDependencies ++= Seq(
         "org.typelevel"    %% "cats-core"      % "1.0.1",
         "org.typelevel"    %% "cats-mtl-core"  % "0.2.1",
-        "org.atnos"        %% "eff"            % "5.0.0-RC1-20180125204657-3712000",
+        "org.atnos"        %% "eff"            % "5.1.0",
         "com.ironcorelabs" %% "cats-scalatest" % "2.3.1" % Test,
         "org.aossie"       %% "scavenger"      % "0.2.1-SNAPSHOT"
       )
@@ -77,8 +77,8 @@ object SensalaBuild {
     .settings(name := "sensala-parser")
     .settings(
       libraryDependencies ++= Seq(
-        "edu.stanford.nlp" % "stanford-corenlp" % "3.8.0",
-        "edu.stanford.nlp" % "stanford-corenlp" % "3.8.0" classifier "models"
+        "edu.stanford.nlp" % "stanford-corenlp" % "3.9.1",
+        "edu.stanford.nlp" % "stanford-corenlp" % "3.9.1" classifier "models"
       )
     )
     .dependsOn(core)
