@@ -9,6 +9,7 @@ import webscalajs.WebScalaJS.autoImport._
 import com.typesafe.sbt.gzip.Import._
 import com.typesafe.sbt.web.Import._
 import com.typesafe.sbt.digest.Import._
+import sbtassembly._
 import webscalajs.ScalaJSWeb
 
 object SensalaBuild {
@@ -36,7 +37,8 @@ object SensalaBuild {
     scalacOptions in (Compile, console) -= "-Ywarn-unused-import",
     scalacOptions in (Compile, doc) ++= Seq("-diagrams", "-implicits"),
     scalacOptions in Test ++= Seq("-Yrangepos"),
-    addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.6")
+    addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.6"),
+    sbt.Keys.test in assembly := {}
   )
 
   lazy val commonDeps = Seq(
@@ -97,7 +99,7 @@ object SensalaBuild {
       )
     )
     .dependsOn(core, parser)
-  
+
   lazy val webServer = Project(id = "web-server", base = file("web-server"))
     .settings(commonSettings ++ commonDeps)
     .settings(name := "sensala-web-server")
@@ -105,20 +107,38 @@ object SensalaBuild {
       scalaJSProjects := Seq(webClient),
       pipelineStages in Assets := Seq(scalaJSPipeline),
       pipelineStages := Seq(digest, gzip),
-      compile in Compile := ((compile in Compile) dependsOn scalaJSPipeline).value,
+      compile in Compile := (compile in Compile).dependsOn(scalaJSPipeline).value,
+      mainClass in assembly := Some("play.core.server.ProdServerStart"),
+      fullClasspath in assembly += Attributed.blank(PlayKeys.playPackageAssets.value),
+      assemblyMergeStrategy in assembly := {
+        case manifest if manifest.contains("MANIFEST.MF") =>
+          // We don't need manifest files since sbt-assembly will create
+          // one with the given settings
+          MergeStrategy.discard
+        case PathList("org", "scalatools", "testing", xs @ _*) =>
+          MergeStrategy.first
+        case referenceOverrides if referenceOverrides.contains("reference-overrides.conf") =>
+          // Keep the content for all reference-overrides.conf files
+          MergeStrategy.concat
+        case "application.conf" => MergeStrategy.concat
+        case "logback.xml"      => MergeStrategy.first
+        case x =>
+          val oldStrategy = (assemblyMergeStrategy in assembly).value
+          oldStrategy(x)
+      },
       libraryDependencies ++= Seq(
         guice,
-        "org.webjars" % "bootstrap" % "4.0.0",
-        "org.webjars" % "jquery" % "3.3.1",
-        "org.webjars.npm" % "popper.js" % "1.13.0",
-        "org.webjars" % "d3js" % "3.5.17",
-        "org.webjars.npm" % "dagre-d3" % "0.4.17",
-        "com.vmunier" %% "scalajs-scripts" % "1.1.1"
+        "org.webjars"     % "bootstrap"        % "4.0.0",
+        "org.webjars"     % "jquery"           % "3.3.1",
+        "org.webjars.npm" % "popper.js"        % "1.13.0",
+        "org.webjars"     % "d3js"             % "3.5.17",
+        "org.webjars.npm" % "dagre-d3"         % "0.4.17",
+        "com.vmunier"     %% "scalajs-scripts" % "1.1.1"
       )
     )
     .dependsOn(core, parser, webSharedJvm)
     .enablePlugins(PlayScala)
-  
+
   lazy val webClient = Project(id = "web-client", base = file("web-client"))
     .settings(commonSettings ++ commonDeps)
     .settings(name := "sensala-web-client")
@@ -126,14 +146,14 @@ object SensalaBuild {
       scalacOptions += "-P:scalajs:sjsDefinedByDefault",
       scalaJSUseMainModuleInitializer := true,
       libraryDependencies ++= Seq(
-        "org.scala-js" %%% "scalajs-dom" % "0.9.4",
+        "org.scala-js" %%% "scalajs-dom"    % "0.9.4",
         "org.singlespaced" %%% "scalajs-d3" % "0.3.4",
         "com.typesafe.play" %%% "play-json" % "2.6.8"
       )
     )
     .enablePlugins(ScalaJSPlugin, ScalaJSWeb)
     .dependsOn(webSharedJs)
-  
+
   lazy val webShared = (crossProject.crossType(CrossType.Pure) in file("web-shared"))
     .settings(name := "sensala-web-shared")
     .settings(
@@ -141,13 +161,13 @@ object SensalaBuild {
         "org.julienrf" %%% "play-json-derived-codecs" % "4.0.0"
       )
     )
-    .jsConfigure(_ enablePlugins(ScalaJSPlugin, ScalaJSWeb))
-  
+    .jsConfigure(_.enablePlugins(ScalaJSPlugin, ScalaJSWeb))
+
   lazy val webSharedJvm = webShared.jvm
-  lazy val webSharedJs = webShared.js
+  lazy val webSharedJs  = webShared.js
 
   lazy val root = Project(id = "sensala", base = file("."))
-    .aggregate(core, parser, commandLine)
+    .aggregate(core, parser, commandLine, conceptNet, webSharedJvm, webSharedJs, webServer, webClient)
     .dependsOn(core, parser % "compile->compile;test->test", commandLine)
     .settings(commonSettings ++ commonDeps)
     .settings(
