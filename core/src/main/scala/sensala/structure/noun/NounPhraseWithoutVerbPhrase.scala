@@ -46,14 +46,26 @@ final case class ReflexivePronoun(
     with NounPhraseWithoutVerbPhrase {
   override def interpret(cont: NLEff[E]): NLEff[E] =
     for {
-      x     <- bindFreeVar
+      x <- bindFreeVar
       ref <- if (word.toLowerCase == "it")
               gets[NLFx, Context, E](_.findAnaphoricReferent(x, nonHuman(x)).get)
             else if (word.toLowerCase == "he")
               gets[NLFx, Context, E](_.findAnaphoricReferent(x, male(x)).get)
+            else if (word.toLowerCase == "she")
+              gets[NLFx, Context, E](_.findAnaphoricReferent(x, female(x)).get)
+            else if (word.toLowerCase == "him")
+              gets[NLFx, Context, E](_.findAnaphoricReferent(x, male(x)).get)
+            else if (word.toLowerCase == "her")
+              gets[NLFx, Context, E](_.findAnaphoricReferent(x, female(x)).get)
+            else if (word.toLowerCase == "itself")
+              gets[NLFx, Context, E](_.findAnaphoricReferent(x, nonHuman(x)).get)
+            else if (word.toLowerCase == "himself")
+              gets[NLFx, Context, E](_.findAnaphoricReferent(x, male(x)).get)
+            else if (word.toLowerCase == "herself")
+              gets[NLFx, Context, E](_.findAnaphoricReferent(x, female(x)).get)
             else
               left[NLFx, NLError, E](NLUnexpectedWord(word))
-      _ <- putEntity(ref.asInstanceOf[Var]) // FIXME: remove type casting?
+      _     <- putEntity(ref.asInstanceOf[Var]) // FIXME: remove type casting?
       contL <- cont
     } yield contL
 
