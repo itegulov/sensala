@@ -21,6 +21,8 @@ import sensala.structure.wh.WhNounPhrase
 import sensala.web.actors.InterpretationActor.{Connected, IncomingMessage, OutgoingMessage}
 import sensala.web.shared._
 
+import scala.util.Try
+
 case class InterpretationActor() extends Actor with ActorLogging {
   override def receive: Receive = {
     case Connected(actorRef) =>
@@ -185,7 +187,7 @@ case class InterpretationActor() extends Actor with ActorLogging {
                 """.stripMargin
           )
           outgoing ! OutgoingMessage(Json.toJson(StanfordParsed(convertTree(sentences.head))))
-          val parsed = DiscourseParser.parse(sentences)
+          val parsed = Try(DiscourseParser.parse(sentences)).getOrElse(Left("Invalid sentence (maybe a grammatical mistake?)"))
           parsed match {
             case Left(error) =>
               log.error(
@@ -193,7 +195,7 @@ case class InterpretationActor() extends Actor with ActorLogging {
                    |  $error
                 """.stripMargin
               )
-              Json.toJson(SensalaError("Parsing failed!"))
+              outgoing ! OutgoingMessage(Json.toJson(SensalaError(s"Parsing failed: $error")))
             case Right(sentence) =>
               log.info(
                 s"""
@@ -209,46 +211,52 @@ case class InterpretationActor() extends Actor with ActorLogging {
                   .runState[Context](Context(Map.empty, Set.empty))
                   .runState[LocalContext](LocalContext.empty)
                   .run
-              val lambdaTerm = lambdaTermEither match {
-                case Right(e) => e
-                case Left(error) => sys.error(s"Erorr: $error")
+              lambdaTermEither match {
+                case Left(error) =>
+                  log.error(
+                    s"""Interpreting failed:
+                       |  $error
+                    """.stripMargin
+                  )
+                  outgoing ! OutgoingMessage(Json.toJson(SensalaError(s"Interpreting failed: $error")))
+                case Right(lambdaTerm) =>
+                  log.info(
+                    s"""
+                       |Result of discourse interpretation:
+                       |  $lambdaTerm
+                       |  ${lambdaTerm.pretty}
+                """.stripMargin
+                  )
+                  val result = NormalFormConverter.normalForm(lambdaTerm)
+                  log.info(
+                    s"""
+                       |Result of applying β-reduction:
+                       |  $result
+                       |  ${result.pretty}
+                """.stripMargin
+                  )
+                  val prettyTerm = PrettyTransformer.transform(result)
+                  log.info(
+                    s"""
+                       |Result of applying pretty transform:
+                       |  ${prettyTerm.pretty}
+                """.stripMargin
+                  )
+                  log.info(
+                    s"""
+                       |Context after interpretation:
+                       |  ${context.referentProperties.map(_._2.pretty).mkString("\n")}
+                """.stripMargin
+                  )
+                  val cnf = new TPTPClausifier().apply(List((prettyTerm, AxiomClause)))
+                  log.info(
+                    s"""
+                       |Result of clausification:
+                       |${cnf.clauses.mkString("\n")}
+                """.stripMargin
+                  )
+                  outgoing ! OutgoingMessage(Json.toJson(SensalaInterpreted(prettyTerm.pretty)))   
               }
-              log.info(
-                s"""
-                   |Result of discourse interpretation:
-                   |  $lambdaTerm
-                   |  ${lambdaTerm.pretty}
-                """.stripMargin
-              )
-              val result = NormalFormConverter.normalForm(lambdaTerm)
-              log.info(
-                s"""
-                   |Result of applying β-reduction:
-                   |  $result
-                   |  ${result.pretty}
-                """.stripMargin
-              )
-              val prettyTerm = PrettyTransformer.transform(result)
-              log.info(
-                s"""
-                   |Result of applying pretty transform:
-                   |  ${prettyTerm.pretty}
-                """.stripMargin
-              )
-              log.info(
-                s"""
-                   |Context after interpretation:
-                   |  ${context.referentProperties.map(_._2.pretty).mkString("\n")}
-                """.stripMargin
-              )
-              val cnf = new TPTPClausifier().apply(List((prettyTerm, AxiomClause)))
-              log.info(
-                s"""
-                   |Result of clausification:
-                   |${cnf.clauses.mkString("\n")}
-                """.stripMargin
-              )
-              outgoing ! OutgoingMessage(Json.toJson(SensalaInterpreted(prettyTerm.pretty)))
           }
         case JsSuccess(other, _) =>
           log.warning(s"Unexpected message from ${sender()}: $other")

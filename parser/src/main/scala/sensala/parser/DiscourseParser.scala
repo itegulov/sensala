@@ -185,6 +185,8 @@ object DiscourseParser {
                 for {
                   propositionalPhrase <- extractPropositionalPhrase(t)
                 } yield VerbInPhrase(propositionalPhrase, IntransitiveVerb(verbWord))
+              case _ =>
+                Left(s"Unexpected token ${leftChildren.head}")
             }
           case Right(nounPhrase: NounPhraseWithoutVerbPhrase) :: Nil =>
             leftChildren.find(_.label.value != "NP") match {

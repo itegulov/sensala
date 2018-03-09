@@ -78,8 +78,12 @@ case class ClientWebsocket(loader: Div, termHeading: Heading) {
             termHeading.textContent = result
             loader.style.display = "none"
             termHeading.style.display = "block"
+            termHeading.style.color = "black"
           case JsSuccess(SensalaError(error), _) =>
-            println(s"Error: $error")
+            termHeading.textContent = error
+            loader.style.display = "none"
+            termHeading.style.display = "block"
+            termHeading.style.color = "red"
           case JsSuccess(other, _) =>
             println(s"Other message: $other")
           case JsError(errors) =>
