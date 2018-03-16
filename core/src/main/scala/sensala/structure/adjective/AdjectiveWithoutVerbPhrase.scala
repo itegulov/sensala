@@ -13,8 +13,8 @@ final case class AdjectiveNounPhrase(
   override def interpret(cont: NLEff[E]): NLEff[E] =
     nounPhrase.interpret(
       for {
-        y <- getEntity
-        w = Sym(adjective.word)
+        y     <- getEntity
+        w     = Sym(adjective.word)
         contL <- cont
       } yield w(y) /\: contL
     )

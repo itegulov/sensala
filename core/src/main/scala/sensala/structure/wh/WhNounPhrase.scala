@@ -14,13 +14,13 @@ final case class WhNounPhrase(
     for {
       x <- getEntity
       nounL <- nounPhrase.interpret(
-        verbPhrase.interpret(
-          for {
-            _ <- putEntity(x) // Because who clause can redefine current entity
-            result <- cont
-          } yield result
-        )
-      )
+                verbPhrase.interpret(
+                  for {
+                    _      <- putEntity(x) // Because who clause can redefine current entity
+                    result <- cont
+                  } yield result
+                )
+              )
     } yield nounL
 
   override def properties = nounPhrase.properties

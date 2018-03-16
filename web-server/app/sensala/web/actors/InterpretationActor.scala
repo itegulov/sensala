@@ -28,22 +28,21 @@ case class InterpretationActor() extends Actor with ActorLogging {
     case Connected(actorRef) =>
       context.become(connected(actorRef))
   }
-  
-  private def convertTree(tree: Tree): SensalaNode = {
+
+  private def convertTree(tree: Tree): SensalaNode =
     SensalaNode(
       tree.label.value,
       if (tree.children.toList.isEmpty) "type-TK" else "type-" + tree.label.value,
       tree.children.toList.map(convertTree)
     )
-  }
-  
+
   private def atomNode(word: String): SensalaNode =
     SensalaNode(
       word,
       "type-word",
       Nil
     )
-  
+
   private def convertNL(nl: NL): SensalaNode = {
     nl match {
       case Discourse(sentences) =>
@@ -174,7 +173,7 @@ case class InterpretationActor() extends Actor with ActorLogging {
         )
     }
   }
-  
+
   def connected(outgoing: ActorRef): Receive = {
     case IncomingMessage(message) =>
       message.validate[SensalaInterpretMessage] match {
@@ -187,7 +186,8 @@ case class InterpretationActor() extends Actor with ActorLogging {
                 """.stripMargin
           )
           outgoing ! OutgoingMessage(Json.toJson(StanfordParsed(convertTree(sentences.head))))
-          val parsed = Try(DiscourseParser.parse(sentences)).getOrElse(Left("Invalid sentence (maybe a grammatical mistake?)"))
+          val parsed = Try(DiscourseParser.parse(sentences))
+            .getOrElse(Left("Invalid sentence (maybe a grammatical mistake?)"))
           parsed match {
             case Left(error) =>
               log.error(
@@ -218,7 +218,9 @@ case class InterpretationActor() extends Actor with ActorLogging {
                        |  $error
                     """.stripMargin
                   )
-                  outgoing ! OutgoingMessage(Json.toJson(SensalaError(s"Interpreting failed: $error")))
+                  outgoing ! OutgoingMessage(
+                    Json.toJson(SensalaError(s"Interpreting failed: $error"))
+                  )
                 case Right(lambdaTerm) =>
                   log.info(
                     s"""
@@ -255,12 +257,14 @@ case class InterpretationActor() extends Actor with ActorLogging {
                        |${cnf.clauses.mkString("\n")}
                 """.stripMargin
                   )
-                  outgoing ! OutgoingMessage(Json.toJson(SensalaInterpreted(prettyTerm.pretty)))   
+                  outgoing ! OutgoingMessage(Json.toJson(SensalaInterpreted(prettyTerm.pretty)))
               }
           }
         case JsSuccess(other, _) =>
           log.warning(s"Unexpected message from ${sender()}: $other")
-          outgoing ! OutgoingMessage(Json.toJson(SensalaError(s"Unexpected message from ${sender()}: $other!")))
+          outgoing ! OutgoingMessage(
+            Json.toJson(SensalaError(s"Unexpected message from ${sender()}: $other!"))
+          )
         case JsError(error) =>
           log.warning(s"Error while parsing json: $error")
           outgoing ! OutgoingMessage(Json.toJson(SensalaError(s"Error while parsing json: $error")))

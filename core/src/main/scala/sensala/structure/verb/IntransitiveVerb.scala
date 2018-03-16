@@ -11,10 +11,10 @@ final case class IntransitiveVerb(
     with VerbPhrase {
   override def interpret(cont: NLEff[E]): NLEff[E] =
     for {
-      x <- getEntity
-      e <- bindFreeVar
-      _ <- putEvent(e)
-      w = Sym(word)
+      x     <- getEntity
+      e     <- bindFreeVar
+      _     <- putEvent(e)
+      w     = Sym(word)
       contL <- cont
     } yield Ex(e, event, w(e) /\: agent(e, x) /\: contL)
 }

@@ -17,7 +17,8 @@ object ConceptNetPropertyExtractor {
 
   private val conceptNetApi = new ConceptNetApi()
 
-  private def normalizeProperty(phrase: String): String = phrase.replace(' ', '_').replaceFirst("^a_", "")
+  private def normalizeProperty(phrase: String): String =
+    phrase.replace(' ', '_').replaceFirst("^a_", "")
 
   def extractProperties(word: String, maxLevel: Int = 2): List[Property] =
     Await.result(

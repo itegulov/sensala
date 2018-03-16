@@ -14,8 +14,8 @@ final case class ProperNoun(
     with NounPhraseWithoutVerbPhrase {
   override def interpret(cont: NLEff[E]): NLEff[E] =
     for {
-      x <- getEntity
-      w = Sym(word)
+      x     <- getEntity
+      w     = Sym(word)
       contL <- cont
     } yield named(x, w) /\: contL
 
@@ -32,8 +32,8 @@ case class CommonNoun(
     with NounPhraseWithoutVerbPhrase {
   override def interpret(cont: NLEff[E]): NLEff[E] =
     for {
-      x <- getEntity
-      w = Sym(word)
+      x     <- getEntity
+      w     = Sym(word)
       contL <- cont
     } yield w(x) /\: contL
 

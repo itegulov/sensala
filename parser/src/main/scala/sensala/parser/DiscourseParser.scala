@@ -161,7 +161,7 @@ object DiscourseParser {
       case "VP" if tree.children.length == 1 =>
         Right(IntransitiveVerb(tree.getChild(0).getChild(0).label.value))
       case "VP" =>
-        val verbWord = tree.getChild(0).getChild(0).label.value
+        val verbWord     = tree.getChild(0).getChild(0).label.value
         val leftChildren = tree.children.toList.filter(!_.label.value.startsWith("VB"))
         val nounPhrases = leftChildren.collect {
           case t if t.label.value == "NP" => extractNounPhrase(t, None)
@@ -169,7 +169,7 @@ object DiscourseParser {
         nounPhrases match {
           case Nil =>
             leftChildren.head match {
-              case t if t.label.value == "SBAR" => 
+              case t if t.label.value == "SBAR" =>
                 for {
                   sentence <- convertSentence(t)
                 } yield VerbSentencePhrase(verbWord, sentence)
@@ -190,8 +190,10 @@ object DiscourseParser {
             }
           case Right(nounPhrase: NounPhraseWithoutVerbPhrase) :: Nil =>
             leftChildren.find(_.label.value != "NP") match {
-              case Some(t) if t.label.value == "SBAR" => Left("Sentence cannot be applied to a transitive verb")
-              case Some(t) if t.label.value == "ADJP" => Left("Adjective cannot be applied to a transitive verb")
+              case Some(t) if t.label.value == "SBAR" =>
+                Left("Sentence cannot be applied to a transitive verb")
+              case Some(t) if t.label.value == "ADJP" =>
+                Left("Adjective cannot be applied to a transitive verb")
               case Some(t) if t.label.value == "ADVP" =>
                 for {
                   adverb <- extractAdverb(t)
@@ -229,8 +231,8 @@ object DiscourseParser {
           case None            => Left("Invalid adjective phrase")
         }
     }
-  
-  def extractAdverb(tree: Tree): Either[String, Adverb] = {
+
+  def extractAdverb(tree: Tree): Either[String, Adverb] =
     tree.label.value match {
       case "ADVP" =>
         val adverbWords = tree.children.flatMap { child =>
@@ -247,9 +249,8 @@ object DiscourseParser {
           case None         => Left("Invalid adverb phrase")
         }
     }
-  }
-  
-  def extractPropositionalPhrase(tree: Tree): Either[String, PrepositionalPhrase] = {
+
+  def extractPropositionalPhrase(tree: Tree): Either[String, PrepositionalPhrase] =
     tree.label.value match {
       case "PP" =>
         if (tree.getChild(0).label.value == "IN") {
@@ -261,7 +262,6 @@ object DiscourseParser {
           Left("Illegal proposition")
         }
     }
-  }
 
   def convertSentence(tree: Tree): Either[String, NounPhraseWithVerbPhrase] = {
     assert(tree.label.value == "ROOT" || tree.label.value == "SBAR")
@@ -301,13 +301,12 @@ object DiscourseParser {
    *
    * @param sentences list of discourse sentences parsed by the Stanford Parser
    * @return Right(discourse) if correctly parsed a syntax tree
-    *        Left(error) if discourse is malformed
+   *        Left(error) if discourse is malformed
    */
-  def parse(sentences: List[Tree]): Either[String, Discourse] = {
+  def parse(sentences: List[Tree]): Either[String, Discourse] =
     for {
       result <- sentences
                  .map(convertSentence)
                  .sequence[EitherS, NounPhraseWithVerbPhrase]
     } yield Discourse(result)
-  }
 }

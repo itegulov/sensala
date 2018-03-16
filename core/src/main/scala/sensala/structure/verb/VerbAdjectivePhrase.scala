@@ -16,10 +16,10 @@ final case class VerbAdjectivePhrase(
     verb match {
       case "is" | "was" =>
         for {
-          x <- getEntity
-          e <- bindFreeVar
-          _ <- putEvent(e)
-          w = Sym(adjective.word)
+          x     <- getEntity
+          e     <- bindFreeVar
+          _     <- putEvent(e)
+          w     = Sym(adjective.word)
           contL <- cont
         } yield Ex(e, event, description(e) /\: w(e, x) /\: contL)
       case other =>

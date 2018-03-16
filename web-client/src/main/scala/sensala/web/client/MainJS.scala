@@ -14,7 +14,7 @@ object MainJS {
   object moveOnZoom extends js.Object {
     def apply(svg: js.Any, svgGroup: js.Any, graph: Graph): Unit = js.native
   }
-  
+
   def main(args: Array[String]): Unit = {
     val discourseBox = document.getElementById("discourse") match {
       case input: Input =>

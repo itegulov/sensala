@@ -18,8 +18,8 @@ final case class ProperNounVP(
     with NounPhraseWithVerbPhrase {
   override def interpret(cont: NLEff[E]): NLEff[E] =
     for {
-      x <- getEntity
-      w = Sym(word)
+      x     <- getEntity
+      w     = Sym(word)
       verbL <- verbPhrase.interpret(cont)
     } yield named(x, w) /\: verbL
 
@@ -44,7 +44,7 @@ final case class ReflexivePronounVP(
               gets[NLFx, Context, E](_.findAnaphoricReferent(x, male(x) \/: human(x)).get)
             else
               left[NLFx, NLError, E](NLUnexpectedWord(word))
-      _ <- putEntity(ref.asInstanceOf[Var]) // FIXME: remove type casting?
+      _     <- putEntity(ref.asInstanceOf[Var]) // FIXME: remove type casting?
       verbL <- verbPhrase.interpret(cont)
     } yield verbL
 

@@ -31,26 +31,42 @@ case class ClientWebsocket(loader: Div, termHeading: Heading) {
 
     val g = Dagre.newD3Digraph
 
-    nodes.foreach(node =>
-      g.setNode(node.id.toString, js.Dictionary("label" -> node.label, "class" -> node.nodeClass, "rx" -> 3, "ry" -> 3))
+    nodes.foreach(
+      node =>
+        g.setNode(
+          node.id.toString,
+          js.Dictionary(
+            "label" -> node.label,
+            "class" -> node.nodeClass,
+            "rx"    -> 3,
+            "ry"    -> 3
+          )
+      )
     )
 
-    edges.foreach(edge =>
-      g.setEdge(edge.source.toString, edge.target.toString, js.Dictionary("lineInterpolate" -> "cardinal"))
+    edges.foreach(
+      edge =>
+        g.setEdge(
+          edge.source.toString,
+          edge.target.toString,
+          js.Dictionary("lineInterpolate" -> "cardinal")
+      )
     )
 
     val render = Dagre.newD3Renderer
 
     d3.select(s"#$id g").remove()
 
-    val svg = d3.select(s"#$id")
+    val svg      = d3.select(s"#$id")
     val svgGroup = svg.append("g")
 
     render(d3.select(s"#$id g"), g)
     moveOnZoom(svg, svgGroup, g)
   }
 
-  private def populate(tree: SensalaNode, nodes: ArrayBuffer[DagreNode], edges: ArrayBuffer[DagreEdge]): DagreNode = {
+  private def populate(tree: SensalaNode,
+                       nodes: ArrayBuffer[DagreNode],
+                       edges: ArrayBuffer[DagreEdge]): DagreNode = {
     val newNode = new DagreNode(nodes.length, tree.label, tree.nodeType)
 
     nodes += newNode
@@ -63,32 +79,30 @@ case class ClientWebsocket(loader: Div, termHeading: Heading) {
     newNode
   }
 
-
   def connectWS(): Unit = {
     socket = new WebSocket(wsURL)
-    socket.onmessage = {
-      (e: MessageEvent) =>
-        val message = Json.parse(e.data.toString)
-        message.validate[SensalaInterpretMessage] match {
-          case JsSuccess(StanfordParsed(result), _) =>
-            renderText(result, "svg-canvas-stanford")
-          case JsSuccess(SensalaParsed(result), _) =>
-            renderText(result, "svg-canvas-sensala")
-          case JsSuccess(SensalaInterpreted(result), _) =>
-            termHeading.textContent = result
-            loader.style.display = "none"
-            termHeading.style.display = "block"
-            termHeading.style.color = "black"
-          case JsSuccess(SensalaError(error), _) =>
-            termHeading.textContent = error
-            loader.style.display = "none"
-            termHeading.style.display = "block"
-            termHeading.style.color = "red"
-          case JsSuccess(other, _) =>
-            println(s"Other message: $other")
-          case JsError(errors) =>
-            errors foreach println
-        }
+    socket.onmessage = { (e: MessageEvent) =>
+      val message = Json.parse(e.data.toString)
+      message.validate[SensalaInterpretMessage] match {
+        case JsSuccess(StanfordParsed(result), _) =>
+          renderText(result, "svg-canvas-stanford")
+        case JsSuccess(SensalaParsed(result), _) =>
+          renderText(result, "svg-canvas-sensala")
+        case JsSuccess(SensalaInterpreted(result), _) =>
+          termHeading.textContent = result
+          loader.style.display = "none"
+          termHeading.style.display = "block"
+          termHeading.style.color = "black"
+        case JsSuccess(SensalaError(error), _) =>
+          termHeading.textContent = error
+          loader.style.display = "none"
+          termHeading.style.display = "block"
+          termHeading.style.color = "red"
+        case JsSuccess(other, _) =>
+          println(s"Other message: $other")
+        case JsError(errors) =>
+          errors.foreach(println)
+      }
     }
     socket.onerror = { (e: Event) =>
       println(s"Exception with websocket: ${e.asInstanceOf[ErrorEvent].message}!")
@@ -104,8 +118,7 @@ case class ClientWebsocket(loader: Div, termHeading: Heading) {
       }
     }
   }
-  
-  def sendInterpretationRequest(discourse: String): Unit = {
+
+  def sendInterpretationRequest(discourse: String): Unit =
     socket.send(Json.toJson(SensalaRunInterpretation(discourse)).toString())
-  }
 }

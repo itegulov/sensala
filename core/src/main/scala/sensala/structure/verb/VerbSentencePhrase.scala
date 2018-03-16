@@ -16,11 +16,11 @@ final case class VerbSentencePhrase(
       x <- getEntity
       _ <- putEvent(e)
       sentenceL <- sentence.interpret(
-        for {
-          eSucc <- getEvent
-          w = Sym(word)
-          contL <- cont
-        } yield w(e) /\: agent(e, x) /\: patient(e, eSucc) /\: contL
-      )
+                    for {
+                      eSucc <- getEvent
+                      w     = Sym(word)
+                      contL <- cont
+                    } yield w(e) /\: agent(e, x) /\: patient(e, eSucc) /\: contL
+                  )
     } yield Ex(e, event, sentenceL)
 }

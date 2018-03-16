@@ -14,41 +14,50 @@ import org.ehcache.config.builders.ResourcePoolsBuilder
 import scala.concurrent.Future
 
 class ConceptNetApi(implicit materializer: ActorMaterializer) {
+
   import JsonBodyReadables._
   import scala.concurrent.ExecutionContext.Implicits._
-  
+
   private val logger = Logger[this.type]
-  
+
   private val wsClient = StandaloneAhcWSClient()
 
   private val cacheManager = CacheManagerBuilder.newCacheManagerBuilder
     .withCache(
       "preConfigured",
       CacheConfigurationBuilder
-        .newCacheConfigurationBuilder(classOf[String], classOf[ConceptNetWord], ResourcePoolsBuilder.heap(100))
+        .newCacheConfigurationBuilder(
+          classOf[String],
+          classOf[ConceptNetWord],
+          ResourcePoolsBuilder.heap(100)
+        )
         .build
     )
     .build(true)
 
-  private val preConfigured = cacheManager.getCache("preConfigured", classOf[String], classOf[ConceptNetWord])
+  private val preConfigured =
+    cacheManager.getCache("preConfigured", classOf[String], classOf[ConceptNetWord])
 
   private val cache = cacheManager.createCache(
     "myCache",
     CacheConfigurationBuilder
-      .newCacheConfigurationBuilder(classOf[String], classOf[ConceptNetWord], ResourcePoolsBuilder.heap(100))
+      .newCacheConfigurationBuilder(
+        classOf[String],
+        classOf[ConceptNetWord],
+        ResourcePoolsBuilder.heap(100)
+      )
       .build
   )
 
-
-  def requestWord(word: String, limit: Int = 5000): Future[ConceptNetWord] = {
+  def requestWord(word: String, limit: Int = 5000): Future[ConceptNetWord] =
     requestUrl(s"http://api.conceptnet.io/c/en/$word?limit=100", limit)
-  }
-  
-  private def requestUrl(url: String, limit: Int): Future[ConceptNetWord] = {
+
+  private def requestUrl(url: String, limit: Int): Future[ConceptNetWord] =
     Option(cache.get(url)) match {
       case Some(result) => Future.successful(result)
       case None =>
-        wsClient.url(url)
+        wsClient
+          .url(url)
           .get()
           .flatMap { response =>
             val body = response.body[JsValue]
@@ -62,8 +71,11 @@ class ConceptNetApi(implicit materializer: ActorMaterializer) {
                     case Some(view) =>
                       view.nextPage match {
                         case Some(nextPageUrl) =>
-                          requestUrl(s"http://api.conceptnet.io$nextPageUrl", limit - page.edges.size).map {
-                            x => x.copy(edges = page.edges ++ x.edges)
+                          requestUrl(
+                            s"http://api.conceptnet.io$nextPageUrl",
+                            limit - page.edges.size
+                          ).map { x =>
+                            x.copy(edges = page.edges ++ x.edges)
                           }
                         case None =>
                           Future.successful(ConceptNetWord(page.id, page.context, page.edges))
@@ -83,8 +95,7 @@ class ConceptNetApi(implicit materializer: ActorMaterializer) {
             word
           }
     }
-  }
-  
+
   def close(): Unit = {
     wsClient.close()
     cacheManager.close()
