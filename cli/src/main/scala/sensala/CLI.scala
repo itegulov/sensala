@@ -11,7 +11,6 @@ import org.aossie.scavenger.structure.immutable.AxiomClause
 import org.atnos.eff._
 import org.atnos.eff.syntax.all._
 import sensala.error.NLError
-import sensala.property.ConceptNetPropertyExtractor
 
 object CLI {
   private val logger = Logger[this.type]
@@ -105,7 +104,6 @@ object CLI {
                |${cnf.clauses.mkString("\n")}
             """.stripMargin
           )
-          ConceptNetPropertyExtractor.close()
       }
     }
   }

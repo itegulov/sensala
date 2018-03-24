@@ -4,6 +4,10 @@
 
 Sensala is a dynamic semantics framework for natural language processing. 
 
+### WordNet
+
+To use Sensala, download a [WordNet-3.0](https://wordnet.princeton.edu/download/current-version)
+distribution and unzip it to the `WordNet-3.0` folder.
 
 ### Usage Instructions
 

@@ -68,6 +68,7 @@ object SensalaBuild {
         "org.typelevel"    %% "cats-core"      % "1.0.1",
         "org.typelevel"    %% "cats-mtl-core"  % "0.2.1",
         "org.atnos"        %% "eff"            % "5.1.0",
+        "net.sf.jwordnet"  % "jwnl"            % "1.3.3",
         "com.ironcorelabs" %% "cats-scalatest" % "2.3.1" % Test,
         "org.aossie"       %% "scavenger"      % "0.2.1-SNAPSHOT"
       )
@@ -167,7 +168,16 @@ object SensalaBuild {
   lazy val webSharedJs  = webShared.js
 
   lazy val root = Project(id = "sensala", base = file("."))
-    .aggregate(core, parser, commandLine, conceptNet, webSharedJvm, webSharedJs, webServer, webClient)
+    .aggregate(
+      core,
+      parser,
+      commandLine,
+      conceptNet,
+      webSharedJvm,
+      webSharedJs,
+      webServer,
+      webClient
+    )
     .dependsOn(core, parser % "compile->compile;test->test", commandLine)
     .settings(commonSettings ++ commonDeps)
     .settings(

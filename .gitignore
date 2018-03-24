@@ -25,3 +25,5 @@ project/target/
 *private*
 *.synctex.gz
 /.scala_dependencies
+
+WordNet-3.0

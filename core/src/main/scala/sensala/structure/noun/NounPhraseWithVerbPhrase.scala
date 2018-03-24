@@ -26,7 +26,7 @@ final case class ProperNounVP(
   override def properties: List[Property] = word match {
     case "Mary" => List(Property(female))
     case "John" => List(Property(male))
-    case _      => List(Property(nonHuman))
+    case _      => List(Property(animal))
   }
 }
 
@@ -39,9 +39,9 @@ final case class ReflexivePronounVP(
     for {
       x <- bindFreeVar
       ref <- if (word.toLowerCase == "it")
-              gets[NLFx, Context, E](_.findAnaphoricReferent(x, nonHuman(x)).get)
+              gets[NLFx, Context, E](_.findAnaphoricReferent(x, animal(x)).get)
             else if (word.toLowerCase == "he")
-              gets[NLFx, Context, E](_.findAnaphoricReferent(x, male(x) \/: human(x)).get)
+              gets[NLFx, Context, E](_.findAnaphoricReferent(x, male(x) \/: person(x)).get)
             else
               left[NLFx, NLError, E](NLUnexpectedWord(word))
       _     <- putEntity(ref.asInstanceOf[Var]) // FIXME: remove type casting?
@@ -51,7 +51,7 @@ final case class ReflexivePronounVP(
   override def properties: List[Property] = word match {
     case "he"  => List(Property(male))
     case "she" => List(Property(female))
-    case "it"  => List(Property(nonHuman))
-    case _     => List(Property(nonHuman))
+    case "it"  => List(Property(animal))
+    case _     => List(Property(animal))
   }
 }

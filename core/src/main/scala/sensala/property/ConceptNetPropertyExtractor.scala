@@ -9,6 +9,7 @@ import sensala.conceptnet.structure.auxilary.{Antonym, English, IsA, RelatedTo}
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
+@deprecated("Use WordNetPropertyExtractor instead")
 object ConceptNetPropertyExtractor {
   import scala.concurrent.ExecutionContext.Implicits.global
 
