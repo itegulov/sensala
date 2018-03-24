@@ -4,7 +4,7 @@ import org.aossie.scavenger.expression._
 import sensala.structure._
 import org.atnos.eff.all._
 import sensala.error.{NLError, NLUnexpectedWord}
-import sensala.property.{WordNetPropertyExtractor, Property}
+import sensala.property.{Property, WordNetPropertyExtractor}
 
 trait NounPhraseWithoutVerbPhrase extends NounPhrase
 
@@ -47,32 +47,18 @@ final case class ReflexivePronoun(
   override def interpret(cont: NLEff[E]): NLEff[E] =
     for {
       x <- bindFreeVar
-      ref <- if (word.toLowerCase == "it")
-              gets[NLFx, Context, E](_.findAnaphoricReferent(x, animal(x)).get)
-            else if (word.toLowerCase == "he")
-              gets[NLFx, Context, E](_.findAnaphoricReferent(x, male(x)).get)
-            else if (word.toLowerCase == "she")
-              gets[NLFx, Context, E](_.findAnaphoricReferent(x, female(x)).get)
-            else if (word.toLowerCase == "him")
-              gets[NLFx, Context, E](_.findAnaphoricReferent(x, male(x)).get)
-            else if (word.toLowerCase == "her")
-              gets[NLFx, Context, E](_.findAnaphoricReferent(x, female(x)).get)
-            else if (word.toLowerCase == "itself")
-              gets[NLFx, Context, E](_.findAnaphoricReferent(x, animal(x)).get)
-            else if (word.toLowerCase == "himself")
-              gets[NLFx, Context, E](_.findAnaphoricReferent(x, male(x)).get)
-            else if (word.toLowerCase == "herself")
-              gets[NLFx, Context, E](_.findAnaphoricReferent(x, female(x)).get)
-            else
-              left[NLFx, NLError, E](NLUnexpectedWord(word))
+      ref <- PronounPropertyMap.map.get(word.toLowerCase) match {
+              case Some(property) =>
+                gets[NLFx, Context, E](_.findAnaphoricReferent(x, property(x)).get)
+              case None => left[NLFx, NLError, E](NLUnexpectedWord(word))
+            }
       _     <- putEntity(ref.asInstanceOf[Var]) // FIXME: remove type casting?
       contL <- cont
     } yield contL
 
-  override def properties: List[Property] = word match {
-    case "he"  => List(Property(male))
-    case "she" => List(Property(female))
-    case "it"  => List(Property(animal))
-    case _     => List(Property(animal))
-  }
+  override def properties: List[Property] =
+    PronounPropertyMap.map
+      .get(word.toLowerCase)
+      .map(sym => List(Property(sym)))
+      .getOrElse(List(Property(animal)))
 }

@@ -38,20 +38,18 @@ final case class ReflexivePronounVP(
   override def interpret(cont: NLEff[E]): NLEff[E] =
     for {
       x <- bindFreeVar
-      ref <- if (word.toLowerCase == "it")
-              gets[NLFx, Context, E](_.findAnaphoricReferent(x, animal(x)).get)
-            else if (word.toLowerCase == "he")
-              gets[NLFx, Context, E](_.findAnaphoricReferent(x, male(x) \/: person(x)).get)
-            else
-              left[NLFx, NLError, E](NLUnexpectedWord(word))
+      ref <- PronounPropertyMap.map.get(word.toLowerCase) match {
+              case Some(property) =>
+                gets[NLFx, Context, E](_.findAnaphoricReferent(x, property(x)).get)
+              case None => left[NLFx, NLError, E](NLUnexpectedWord(word))
+            }
       _     <- putEntity(ref.asInstanceOf[Var]) // FIXME: remove type casting?
       verbL <- verbPhrase.interpret(cont)
     } yield verbL
 
-  override def properties: List[Property] = word match {
-    case "he"  => List(Property(male))
-    case "she" => List(Property(female))
-    case "it"  => List(Property(animal))
-    case _     => List(Property(animal))
-  }
+  override def properties: List[Property] =
+    PronounPropertyMap.map
+      .get(word.toLowerCase)
+      .map(sym => List(Property(sym)))
+      .getOrElse(List(Property(animal)))
 }
