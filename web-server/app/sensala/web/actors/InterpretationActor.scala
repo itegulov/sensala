@@ -69,6 +69,12 @@ case class InterpretationActor() extends Actor with ActorLogging {
           "type-reflpronoun",
           List(atomNode(word))
         )
+      case DemonstrativePronoun(word) =>
+        SensalaNode(
+          "DemonstrativePronoun",
+          "type-demopronoun",
+          List(atomNode(word))
+        )
       case ProperNounVP(word, vp) =>
         SensalaNode(
           "ProperNounVP",
@@ -208,7 +214,7 @@ case class InterpretationActor() extends Actor with ActorLogging {
                 sentence
                   .interpret(Eff.pure(True))
                   .runEither[NLError]
-                  .runState[Context](Context(Map.empty, Set.empty))
+                  .runState[Context](Context(Map.empty, Map.empty, Set.empty))
                   .runState[LocalContext](LocalContext.empty)
                   .run
               lambdaTermEither match {

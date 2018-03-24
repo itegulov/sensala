@@ -113,11 +113,36 @@ object DiscourseParser {
                    }
         } yield result
     }
+  
+  def extractDemonstrativePronoun(
+    tree: Tree,
+    verbOpt: Option[VerbPhrase]
+  ): Either[String, NounPhrase] = {
+    val demonstrativePronouns = Set("this", "that")
+    if (tree.children.length == 1) {
+      val child = tree.getChild(0)
+      child.label.value match {
+        case "DT" if demonstrativePronouns.contains(child.getChild(0).label.value.toLowerCase) =>
+          verbOpt match {
+            case Some(verbPhrase) => Left("Unsupported")
+            case None => Right(DemonstrativePronoun(child.getChild(0).label.value))
+          }
+        case _ =>
+          Left("Invalid demonstrative pronoun")
+      }
+    } else {
+      Left("Invalid demonstrative pronoun")
+    }
+  }
 
   def extractDeterminedNounPhrase(
     tree: Tree,
     verbOpt: Option[VerbPhrase]
   ): Either[String, NounPhrase] = {
+    extractDemonstrativePronoun(tree, verbOpt) match {
+      case result @ Right(_) => return result
+      case _ =>
+    }
     val existentialDeterminers = tree.children.flatMap { child =>
       child.label.value match {
         case "DT" if child.getChild(0).label.value.toLowerCase == "a" =>

@@ -1,6 +1,7 @@
 package sensala.structure.noun
 
 import org.aossie.scavenger.expression._
+import org.aossie.scavenger.expression.formula.{False, True}
 import sensala.structure._
 import org.atnos.eff.all._
 import sensala.error.{NLError, NLUnexpectedWord}
@@ -61,4 +62,20 @@ final case class ReflexivePronoun(
       .get(word.toLowerCase)
       .map(sym => List(Property(sym)))
       .getOrElse(List(Property(animal)))
+}
+
+final case class DemonstrativePronoun(
+  word: String
+) extends Word
+    with NounPhraseWithoutVerbPhrase {
+  override def interpret(cont: NLEff[E]): NLEff[E] =
+    for {
+      x     <- bindFreeVar
+      // FIXME: find a better way to represent truth
+      e     <- gets[NLFx, Context, E](_.findAnaphoricEvent(x, person(x) \/: ~person(x)).get)
+      _     <- putEntity(e.asInstanceOf[Var])
+      contL <- cont
+    } yield contL
+
+  override def properties: List[Property] = List.empty
 }

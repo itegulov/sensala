@@ -6,6 +6,7 @@ import sensala.structure.adjective.Adjective
 import sensala.structure._
 import org.atnos.eff.all._
 import sensala.error.{NLError, NLUnexpectedWord}
+import sensala.property.Property
 import sensala.structure.types.event
 
 final case class VerbAdjectivePhrase(
@@ -20,6 +21,7 @@ final case class VerbAdjectivePhrase(
           e     <- bindFreeVar
           _     <- putEvent(e)
           w     = Sym(adjective.word)
+          _     <- modify[NLFx, Context](_.addEvent(e, List(Property(w))))
           contL <- cont
         } yield Ex(e, event, description(e) /\: w(e, x) /\: contL)
       case other =>
