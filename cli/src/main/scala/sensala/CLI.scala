@@ -62,7 +62,7 @@ object CLI {
           val ((lambdaTermEither, context), localContext) = 
             sentence.interpret(Eff.pure(True))
               .runEither[NLError]
-              .runState[Context](Context(Map.empty, Set.empty))
+              .runState[Context](Context(Map.empty, Map.empty, Set.empty))
               .runState[LocalContext](LocalContext.empty)
               .run
           val lambdaTerm = lambdaTermEither match {
