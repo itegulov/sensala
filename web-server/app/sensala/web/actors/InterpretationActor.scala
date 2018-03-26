@@ -147,6 +147,12 @@ case class InterpretationActor() extends Actor with ActorLogging {
           "type-verbsentencephrase",
           List(atomNode(word), convertNL(sentence))
         )
+      case VerbPhraseAnaphora(phrase) =>
+        SensalaNode(
+          "VerbPharseAnaphora",
+          "type-verbphraseanaphora",
+          List(atomNode(phrase))
+        )
       case WhNounPhrase(verbPhrase, nounPhrase) =>
         SensalaNode(
           "WhNounPhrase",

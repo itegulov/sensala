@@ -59,6 +59,13 @@ final case class Context(
         All(newEvent, event, properties.map(p => App(p.symbol, newEvent)).reduceLeft(And.apply))
       )
     )
+  def addEvent(newEvent: Var, properties: E): Context =
+    copy(
+      eventProperties = eventProperties.updated(
+        newEvent,
+        All(newEvent, event, properties)
+      )
+    )
   def deleteReferent(oldRef: Sym): Context =
     copy(referentProperties = referentProperties - oldRef)
   def addBoundSym(sym: Sym): Context =

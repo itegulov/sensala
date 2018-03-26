@@ -18,10 +18,12 @@ final case class VerbSentencePhrase(
       x <- getEntity
       _ <- putEvent(e)
       w = Sym(word)
-      _ <- modify[NLFx, Context](_.addEvent(e, List(Property(w))))
       sentenceL <- sentence.interpret(
                     for {
                       eSucc <- getEvent
+                      _ <- modify[NLFx, Context](
+                            _.addEvent(e, w(e) /\: agent(e, x) /\: patient(e, eSucc))
+                          )
                       contL <- cont
                     } yield w(e) /\: agent(e, x) /\: patient(e, eSucc) /\: contL
                   )

@@ -71,8 +71,7 @@ final case class DemonstrativePronoun(
   override def interpret(cont: NLEff[E]): NLEff[E] =
     for {
       x     <- bindFreeVar
-      // FIXME: find a better way to represent truth
-      e     <- gets[NLFx, Context, E](_.findAnaphoricEvent(x, person(x) \/: ~person(x)).get)
+      e     <- gets[NLFx, Context, E](_.findAnaphoricEvent(x, truth(x)).get)
       _     <- putEntity(e.asInstanceOf[Var])
       contL <- cont
     } yield contL

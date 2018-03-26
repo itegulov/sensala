@@ -64,10 +64,32 @@ package object structure {
 
   val named = Sym("named")
 
-  val animal   = Sym("animal")
-  val female   = Sym("female")
-  val male     = Sym("male")
-  val person   = Sym("person")
+  val animal = Sym("animal")
+  val female = Sym("female")
+  val male   = Sym("male")
+  val person = Sym("person")
+
+  // FIXME: find a better way to represent truth
+  def truth(x: Sym): E = person(x) \/: ~person(x)
+
+  def substitute(exp: E, old: Sym, newE: E): E = exp match {
+    case `old`                       => newE
+    case s: Sym                      => s
+    case Abs(v, t, body) if v != old => Abs(v, t, substitute(body, old, newE))
+    case abs: Abs                    => abs
+    case App(f, a)                   => App(substitute(f, old, newE), substitute(a, old, newE))
+  }
+
+  def substitute(exp: E, predicate: Sym, position: Int, newE: E): E = exp match {
+    case AppRec(`predicate`, args) if position < args.size =>
+      AppRec(predicate, args.toList.patch(position, List(newE), 1))
+    case s: Sym =>
+      s
+    case Abs(v, t, body) =>
+      Abs(v, t, substitute(body, predicate, position, newE))
+    case App(f, a) =>
+      App(substitute(f, predicate, position, newE), substitute(a, predicate, position, newE))
+  }
 
   implicit class ERich(val lambda: E) extends AnyVal {
     def pretty: String =

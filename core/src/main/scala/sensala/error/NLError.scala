@@ -4,10 +4,14 @@ import sensala.property.Property
 
 sealed trait NLError
 
-case class NLUnknownAnaphoricReferent(
+final case class NLUnknownAnaphoricReferent(
   properties: List[Property]
 ) extends NLError
 
-case class NLUnexpectedWord(
+final case class NLUnexpectedWord(
   word: String
+) extends NLError
+
+final case class NLInvalidState(
+  error: String
 ) extends NLError

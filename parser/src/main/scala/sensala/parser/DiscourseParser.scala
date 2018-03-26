@@ -203,9 +203,21 @@ object DiscourseParser {
                   adjective <- extractAdjective(t)
                 } yield VerbAdjectivePhrase(verbWord, adjective)
               case t if t.label.value == "ADVP" =>
-                for {
+                val eitherVp = for {
                   adverb <- extractAdverb(t)
                 } yield VerbAdverbPhrase(adverb.word, IntransitiveVerb(verbWord))
+                eitherVp match {
+                  case Right(vp) =>
+                    vp match {
+                      case VerbAdverbPhrase("too", IntransitiveVerb("does")) =>
+                        Right(VerbPhraseAnaphora("does too"))
+                      case VerbAdverbPhrase("too", IntransitiveVerb("did")) =>
+                        Right(VerbPhraseAnaphora("did too"))
+                      case _ =>
+                        Right(vp)
+                    }
+                  case _ => eitherVp
+                }
               case t if t.label.value == "PP" =>
                 for {
                   propositionalPhrase <- extractPropositionalPhrase(t)
