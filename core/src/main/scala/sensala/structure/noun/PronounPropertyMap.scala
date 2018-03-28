@@ -5,12 +5,12 @@ import sensala.structure._
 private[noun] object PronounPropertyMap extends {
   val map = Map(
     "it"      -> animal,
-    "he"      -> male,
+    "he"      -> person,
     "she"     -> female,
-    "him"     -> male,
+    "him"     -> person,
     "her"     -> female,
     "itself"  -> animal,
-    "himself" -> male,
+    "himself" -> person,
     "herself" -> female,
   )
 }
