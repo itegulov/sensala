@@ -140,6 +140,26 @@ object NewDiscourseParser {
         Left("Invalid verb phrase")
     }
   }
+  
+  def parseVerbPhrasePassive(
+    verbTree: IndexedWord
+  )(implicit graph: SemanticGraph): Either[String, VerbPhrase] = {
+    verbTree.tag match {
+      case "VB" | "VBZ" | "VBP" | "VBD" | "VBN" | "VBG" =>
+        val childrenMap = graph.childPairs(verbTree).map(pairToTuple).toMap
+        val passSubjOpt      = childrenMap.get(NSubjPass)
+        passSubjOpt match {
+          case Some(passSubj) =>
+            for {
+              passSubjPhrase <- parseNounPhrase(passSubj)
+            } yield TransitiveVerb(verbTree.word, passSubjPhrase)
+          case None =>
+            Right(IntransitiveVerb(verbTree.word))
+        }
+      case _ =>
+        Left("Invalid passive verb phrase")
+    }
+  }
 
   def parseNounPhrase(
     nounTree: IndexedWord
@@ -179,7 +199,8 @@ object NewDiscourseParser {
   )(implicit graph: SemanticGraph): Either[String, NounPhraseWithVerbPhrase] = {
     root.tag match {
       case "VB" | "VBZ" | "VBP" | "VBD" | "VBN" | "VBG" =>
-        val childrenMap = graph.childPairs(root).map(pairToTuple).toMap
+        val children = graph.childPairs(root).map(pairToTuple).toList
+        val childrenMap = children.toMap
         val subjOpt     = childrenMap.get(NSubj)
         val verbPhraseEither  = parseVerbPhrase(root)
         (subjOpt, verbPhraseEither) match {
@@ -187,9 +208,26 @@ object NewDiscourseParser {
             for {
               subjPhrase <- parseNounPhrase(subj)
             } yield NounPhraseWithVerbPhrase(subjPhrase, verbPhrase)
-          case (_, Left(error)) => Left(error)
           case (None, _) =>
-            Left("Illegal sentence: no subject")
+            val agents = children.collect {
+              case (rel, word) if NomMod.isAncestor(rel) && rel.getSpecific == "agent" => word
+            }
+            val auxPassOpt = childrenMap.get(AuxPass)
+            (agents, auxPassOpt) match {
+              case (Nil, _) =>
+                Left("Illegal sentence: no subject and no agent")
+              case (agent :: Nil, Some(verbWord)) if verbWord.word.toLowerCase == "am" || verbWord.word.toLowerCase == "is" || verbWord.word.toLowerCase == "are" =>
+                for {
+                  agentPhrase <- parseNounPhrase(agent)
+                  verbPhrase <- parseVerbPhrasePassive(root)
+                } yield NounPhraseWithVerbPhrase(agentPhrase, verbPhrase)
+              case (_, None) =>
+                Left("Illegal passive voice sentence: no auxiliary verb")
+              case (_, _) =>
+                Left("Illegal sentence: multiple agents")
+            }
+          case (_, Left(error)) =>
+            Left(error)
         }
       case "JJ" =>
         val childrenMap = graph.childPairs(root).map(pairToTuple).toMap
@@ -210,7 +248,8 @@ object NewDiscourseParser {
             Left("Illegal sentence: no subject")
         }
       case "NN" | "NNP" | "PRP" =>
-        val childrenMap = graph.childPairs(root).map(pairToTuple).toMap
+        val children = graph.childPairs(root).map(pairToTuple).toList
+        val childrenMap = children.toMap
         val subjOpt     = childrenMap.get(NSubj)
         val copOpt     = childrenMap.get(Cop)
         (copOpt, subjOpt) match {
@@ -223,6 +262,21 @@ object NewDiscourseParser {
             } else {
               Left(s"Invalid copular verb: ${cop.word}")
             }
+          case (Some(cop), None) =>
+            if (cop.word.toLowerCase == "am" || cop.word.toLowerCase == "are" || cop.word.toLowerCase == "is") {
+              children.collect {
+                case (rel, word) if rel == AdvMod => word
+              }.find(_.word.toLowerCase == "so") match {
+                case Some(soWord) =>
+                  for {
+                    objPhrase <- parseNounPhrase(root)
+                  } yield NounPhraseWithVerbPhrase(objPhrase, VerbPhraseAnaphora(soWord.word + " " + cop.word))
+                case None =>
+                  Left("Invalid verb phrase anaphora")
+              }
+            } else {
+              Left(s"Invalid copular verb: ${cop.word}")
+            }
           case (None, _) =>
             Left("Illegal sentence: no copular verb")
           case (_, None) =>
@@ -231,10 +285,25 @@ object NewDiscourseParser {
     }
   }
   
+  def transformVerbPhraseAnaphora(sentence: NounPhraseWithVerbPhrase): NounPhraseWithVerbPhrase = {
+    sentence.verbPhrase match {
+      case VerbAdverbPhrase(Adverb("too"), IntransitiveVerb(word))
+        if word.toLowerCase == "did" || word.toLowerCase == "does" =>
+        NounPhraseWithVerbPhrase(sentence.nounPhrase, VerbPhraseAnaphora(word + " too"))
+      case VerbAdverbPhrase(Adverb(adWord), IntransitiveVerb(word))
+        if adWord.toLowerCase == "so" || (word.toLowerCase == "did" || word.toLowerCase == "is") =>
+        NounPhraseWithVerbPhrase(sentence.nounPhrase, VerbPhraseAnaphora(adWord + " " + word))
+      case _ =>
+        sentence
+    }
+  }
+  
   def parseSentence(sentence: Sentence): Either[String, NounPhraseWithVerbPhrase] = {
     implicit val graph = sentence.dependencyGraph()
     val root           = graph.getFirstRoot
-    parseSentence(root)
+    val result = parseSentence(root)
+    result
+      .map(transformVerbPhraseAnaphora)
   }
 
   def parse(discourse: String): Either[String, Discourse] = {
@@ -245,7 +314,4 @@ object NewDiscourseParser {
         .sequence
     } yield Discourse(result)
   }
-
-  def main(args: Array[String]): Unit =
-    println(parse("John is a farmer"))
 }
