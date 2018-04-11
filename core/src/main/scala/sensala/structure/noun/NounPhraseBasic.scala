@@ -1,27 +1,24 @@
 package sensala.structure.noun
 
 import org.aossie.scavenger.expression._
+import org.aossie.scavenger.expression.formula.{False, True}
 import sensala.structure._
 import org.atnos.eff.all._
 import sensala.error.{NLError, NLUnexpectedWord}
-import sensala.property.Property
-import sensala.structure.verb.VerbPhrase
+import sensala.property.{Property, WordNetPropertyExtractor}
 
-trait NounPhraseWithVerbPhrase extends NounPhrase {
-  val verbPhrase: VerbPhrase
-}
+sealed trait NounPhraseBasic extends NounPhrase
 
-final case class ProperNounVP(
-  word: String,
-  verbPhrase: VerbPhrase
+final case class ProperNoun(
+  word: String
 ) extends Word
-    with NounPhraseWithVerbPhrase {
+    with NounPhraseBasic {
   override def interpret(cont: NLEff[E]): NLEff[E] =
     for {
       x     <- getEntity
       w     = Sym(word)
-      verbL <- verbPhrase.interpret(cont)
-    } yield named(x, w) /\: verbL
+      contL <- cont
+    } yield named(x, w) /\: contL
 
   override def properties: List[Property] = word match {
     case "Mary" => List(Property(female), Property(person))
@@ -30,11 +27,24 @@ final case class ProperNounVP(
   }
 }
 
-final case class ReflexivePronounVP(
-  word: String,
-  verbPhrase: VerbPhrase
+case class CommonNoun(
+  word: String
 ) extends Word
-    with NounPhraseWithVerbPhrase {
+    with NounPhraseBasic {
+  override def interpret(cont: NLEff[E]): NLEff[E] =
+    for {
+      x     <- getEntity
+      w     = Sym(word)
+      contL <- cont
+    } yield w(x) /\: contL
+
+  override def properties: List[Property] = WordNetPropertyExtractor.extractProperties(word)
+}
+
+final case class ReflexivePronoun(
+  word: String
+) extends Word
+    with NounPhraseBasic {
   override def interpret(cont: NLEff[E]): NLEff[E] =
     for {
       x <- bindFreeVar
@@ -44,12 +54,27 @@ final case class ReflexivePronounVP(
               case None => left[NLFx, NLError, E](NLUnexpectedWord(word))
             }
       _     <- putEntity(ref.asInstanceOf[Var]) // FIXME: remove type casting?
-      verbL <- verbPhrase.interpret(cont)
-    } yield verbL
+      contL <- cont
+    } yield contL
 
   override def properties: List[Property] =
     PronounPropertyMap.map
       .get(word.toLowerCase)
       .map(sym => List(Property(sym)))
       .getOrElse(List(Property(animal)))
+}
+
+final case class DemonstrativePronoun(
+  word: String
+) extends Word
+    with NounPhraseBasic {
+  override def interpret(cont: NLEff[E]): NLEff[E] =
+    for {
+      x     <- bindFreeVar
+      e     <- gets[NLFx, Context, E](_.findAnaphoricEvent(x, truth(x)).get)
+      _     <- putEntity(e.asInstanceOf[Var])
+      contL <- cont
+    } yield contL
+
+  override def properties: List[Property] = List.empty
 }

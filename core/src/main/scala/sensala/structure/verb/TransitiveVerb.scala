@@ -3,14 +3,13 @@ package sensala.structure.verb
 import org.aossie.scavenger.expression._
 import org.aossie.scavenger.expression.formula.Ex
 import org.atnos.eff.all.modify
-import sensala.property.Property
 import sensala.structure._
-import sensala.structure.noun.NounPhraseWithoutVerbPhrase
+import sensala.structure.noun.NounPhrase
 import sensala.structure.types._
 
 final case class TransitiveVerb(
   word: String,
-  obj: NounPhraseWithoutVerbPhrase
+  obj: NounPhrase
 ) extends VerbPhrase {
   override def interpret(cont: NLEff[E]): NLEff[E] =
     for {

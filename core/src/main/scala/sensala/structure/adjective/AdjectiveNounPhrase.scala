@@ -1,15 +1,13 @@
 package sensala.structure.adjective
 
 import org.aossie.scavenger.expression._
-import sensala.structure.noun.{NounPhrase, NounPhraseWithoutVerbPhrase}
+import sensala.structure.noun.NounPhrase
 import sensala.structure._
-
-trait AdjectiveWithoutVerbPhrase extends AdjectivePhrase with NounPhraseWithoutVerbPhrase
 
 final case class AdjectiveNounPhrase(
   adjective: Adjective,
   nounPhrase: NounPhrase
-) extends AdjectiveWithoutVerbPhrase {
+) extends AdjectivePhrase with NounPhrase {
   override def interpret(cont: NLEff[E]): NLEff[E] =
     nounPhrase.interpret(
       for {

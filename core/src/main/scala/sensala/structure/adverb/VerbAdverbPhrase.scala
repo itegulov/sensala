@@ -1,21 +1,21 @@
-package sensala.structure.verb
+package sensala.structure.adverb
 
 import org.aossie.scavenger.expression.formula.All
 import org.aossie.scavenger.expression.{E, Sym}
 import org.atnos.eff.all._
 import sensala.error.{NLError, NLInvalidState}
-import sensala.structure.adverb.AdverbPhrase
 import sensala.structure._
 import sensala.structure.types.event
+import sensala.structure.verb.VerbPhrase
 
-case class VerbAdverbPhrase(adverb: String, verbPhrase: VerbPhrase)
+case class VerbAdverbPhrase(adverb: Adverb, verbPhrase: VerbPhrase)
     extends AdverbPhrase
     with VerbPhrase {
   override def interpret(cont: NLEff[E]): NLEff[E] =
     verbPhrase.interpret(
       for {
         e <- getEvent
-        w = Sym(adverb)
+        w = Sym(adverb.word)
         properties <- gets[NLFx, Context, E](_.eventProperties(e)) >>= {
                        case All(`e`, `event`, body) =>
                          pure(body)
