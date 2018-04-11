@@ -29,7 +29,7 @@ class InterpretationSpec extends SensalaSpec {
         } yield prettified
         val ((resultEither, _), _) = resultM
           .runEither[NLError]
-          .runState[Context](Context(Map.empty, Set.empty))
+          .runState[Context](Context(Map.empty, Map.empty, Set.empty))
           .runState[LocalContext](LocalContext.empty)
           .run
         val result = resultEither.right.get

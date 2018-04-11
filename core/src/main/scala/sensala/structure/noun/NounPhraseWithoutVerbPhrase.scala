@@ -21,8 +21,8 @@ final case class ProperNoun(
     } yield named(x, w) /\: contL
 
   override def properties: List[Property] = word match {
-    case "Mary" => List(Property(female))
-    case "John" => List(Property(male))
+    case "Mary" => List(Property(female), Property(person))
+    case "John" => List(Property(male), Property(person))
     case _      => List(Property(animal))
   }
 }

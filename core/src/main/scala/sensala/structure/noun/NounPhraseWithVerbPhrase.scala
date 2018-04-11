@@ -24,8 +24,8 @@ final case class ProperNounVP(
     } yield named(x, w) /\: verbL
 
   override def properties: List[Property] = word match {
-    case "Mary" => List(Property(female))
-    case "John" => List(Property(male))
+    case "Mary" => List(Property(female), Property(person))
+    case "John" => List(Property(male), Property(person))
     case _      => List(Property(animal))
   }
 }
