@@ -3,7 +3,6 @@ package sensala.parser
 import edu.stanford.nlp.ling.IndexedWord
 import edu.stanford.nlp.semgraph.SemanticGraph
 import edu.stanford.nlp.simple._
-import edu.stanford.nlp.trees.GrammaticalRelation
 import cats.implicits._
 import sensala.structure.Discourse
 import sensala.structure.adjective._
@@ -12,6 +11,7 @@ import sensala.structure.noun._
 import sensala.structure.prepositional.InPhrase
 import sensala.structure.verb._
 import sensala.structure.wh._
+import sensala.parser.SensalaGrammaticalRelations._
 
 import scala.collection.convert.ImplicitConversionsToScala._
 
@@ -31,7 +31,7 @@ object NewDiscourseParser {
     require(nounPhrase.tag == "NN")
     val children = graph.childPairs(nounPhrase).toList.map(pairToTuple)
     val determiners = children.collect {
-      case (rel, word) if rel == GrammaticalRelation.valueOf("det") => word
+      case (rel, word) if rel == Det => word
     }
     determiners match {
       case x :: Nil if x.word.toLowerCase == "a" || x.word.toLowerCase == "an" =>
@@ -50,7 +50,7 @@ object NewDiscourseParser {
     nounPhrase: NounPhrase
   )(implicit graph: SemanticGraph): Either[String, NounPhrase] = {
     val modifiers = graph.childPairs(nounTree).toList.map(pairToTuple).collect {
-      case (rel, word) if rel == GrammaticalRelation.valueOf("amod") => word
+      case (rel, word) if rel == AdjMod => word
     }
     for {
       mods <- modifiers.map {
@@ -65,10 +65,10 @@ object NewDiscourseParser {
     nounPhrase: NounPhrase
   )(implicit graph: SemanticGraph): Either[String, NounPhrase] = {
     val refs = graph.childPairs(nounTree).toList.map(pairToTuple).collect {
-      case (rel, word) if rel == GrammaticalRelation.valueOf("ref") => word
+      case (rel, word) if rel == Ref => word
     }
     val relativeClauses = graph.childPairs(nounTree).toList.map(pairToTuple).collect {
-      case (rel, word) if rel == GrammaticalRelation.valueOf("acl:relcl") => word
+      case (rel, word) if rel == RelClMod => word
     }
     // FIXME: References and relative clauses can be ordered differently
     val clauses = refs.zip(relativeClauses)
@@ -85,7 +85,7 @@ object NewDiscourseParser {
     verbPhrase: VerbPhrase
   )(implicit graph: SemanticGraph): Either[String, VerbPhrase] = {
     val adverbs = graph.childPairs(verbTree).toList.map(pairToTuple).collect {
-      case (rel, word) if rel == GrammaticalRelation.valueOf("advmod") => word
+      case (rel, word) if rel == AdvMod => word
     }
     val adverbMods = adverbs.map(indexedWord => Adverb(indexedWord.word))
     Right(adverbMods.foldRight(verbPhrase)(VerbAdverbPhrase.apply))
@@ -96,14 +96,14 @@ object NewDiscourseParser {
     verbPhrase: VerbPhrase
   )(implicit graph: SemanticGraph): Either[String, VerbPhrase] = {
     val propositions = graph.childPairs(verbTree).toList.map(pairToTuple).collect {
-      case (rel, word) if rel == GrammaticalRelation.valueOf("nmod:on") => word
+      case (rel, word) if NomMod.isAncestor(rel) => word
     }
     for {
       propositionModifiers <- propositions.map { proposition =>
         for {
           propositionNounPhrase <- parseNounPhrase(proposition)
           propositionGraphMap = graph.childPairs(proposition).map(pairToTuple).toMap
-          caseWord <- propositionGraphMap.get(GrammaticalRelation.valueOf("case")).toRight("Invalid proposition: no case word")
+          caseWord <- propositionGraphMap.get(Case).toRight("Invalid proposition: no case word")
         } yield InPhrase(caseWord.word, propositionNounPhrase)
       }.sequence[EitherS, InPhrase]
     } yield propositionModifiers.foldRight(verbPhrase)(VerbInPhrase.apply)
@@ -115,8 +115,8 @@ object NewDiscourseParser {
     verbTree.tag match {
       case "VB" | "VBZ" | "VBP" | "VBD" | "VBN" | "VBG" =>
         val childrenMap = graph.childPairs(verbTree).map(pairToTuple).toMap
-        val objOpt      = childrenMap.get(GrammaticalRelation.valueOf("dobj"))
-        val clausalComponentOpt = childrenMap.get(GrammaticalRelation.valueOf("ccomp"))
+        val objOpt      = childrenMap.get(DObj)
+        val clausalComponentOpt = childrenMap.get(CComp)
         (objOpt, clausalComponentOpt) match {
           case (Some(obj), None) =>
             for {
@@ -180,7 +180,7 @@ object NewDiscourseParser {
     root.tag match {
       case "VB" | "VBZ" | "VBP" | "VBD" | "VBN" | "VBG" =>
         val childrenMap = graph.childPairs(root).map(pairToTuple).toMap
-        val subjOpt     = childrenMap.get(GrammaticalRelation.valueOf("nsubj"))
+        val subjOpt     = childrenMap.get(NSubj)
         val verbPhraseEither  = parseVerbPhrase(root)
         (subjOpt, verbPhraseEither) match {
           case (Some(subj), Right(verbPhrase)) =>
@@ -193,8 +193,8 @@ object NewDiscourseParser {
         }
       case "JJ" =>
         val childrenMap = graph.childPairs(root).map(pairToTuple).toMap
-        val subjOpt     = childrenMap.get(GrammaticalRelation.valueOf("nsubj"))
-        val copOpt     = childrenMap.get(GrammaticalRelation.valueOf("cop"))
+        val subjOpt     = childrenMap.get(NSubj)
+        val copOpt     = childrenMap.get(Cop)
         (copOpt, subjOpt) match {
           case (Some(cop), Some(subj)) =>
             if (cop.word.toLowerCase == "am" || cop.word.toLowerCase == "are" || cop.word.toLowerCase == "is") {
@@ -211,8 +211,8 @@ object NewDiscourseParser {
         }
       case "NN" | "NNP" | "PRP" =>
         val childrenMap = graph.childPairs(root).map(pairToTuple).toMap
-        val subjOpt     = childrenMap.get(GrammaticalRelation.valueOf("nsubj"))
-        val copOpt     = childrenMap.get(GrammaticalRelation.valueOf("cop"))
+        val subjOpt     = childrenMap.get(NSubj)
+        val copOpt     = childrenMap.get(Cop)
         (copOpt, subjOpt) match {
           case (Some(cop), Some(subj)) =>
             if (cop.word.toLowerCase == "am" || cop.word.toLowerCase == "are" || cop.word.toLowerCase == "is") {
