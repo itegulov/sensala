@@ -4,6 +4,7 @@ import edu.stanford.nlp.ling.IndexedWord
 import edu.stanford.nlp.semgraph.SemanticGraph
 import edu.stanford.nlp.simple._
 import cats.implicits._
+import edu.stanford.nlp.process.Morphology
 import sensala.structure.Discourse
 import sensala.structure.adjective._
 import sensala.structure.adverb.{Adverb, VerbAdverbPhrase}
@@ -24,6 +25,7 @@ object NewDiscourseParser {
   sealed trait CommonNounDeterminer
   case object Existential extends CommonNounDeterminer
   case object Forall      extends CommonNounDeterminer
+  case object The         extends CommonNounDeterminer
 
   def parseCommonNoun(
     nounPhrase: IndexedWord
@@ -34,10 +36,15 @@ object NewDiscourseParser {
       case (rel, word) if rel == Det => word
     }
     determiners match {
+      case Nil =>
+        // FIXME: Currently treating all common nouns without determiners as indefinite
+        Right(Existential)
       case x :: Nil if x.word.toLowerCase == "a" || x.word.toLowerCase == "an" =>
         Right(Existential)
       case x :: Nil if x.word.toLowerCase == "every" =>
         Right(Forall)
+      case x :: Nil if x.word.toLowerCase == "the" =>
+        Right(The)
       case x :: Nil =>
         Left(s"Unknown determiner: ${x.word}")
       case _ =>
@@ -177,6 +184,11 @@ object NewDiscourseParser {
               adjectiveNounPhrase <- parseAdjectiveNounPhrase(nounTree, CommonNoun(nounTree.word))
               whNounPhrase <- parseWhNounPhrase(nounTree, adjectiveNounPhrase)
             } yield ForallQuantifier(whNounPhrase)
+          case Right(The) =>
+            for {
+              adjectiveNounPhrase <- parseAdjectiveNounPhrase(nounTree, CommonNoun(nounTree.word))
+              whNounPhrase <- parseWhNounPhrase(nounTree, adjectiveNounPhrase)
+            } yield DefiniteNounPhrase(whNounPhrase)
           case Left(error) =>
             Left(error)
         }
@@ -235,10 +247,14 @@ object NewDiscourseParser {
         val copOpt     = childrenMap.get(Cop)
         (copOpt, subjOpt) match {
           case (Some(cop), Some(subj)) =>
-            if (cop.word.toLowerCase == "am" || cop.word.toLowerCase == "are" || cop.word.toLowerCase == "is") {
+            val stemCop = Morphology.stemStatic(cop.word, cop.tag)
+            if (stemCop.word.toLowerCase == "be") {
               for {
-                subjPhrase <- parseNounPhrase(subj)
-              } yield NounPhraseWithVerbPhrase(subjPhrase, VerbAdjectivePhrase(cop.word, Adjective(root.word)))
+                subjPhrase              <- parseNounPhrase(subj)
+                verbPhrase              = VerbAdjectivePhrase(cop.word, Adjective(root.word))
+                adverbVerbPhrase        <- parseAdverbVerbPhrase(root, verbPhrase)
+                propositionalVerbPhrase <- parsePropositionalVerbPhrase(root, adverbVerbPhrase)
+              } yield NounPhraseWithVerbPhrase(subjPhrase, propositionalVerbPhrase)
             } else {
               Left(s"Invalid copular verb: ${cop.word}")
             }
@@ -254,7 +270,8 @@ object NewDiscourseParser {
         val copOpt     = childrenMap.get(Cop)
         (copOpt, subjOpt) match {
           case (Some(cop), Some(subj)) =>
-            if (cop.word.toLowerCase == "am" || cop.word.toLowerCase == "are" || cop.word.toLowerCase == "is") {
+            val stemCop = Morphology.stemStatic(cop.word, cop.tag)
+            if (stemCop.word.toLowerCase == "be") {
               for {
                 subjPhrase <- parseNounPhrase(subj)
                 objPhrase <- parseNounPhrase(root)
@@ -263,7 +280,8 @@ object NewDiscourseParser {
               Left(s"Invalid copular verb: ${cop.word}")
             }
           case (Some(cop), None) =>
-            if (cop.word.toLowerCase == "am" || cop.word.toLowerCase == "are" || cop.word.toLowerCase == "is") {
+            val stemCop = Morphology.stemStatic(cop.word, cop.tag)
+            if (stemCop.word.toLowerCase == "be") {
               children.collect {
                 case (rel, word) if rel == AdvMod => word
               }.find(_.word.toLowerCase == "so") match {

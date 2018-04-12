@@ -61,5 +61,19 @@ class ACL2018SensalaDemoSpec extends SensalaSpec {
         VerbSentencePhrase("thinks", NounPhraseWithVerbPhrase(ReflexivePronoun("he"), VerbAdjectivePhrase("is", Adjective("rich"))))
       )
     ))
+    
+    parse("John bought a donkey. The animal was stubborn as hell.").right.value shouldBe Discourse(List(
+      NounPhraseWithVerbPhrase(
+        ExistentialQuantifier(ProperNoun("John")),
+        TransitiveVerb("bought", ExistentialQuantifier(CommonNoun("donkey")))
+      ),
+      NounPhraseWithVerbPhrase(
+        DefiniteNounPhrase(CommonNoun("animal")),
+        VerbInPhrase(
+          InPhrase("as", ExistentialQuantifier(CommonNoun("hell"))),
+          VerbAdjectivePhrase("was", Adjective("stubborn"))
+        )
+      )
+    ))
   }
 }
