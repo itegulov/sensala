@@ -1,7 +1,7 @@
 package sensala
 
 import sensala.normalization.NormalFormConverter
-import sensala.parser.{DiscourseParser, SensalaStanfordParser}
+import sensala.parser.DiscourseParser
 import sensala.postprocessing.PrettyTransformer
 import sensala.structure._
 import com.typesafe.scalalogging.Logger
@@ -43,9 +43,7 @@ object CLI {
   
   def main(args: Array[String]): Unit = {
     parser.parse(args, Config()) foreach { c =>
-      val sentences = SensalaStanfordParser.parse(c.discourse)
-      val parsed = DiscourseParser.parse(sentences)
-      parsed match {
+      DiscourseParser.parse(c.discourse) match {
         case Left(error) =>
           logger.error(
             s"""Parsing failed:
