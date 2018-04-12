@@ -41,6 +41,30 @@ case class CommonNoun(
   override def properties: List[Property] = WordNetPropertyExtractor.extractProperties(word)
 }
 
+final case class PossessivePronoun(
+  word: String
+) extends Word
+    with NounPhraseBasic {
+  override def interpret(cont: NLEff[E]): NLEff[E] =
+    for {
+      x <- bindFreeVar
+      ref <- PronounPropertyMap.possessivePronouns.get(word.toLowerCase) match {
+        case Some(property) =>
+          gets[NLFx, Context, E](_.findAnaphoricReferent(x, property(x)).get)
+        case None =>
+          left[NLFx, NLError, E](NLUnexpectedWord(word))
+      }
+      _     <- putEntity(ref.asInstanceOf[Var]) // FIXME: remove type casting?
+      contL <- cont
+    } yield contL
+  
+  override def properties: List[Property] =
+    PronounPropertyMap.possessivePronouns
+      .get(word.toLowerCase)
+      .map(sym => List(Property(sym)))
+      .getOrElse(List(Property(animal)))
+}
+
 final case class ReflexivePronoun(
   word: String
 ) extends Word
@@ -48,17 +72,18 @@ final case class ReflexivePronoun(
   override def interpret(cont: NLEff[E]): NLEff[E] =
     for {
       x <- bindFreeVar
-      ref <- PronounPropertyMap.map.get(word.toLowerCase) match {
+      ref <- PronounPropertyMap.reflexivePronouns.get(word.toLowerCase) match {
               case Some(property) =>
                 gets[NLFx, Context, E](_.findAnaphoricReferent(x, property(x)).get)
-              case None => left[NLFx, NLError, E](NLUnexpectedWord(word))
+              case None =>
+                left[NLFx, NLError, E](NLUnexpectedWord(word))
             }
       _     <- putEntity(ref.asInstanceOf[Var]) // FIXME: remove type casting?
       contL <- cont
     } yield contL
 
   override def properties: List[Property] =
-    PronounPropertyMap.map
+    PronounPropertyMap.reflexivePronouns
       .get(word.toLowerCase)
       .map(sym => List(Property(sym)))
       .getOrElse(List(Property(animal)))
@@ -72,7 +97,7 @@ final case class DemonstrativePronoun(
     for {
       x     <- bindFreeVar
       e     <- gets[NLFx, Context, E](_.findAnaphoricEvent(x, truth(x)).get)
-      _     <- putEntity(e.asInstanceOf[Var])
+      _     <- putEntity(e.asInstanceOf[Var]) // FIXME: remove type casting?
       contL <- cont
     } yield contL
 

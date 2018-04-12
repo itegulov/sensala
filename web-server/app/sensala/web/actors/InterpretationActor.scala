@@ -10,14 +10,15 @@ import org.atnos.eff.syntax.all._
 import play.api.libs.json._
 import sensala.error.NLError
 import sensala.normalization.NormalFormConverter
-import sensala.parser.{DiscourseParser, SensalaStanfordParser}
+import sensala.parser.DiscourseParser
 import sensala.postprocessing.PrettyTransformer
 import sensala.structure._
-import sensala.structure.adjective.{Adjective, AdjectiveNounPhrase, AdjectiveNounPhraseVP}
+import sensala.structure.adjective._
+import sensala.structure.adverb._
 import sensala.structure.noun._
-import sensala.structure.prepositional.InPhrase
+import sensala.structure.prepositional._
 import sensala.structure.verb._
-import sensala.structure.wh.WhNounPhrase
+import sensala.structure.wh._
 import sensala.web.actors.InterpretationActor.{Connected, IncomingMessage, OutgoingMessage}
 import sensala.web.shared._
 
@@ -51,6 +52,12 @@ case class InterpretationActor() extends Actor with ActorLogging {
           "type-discourse",
           sentences.map(convertNL)
         )
+      case Sentence(np, vp) =>
+        SensalaNode(
+          "Sentence",
+          "type-sentence",
+          List(convertNL(np), convertNL(vp))
+        )
       case CommonNoun(word) =>
         SensalaNode(
           "CommonNoun",
@@ -61,6 +68,12 @@ case class InterpretationActor() extends Actor with ActorLogging {
         SensalaNode(
           "ProperNoun",
           "type-propernoun",
+          List(atomNode(word))
+        )
+      case PossessivePronoun(word) =>
+        SensalaNode(
+          "PossessivePronoun",
+          "type-posspronoun",
           List(atomNode(word))
         )
       case ReflexivePronoun(word) =>
@@ -75,18 +88,6 @@ case class InterpretationActor() extends Actor with ActorLogging {
           "type-demopronoun",
           List(atomNode(word))
         )
-      case ProperNounVP(word, vp) =>
-        SensalaNode(
-          "ProperNounVP",
-          "type-propernoun",
-          List(atomNode(word), convertNL(vp))
-        )
-      case ReflexivePronounVP(word, vp) =>
-        SensalaNode(
-          "ReflexivePronounVP",
-          "type-reflpronoun",
-          List(atomNode(word), convertNL(vp))
-        )
       case ForallQuantifier(np) =>
         SensalaNode(
           "ForallQuantifier",
@@ -99,17 +100,11 @@ case class InterpretationActor() extends Actor with ActorLogging {
           "type-exists",
           List(convertNL(np))
         )
-      case ForallQuantifierVP(np, vp) =>
+      case DefiniteNounPhrase(np) =>
         SensalaNode(
-          "ForallQuantifierVP",
-          "type-forall",
-          List(convertNL(np), convertNL(vp))
-        )
-      case ExistentialQuantifierVP(np, vp) =>
-        SensalaNode(
-          "ExistentialQuantifierVP",
-          "type-exists",
-          List(convertNL(np), convertNL(vp))
+          "DefiniteNounPhrase",
+          "type-definitenounphrase",
+          List(convertNL(np))
         )
       case IntransitiveVerb(word) =>
         SensalaNode(
@@ -133,7 +128,7 @@ case class InterpretationActor() extends Actor with ActorLogging {
         SensalaNode(
           "VerbAdverbPhrase",
           "type-verbadverbphrase",
-          List(atomNode(adverb), convertNL(verbPhrase))
+          List(atomNode(adverb.word), convertNL(verbPhrase))
         )
       case VerbInPhrase(propositionalPhrase, verbPhrase) =>
         SensalaNode(
@@ -159,11 +154,23 @@ case class InterpretationActor() extends Actor with ActorLogging {
           "type-whnounphrase",
           List(convertNL(verbPhrase), convertNL(nounPhrase))
         )
+      case NounPhrasePreposition(prepositionalPhrase, nounPhrase) =>
+        SensalaNode(
+          "NounPhrasePreposition",
+          "type-nounphrasepreposition",
+          List(convertNL(prepositionalPhrase), convertNL(nounPhrase))
+        )
       case InPhrase(word, nounPhrase) =>
         SensalaNode(
           "InPhrase",
           "type-inphrase",
           List(atomNode(word), convertNL(nounPhrase))
+        )
+      case PossessionPhrase(nounPhrase) =>
+        SensalaNode(
+          "PossessionPhrase",
+          "type-possessionphrase",
+          List(convertNL(nounPhrase))
         )
       case Adjective(word) =>
         SensalaNode(
@@ -177,12 +184,6 @@ case class InterpretationActor() extends Actor with ActorLogging {
           "type-adjectivenounphrase",
           List(convertNL(adjective), convertNL(nounPhrase))
         )
-      case AdjectiveNounPhraseVP(adjective, nounPhrase, verbPhrase) =>
-        SensalaNode(
-          "AdjectiveNounPhraseVP",
-          "type-adjectivenounphrase",
-          List(convertNL(adjective), convertNL(nounPhrase), convertNL(verbPhrase))
-        )
     }
   }
 
@@ -190,15 +191,15 @@ case class InterpretationActor() extends Actor with ActorLogging {
     case IncomingMessage(message) =>
       message.validate[SensalaInterpretMessage] match {
         case JsSuccess(SensalaRunInterpretation(discourse), _) =>
-          val sentences = SensalaStanfordParser.parse(discourse)
+          val sentences = DiscourseParser.buildPennTaggedTree(discourse)
           log.info(
             s"""
                |Result of Stanford parsing:
                |  $sentences
-                """.stripMargin
+            """.stripMargin
           )
           outgoing ! OutgoingMessage(Json.toJson(StanfordParsed(convertTree(sentences.head))))
-          val parsed = Try(DiscourseParser.parse(sentences))
+          val parsed = Try(DiscourseParser.parse(discourse))
             .getOrElse(Left("Invalid sentence (maybe a grammatical mistake?)"))
           parsed match {
             case Left(error) =>
@@ -239,7 +240,7 @@ case class InterpretationActor() extends Actor with ActorLogging {
                        |Result of discourse interpretation:
                        |  $lambdaTerm
                        |  ${lambdaTerm.pretty}
-                """.stripMargin
+                    """.stripMargin
                   )
                   val result = NormalFormConverter.normalForm(lambdaTerm)
                   log.info(
@@ -247,27 +248,27 @@ case class InterpretationActor() extends Actor with ActorLogging {
                        |Result of applying β-reduction:
                        |  $result
                        |  ${result.pretty}
-                """.stripMargin
+                    """.stripMargin
                   )
                   val prettyTerm = PrettyTransformer.transform(result)
                   log.info(
                     s"""
                        |Result of applying pretty transform:
                        |  ${prettyTerm.pretty}
-                """.stripMargin
+                    """.stripMargin
                   )
                   log.info(
                     s"""
                        |Context after interpretation:
                        |  ${context.referentProperties.map(_._2.pretty).mkString("\n")}
-                """.stripMargin
+                    """.stripMargin
                   )
                   val cnf = new TPTPClausifier().apply(List((prettyTerm, AxiomClause)))
                   log.info(
                     s"""
                        |Result of clausification:
                        |${cnf.clauses.mkString("\n")}
-                """.stripMargin
+                    """.stripMargin
                   )
                   outgoing ! OutgoingMessage(Json.toJson(SensalaInterpreted(prettyTerm.pretty)))
               }
