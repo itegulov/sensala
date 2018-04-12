@@ -98,22 +98,22 @@ object NewDiscourseParser {
     Right(adverbMods.foldRight(verbPhrase)(VerbAdverbPhrase.apply))
   }
   
-  def parsePropositionalVerbPhrase(
+  def parsePrepositionalVerbPhrase(
     verbTree: IndexedWord,
     verbPhrase: VerbPhrase
   )(implicit graph: SemanticGraph): Either[String, VerbPhrase] = {
-    val propositions = graph.childPairs(verbTree).toList.map(pairToTuple).collect {
+    val prepositions = graph.childPairs(verbTree).toList.map(pairToTuple).collect {
       case (rel, word) if NomMod.isAncestor(rel) => word
     }
     for {
-      propositionModifiers <- propositions.map { proposition =>
+      prepositionModifiers <- prepositions.map { preposition =>
         for {
-          propositionNounPhrase <- parseNounPhrase(proposition)
-          propositionGraphMap = graph.childPairs(proposition).map(pairToTuple).toMap
-          caseWord <- propositionGraphMap.get(Case).toRight("Invalid proposition: no case word")
-        } yield InPhrase(caseWord.word, propositionNounPhrase)
+          prepositionNounPhrase <- parseNounPhrase(preposition)
+          prepositionGraphMap = graph.childPairs(preposition).map(pairToTuple).toMap
+          caseWord <- prepositionGraphMap.get(Case).toRight("Invalid preposition: no case word")
+        } yield InPhrase(caseWord.word, prepositionNounPhrase)
       }.sequence[EitherS, InPhrase]
-    } yield propositionModifiers.foldRight(verbPhrase)(VerbInPhrase.apply)
+    } yield prepositionModifiers.foldRight(verbPhrase)(VerbInPhrase.apply)
   }
   
   def parseVerbPhrase(
@@ -129,19 +129,19 @@ object NewDiscourseParser {
             for {
               objPhrase <- parseNounPhrase(obj)
               adverbVerbPhrase <- parseAdverbVerbPhrase(verbTree, TransitiveVerb(verbTree.word, objPhrase))
-              propositionalVerbPhrase <- parsePropositionalVerbPhrase(verbTree, adverbVerbPhrase)
-            } yield propositionalVerbPhrase
+              prepositionalVerbPhrase <- parsePrepositionalVerbPhrase(verbTree, adverbVerbPhrase)
+            } yield prepositionalVerbPhrase
           case (None, Some(clausalComponent)) =>
             for {
               clausalSentence <- parseSentence(clausalComponent)
               adverbVerbPhrase <- parseAdverbVerbPhrase(verbTree, VerbSentencePhrase(verbTree.word, clausalSentence))
-              propositionalVerbPhrase <- parsePropositionalVerbPhrase(verbTree, adverbVerbPhrase)
-            } yield propositionalVerbPhrase
+              prepositionalVerbPhrase <- parsePrepositionalVerbPhrase(verbTree, adverbVerbPhrase)
+            } yield prepositionalVerbPhrase
           case (None, None) =>
             for {
               adverbVerbPhrase <- parseAdverbVerbPhrase(verbTree, IntransitiveVerb(verbTree.word))
-              propositionalVerbPhrase <- parsePropositionalVerbPhrase(verbTree, adverbVerbPhrase)
-            } yield propositionalVerbPhrase
+              prepositionalVerbPhrase <- parsePrepositionalVerbPhrase(verbTree, adverbVerbPhrase)
+            } yield prepositionalVerbPhrase
         }
       case _ =>
         Left("Invalid verb phrase")
@@ -253,8 +253,8 @@ object NewDiscourseParser {
                 subjPhrase              <- parseNounPhrase(subj)
                 verbPhrase              = VerbAdjectivePhrase(cop.word, Adjective(root.word))
                 adverbVerbPhrase        <- parseAdverbVerbPhrase(root, verbPhrase)
-                propositionalVerbPhrase <- parsePropositionalVerbPhrase(root, adverbVerbPhrase)
-              } yield NounPhraseWithVerbPhrase(subjPhrase, propositionalVerbPhrase)
+                prepositionalVerbPhrase <- parsePrepositionalVerbPhrase(root, adverbVerbPhrase)
+              } yield NounPhraseWithVerbPhrase(subjPhrase, prepositionalVerbPhrase)
             } else {
               Left(s"Invalid copular verb: ${cop.word}")
             }
