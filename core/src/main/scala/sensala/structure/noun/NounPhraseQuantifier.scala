@@ -14,12 +14,10 @@ final case class ForallQuantifier(
 ) extends NounPhraseQuantifier {
   override def interpret(cont: NLEff[E]): NLEff[E] =
     for {
-      nounL <- nounPhrase.interpret(cont)
       x     <- bindFreeVar
       _     <- modify[NLFx, Context](_.addReferent(x, properties))
       _     <- putEntity(x)
-      // TODO: understand the scope of forall quantifier
-//      _ <- modify(_.deleteReferent(x))=
+      nounL <- nounPhrase.interpret(cont)
     } yield All(x, entity, ~nounL)
 
   override def properties = nounPhrase.properties
