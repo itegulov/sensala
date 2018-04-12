@@ -11,17 +11,17 @@ final case class WhNounPhrase(
 ) extends WhPhrase
     with NounPhrase {
   override def interpret(cont: NLEff[E]): NLEff[E] =
-    for {
-      x <- getEntity
-      nounL <- nounPhrase.interpret(
-                verbPhrase.interpret(
-                  for {
-                    _      <- putEntity(x) // Because who clause can redefine current entity
-                    result <- cont
-                  } yield result
-                )
-              )
-    } yield nounL
+    nounPhrase.interpret(
+      for {
+        x <- getEntity
+        vpL <- verbPhrase.interpret(
+          for {
+            _     <- putEntity(x) // Because who clause can redefine current entity
+            contL <- cont
+          } yield contL
+        )
+      } yield vpL
+    )
 
   override def properties = nounPhrase.properties
 }
