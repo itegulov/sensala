@@ -9,7 +9,7 @@ import sensala.structure.Discourse
 import sensala.structure.adjective._
 import sensala.structure.adverb.{Adverb, VerbAdverbPhrase}
 import sensala.structure.noun._
-import sensala.structure.prepositional.InPhrase
+import sensala.structure.prepositional.{InPhrase, PossessionPhrase, PrepositionalPhrase}
 import sensala.structure.verb._
 import sensala.structure.wh._
 import sensala.parser.SensalaGrammaticalRelations._
@@ -168,6 +168,31 @@ object NewDiscourseParser {
     }
   }
 
+  def parsePrepositionalNounPhrase(
+    nounTree: IndexedWord,
+    nounPhrase: NounPhrase
+  )(implicit graph: SemanticGraph): Either[String, NounPhrase] = {
+    val prepositions = graph.childPairs(nounTree).toList.map(pairToTuple).collect {
+      case (rel, word) if NomMod.isAncestor(rel) || rel == NomModPoss => (rel, word)
+    }
+    for {
+      prepositionModifiers <- prepositions.map {
+        case (rel, preposition) if rel == NomModOn =>
+          for {
+            prepositionNounPhrase <- parseNounPhrase(preposition)
+            prepositionGraphMap = graph.childPairs(preposition).map(pairToTuple).toMap
+            caseWord <- prepositionGraphMap.get(Case).toRight("Invalid preposition: no case word")
+          } yield InPhrase(caseWord.word, prepositionNounPhrase)
+        case (rel, preposition) if rel == NomModPoss =>
+          for {
+            prepositionNounPhrase <- parseNounPhrase(preposition)
+          } yield PossessionPhrase(prepositionNounPhrase)
+        case _ =>
+          Left("Illegal nominal modifier")
+      }.sequence[EitherS, PrepositionalPhrase]
+    } yield prepositionModifiers.foldRight(nounPhrase)(NounPhrasePreposition.apply)
+  }
+
   def parseNounPhrase(
     nounTree: IndexedWord
   )(implicit graph: SemanticGraph): Either[String, NounPhrase] = {
@@ -178,17 +203,20 @@ object NewDiscourseParser {
             for {
               adjectiveNounPhrase <- parseAdjectiveNounPhrase(nounTree, CommonNoun(nounTree.word))
               whNounPhrase <- parseWhNounPhrase(nounTree, adjectiveNounPhrase)
-            } yield ExistentialQuantifier(whNounPhrase)
+              prepNounPhrase <- parsePrepositionalNounPhrase(nounTree, whNounPhrase)
+            } yield ExistentialQuantifier(prepNounPhrase)
           case Right(Forall) =>
             for {
               adjectiveNounPhrase <- parseAdjectiveNounPhrase(nounTree, CommonNoun(nounTree.word))
               whNounPhrase <- parseWhNounPhrase(nounTree, adjectiveNounPhrase)
-            } yield ForallQuantifier(whNounPhrase)
+              prepNounPhrase <- parsePrepositionalNounPhrase(nounTree, whNounPhrase)
+            } yield ForallQuantifier(prepNounPhrase)
           case Right(The) =>
             for {
               adjectiveNounPhrase <- parseAdjectiveNounPhrase(nounTree, CommonNoun(nounTree.word))
               whNounPhrase <- parseWhNounPhrase(nounTree, adjectiveNounPhrase)
-            } yield DefiniteNounPhrase(whNounPhrase)
+              prepNounPhrase <- parsePrepositionalNounPhrase(nounTree, whNounPhrase)
+            } yield DefiniteNounPhrase(prepNounPhrase)
           case Left(error) =>
             Left(error)
         }
@@ -196,12 +224,14 @@ object NewDiscourseParser {
         for {
           adjectiveNounPhrase <- parseAdjectiveNounPhrase(nounTree, ProperNoun(nounTree.word))
           whNounPhrase <- parseWhNounPhrase(nounTree, adjectiveNounPhrase)
-        } yield ExistentialQuantifier(whNounPhrase)
-      case "PRP" =>
+          prepNounPhrase <- parsePrepositionalNounPhrase(nounTree, whNounPhrase)
+        } yield ExistentialQuantifier(prepNounPhrase)
+      case "PRP" | "PRP$" =>
         for {
           adjectiveNounPhrase <- parseAdjectiveNounPhrase(nounTree, ReflexivePronoun(nounTree.word))
           whNounPhrase <- parseWhNounPhrase(nounTree, adjectiveNounPhrase)
-        } yield whNounPhrase
+          prepNounPhrase <- parsePrepositionalNounPhrase(nounTree, whNounPhrase)
+        } yield prepNounPhrase
       case _ => Left(s"Unknown noun phrase: (${nounTree.tag}) ${nounTree.word}")
     }
   }

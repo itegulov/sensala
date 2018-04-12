@@ -5,7 +5,7 @@ import sensala.structure._
 import sensala.structure.adjective._
 import sensala.structure.adverb._
 import sensala.structure.noun._
-import sensala.structure.prepositional.InPhrase
+import sensala.structure.prepositional._
 import sensala.structure.verb._
 import sensala.structure.wh._
 
@@ -75,5 +75,24 @@ class ACL2018SensalaDemoSpec extends SensalaSpec {
         )
       )
     ))
+    
+    parse("John left his wallet on a table").right.value shouldBe Discourse(List(
+      NounPhraseWithVerbPhrase(
+        ExistentialQuantifier(ProperNoun("John")),
+        VerbInPhrase(
+          InPhrase("on", ExistentialQuantifier(CommonNoun("table"))),
+          TransitiveVerb(
+            "left",
+            ExistentialQuantifier(
+              NounPhrasePreposition(
+                PossessionPhrase(ReflexivePronoun("his")),
+                CommonNoun("wallet")
+              )
+            )
+          )
+        )
+      )
+    ))
+
   }
 }
