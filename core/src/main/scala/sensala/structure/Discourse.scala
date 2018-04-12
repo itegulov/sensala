@@ -2,15 +2,13 @@ package sensala.structure
 
 import cats.implicits._
 import org.aossie.scavenger.expression._
-import sensala.structure.noun.NounPhraseWithVerbPhrase
 import org.atnos.eff._
 import sensala.structure.types._
 
-final case class Discourse(sentences: List[NounPhraseWithVerbPhrase]) extends NL {
+final case class Discourse(sentences: List[Sentence]) extends NL {
   override def interpret(cont: NLEff[E]): NLEff[E] =
     for {
       x <- bindFreeVar
-      y <- bindFreeVar
       result <- sentences.foldLeftM[NLEff, E](Abs(x, i, x)) {
                  case (e, b) =>
                    for {

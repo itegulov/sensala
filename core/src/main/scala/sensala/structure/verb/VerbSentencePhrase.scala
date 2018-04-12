@@ -3,14 +3,12 @@ package sensala.structure.verb
 import org.aossie.scavenger.expression._
 import org.aossie.scavenger.expression.formula.Ex
 import org.atnos.eff.all.modify
-import sensala.property.Property
 import sensala.structure._
-import sensala.structure.noun.NounPhraseWithVerbPhrase
 import sensala.structure.types.event
 
 final case class VerbSentencePhrase(
   word: String,
-  sentence: NounPhraseWithVerbPhrase
+  sentence: Sentence
 ) extends VerbPhrase {
   override def interpret(cont: NLEff[E]): NLEff[E] =
     for {
