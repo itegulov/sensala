@@ -52,11 +52,9 @@ class ACL2018SensalaDemoSpec extends SensalaSpec {
 
     parse("Every farmer who owns a donkey thinks he is rich").right.value shouldBe Discourse(List(
       Sentence(
-        ForallQuantifier(
-          WhNounPhrase(
-            TransitiveVerb("owns", ExistentialQuantifier(CommonNoun("donkey"))),
-            CommonNoun("farmer")
-          )
+        WhNounPhrase(
+          TransitiveVerb("owns", ExistentialQuantifier(CommonNoun("donkey"))),
+          ForallQuantifier(CommonNoun("farmer"))
         ),
         VerbSentencePhrase("thinks", Sentence(ReflexivePronoun("he"), VerbAdjectivePhrase("is", Adjective("rich"))))
       )
@@ -83,11 +81,9 @@ class ACL2018SensalaDemoSpec extends SensalaSpec {
           InPhrase("on", ExistentialQuantifier(CommonNoun("table"))),
           TransitiveVerb(
             "left",
-            ExistentialQuantifier(
-              NounPhrasePreposition(
-                PossessionPhrase(ReflexivePronoun("his")),
-                CommonNoun("wallet")
-              )
+            NounPhrasePreposition(
+              PossessionPhrase(PossessivePronoun("his")),
+              ExistentialQuantifier(CommonNoun("wallet"))
             )
           )
         )

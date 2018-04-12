@@ -218,31 +218,31 @@ object DiscourseParser {
         parseCommonNoun(nounTree) match {
           case Right(Existential) =>
             for {
-              adjectiveNounPhrase <- parseAdjectiveNounPhrase(nounTree, CommonNoun(nounTree.word))
+              adjectiveNounPhrase <- parseAdjectiveNounPhrase(nounTree, ExistentialQuantifier(CommonNoun(nounTree.word)))
               whNounPhrase        <- parseWhNounPhrase(nounTree, adjectiveNounPhrase)
               prepNounPhrase      <- parsePrepositionalNounPhrase(nounTree, whNounPhrase)
-            } yield ExistentialQuantifier(prepNounPhrase)
+            } yield prepNounPhrase
           case Right(Forall) =>
             for {
-              adjectiveNounPhrase <- parseAdjectiveNounPhrase(nounTree, CommonNoun(nounTree.word))
+              adjectiveNounPhrase <- parseAdjectiveNounPhrase(nounTree, ForallQuantifier(CommonNoun(nounTree.word)))
               whNounPhrase        <- parseWhNounPhrase(nounTree, adjectiveNounPhrase)
               prepNounPhrase      <- parsePrepositionalNounPhrase(nounTree, whNounPhrase)
-            } yield ForallQuantifier(prepNounPhrase)
+            } yield prepNounPhrase
           case Right(The) =>
             for {
-              adjectiveNounPhrase <- parseAdjectiveNounPhrase(nounTree, CommonNoun(nounTree.word))
+              adjectiveNounPhrase <- parseAdjectiveNounPhrase(nounTree, DefiniteNounPhrase(CommonNoun(nounTree.word)))
               whNounPhrase        <- parseWhNounPhrase(nounTree, adjectiveNounPhrase)
               prepNounPhrase      <- parsePrepositionalNounPhrase(nounTree, whNounPhrase)
-            } yield DefiniteNounPhrase(prepNounPhrase)
+            } yield prepNounPhrase
           case Left(error) =>
             Left(error)
         }
       case "NNP" =>
         for {
-          adjectiveNounPhrase <- parseAdjectiveNounPhrase(nounTree, ProperNoun(nounTree.word))
+          adjectiveNounPhrase <- parseAdjectiveNounPhrase(nounTree, ExistentialQuantifier(ProperNoun(nounTree.word)))
           whNounPhrase        <- parseWhNounPhrase(nounTree, adjectiveNounPhrase)
           prepNounPhrase      <- parsePrepositionalNounPhrase(nounTree, whNounPhrase)
-        } yield ExistentialQuantifier(prepNounPhrase)
+        } yield prepNounPhrase
       case "PRP" =>
         for {
           adjectiveNounPhrase <- parseAdjectiveNounPhrase(nounTree, ReflexivePronoun(nounTree.word))
