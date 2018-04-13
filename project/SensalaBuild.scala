@@ -54,8 +54,8 @@ object SensalaBuild {
     .settings(name := "sensala-core")
     .settings(
       libraryDependencies ++= Seq(
-        "org.typelevel"    %% "cats-core"      % "1.0.1",
-        "org.typelevel"    %% "cats-mtl-core"  % "0.2.1",
+        "org.typelevel"    %% "cats-core"      % "1.1.0",
+        "org.typelevel"    %% "cats-mtl-core"  % "0.2.3",
         "org.atnos"        %% "eff"            % "5.1.0",
         "net.sf.jwordnet"  % "jwnl"            % "1.3.3",
         "com.ironcorelabs" %% "cats-scalatest" % "2.3.1" % Test,
@@ -135,9 +135,9 @@ object SensalaBuild {
       scalacOptions += "-P:scalajs:sjsDefinedByDefault",
       scalaJSUseMainModuleInitializer := true,
       libraryDependencies ++= Seq(
-        "org.scala-js" %%% "scalajs-dom"    % "0.9.4",
-        "org.singlespaced" %%% "scalajs-d3" % "0.3.4",
-        "com.typesafe.play" %%% "play-json" % "2.6.8"
+        "org.scala-js"      %%% "scalajs-dom" % "0.9.4",
+        "org.singlespaced"  %%% "scalajs-d3"  % "0.3.4",
+        "com.typesafe.play" %%% "play-json"   % "2.6.8"
       )
     )
     .enablePlugins(ScalaJSPlugin, ScalaJSWeb)
