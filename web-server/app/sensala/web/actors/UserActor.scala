@@ -6,23 +6,18 @@ import akka.NotUsed
 import akka.actor.{Actor, ActorSystem, PoisonPill, Props}
 import akka.event.{LogMarker, MarkerLoggingAdapter}
 import akka.stream.scaladsl._
-import akka.stream.{Materializer, OverflowStrategy}
-import akka.util.Timeout
+import akka.stream.OverflowStrategy
 import com.google.inject.assistedinject.Assisted
 import play.api.libs.json._
 import sensala.web.actors.UserActor.CreateAdapter
 
-import scala.concurrent.ExecutionContext
-import scala.concurrent.duration._
-
 class UserActor @Inject()(
   @Assisted id: String
-)(implicit sys: ActorSystem, mat: Materializer, ec: ExecutionContext)
+)(implicit sys: ActorSystem)
     extends Actor {
   private val marker = LogMarker(name = self.path.name)
   implicit private val log: MarkerLoggingAdapter =
     akka.event.Logging.withMarker(context.system, this.getClass)
-  implicit private val timeout: Timeout = Timeout(50 millis)
 
   private var clientId = "NOT_SET"
 

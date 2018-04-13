@@ -133,6 +133,8 @@ object DiscourseParser {
         val objOpt              = childrenMap.get(DObj)
         val clausalComponentOpt = childrenMap.get(CComp)
         (objOpt, clausalComponentOpt) match {
+          case (Some(_), Some(_)) =>
+            Left("Illegal verb phrase: object and clausal component cannot be specified together")
           case (Some(obj), None) =>
             for {
               objPhrase <- parseNounPhrase(obj)

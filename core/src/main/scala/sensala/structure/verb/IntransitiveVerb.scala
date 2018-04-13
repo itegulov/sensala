@@ -1,11 +1,10 @@
 package sensala.structure.verb
 
 import org.aossie.scavenger.expression._
-import org.aossie.scavenger.expression.formula.{Ex, True}
+import org.aossie.scavenger.expression.formula._
 import sensala.structure._
 import sensala.structure.types._
 import org.atnos.eff.all._
-import sensala.property.Property
 
 final case class IntransitiveVerb(
   word: String

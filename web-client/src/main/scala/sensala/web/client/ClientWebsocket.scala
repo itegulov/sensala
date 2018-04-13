@@ -10,7 +10,6 @@ import sensala.web.shared._
 import sensala.web.shared.SensalaInterpretMessage._
 
 import scala.collection.mutable.ArrayBuffer
-import scala.scalajs.js.annotation.ScalaJSDefined
 import scala.scalajs.js.timers.setTimeout
 import scala.scalajs.js
 

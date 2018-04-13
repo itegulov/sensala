@@ -6,7 +6,6 @@ import sensala.structure.adjective.Adjective
 import sensala.structure._
 import org.atnos.eff.all._
 import sensala.error.{NLError, NLUnexpectedWord}
-import sensala.property.Property
 import sensala.structure.types.event
 
 final case class VerbAdjectivePhrase(
