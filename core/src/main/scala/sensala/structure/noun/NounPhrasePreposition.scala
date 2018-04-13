@@ -23,6 +23,6 @@ final case class NounPhrasePreposition(
       } yield preposition
     }
   
-  // TODO: Add possession property
+  // TODO: Add preposition property
   override def properties: List[Property] = nounPhrase.properties
 }
