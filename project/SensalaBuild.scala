@@ -49,17 +49,6 @@ object SensalaBuild {
     )
   )
 
-  lazy val conceptNet = Project(id = "concept-net", base = file("concept-net"))
-    .settings(commonSettings ++ commonDeps)
-    .settings(name := "sensala-concept-net")
-    .settings(
-      libraryDependencies ++= Seq(
-        "com.typesafe.play" %% "play-ahc-ws-standalone"  % "1.1.6",
-        "com.typesafe.play" %% "play-ws-standalone-json" % "1.1.6",
-        "org.ehcache"       % "ehcache"                  % "3.4.0"
-      )
-    )
-
   lazy val core = Project(id = "core", base = file("core"))
     .settings(commonSettings ++ commonDeps)
     .settings(name := "sensala-core")
@@ -73,7 +62,6 @@ object SensalaBuild {
         "org.aossie"       %% "scavenger"      % "0.2.1-SNAPSHOT"
       )
     )
-    .dependsOn(conceptNet)
 
   lazy val parser = Project(id = "parser", base = file("parser"))
     .settings(commonSettings ++ commonDeps)
@@ -172,7 +160,6 @@ object SensalaBuild {
       core,
       parser,
       commandLine,
-      conceptNet,
       webSharedJvm,
       webSharedJs,
       webServer,
