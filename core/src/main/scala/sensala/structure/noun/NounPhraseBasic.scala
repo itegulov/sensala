@@ -20,19 +20,19 @@ final case class ProperNoun(
     } yield named(x, w) /\: contL
 
   private def typProperty: List[Property] = typ match {
-    case Some(Location)     => List(Property(location))
-    case Some(Person)       => List(Property(person))
-    case Some(Organization) => List(Property(organization))
-    case Some(Money)        => List(Property(money))
-    case Some(Percent)      => List(Property(percent))
-    case Some(Date)         => List(Property(date))
-    case Some(Time)         => List(Property(time))
+    case Some(Location)     => List(Property(x => location(x)))
+    case Some(Person)       => List(Property(x => person(x)))
+    case Some(Organization) => List(Property(x => organization(x)))
+    case Some(Money)        => List(Property(x => money(x)))
+    case Some(Percent)      => List(Property(x => percent(x)))
+    case Some(Date)         => List(Property(x => date(x)))
+    case Some(Time)         => List(Property(x => time(x)))
     case None               => List()
   }
 
   private def genderProperty: List[Property] = gender match {
-    case Some(Male)   => List(Property(male))
-    case Some(Female) => List(Property(female))
+    case Some(Male)   => List(Property(x => male(x)))
+    case Some(Female) => List(Property(x => female(x)))
     case None         => List()
   }
 

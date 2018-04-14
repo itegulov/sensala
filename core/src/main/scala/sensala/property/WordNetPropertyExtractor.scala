@@ -6,6 +6,7 @@ import net.didion.jwnl.data._
 import net.didion.jwnl.data.list._
 import net.didion.jwnl.dictionary.Dictionary
 import org.aossie.scavenger.expression.Sym
+import sensala.structure._
 
 import scala.collection.convert.ImplicitConversionsToScala._
 import scala.collection.mutable.ArrayBuffer
@@ -96,7 +97,7 @@ object WordNetPropertyExtractor {
             val node = nodeAny.asInstanceOf[PointerTargetNode]
             val properties = node.getSynset.getWords.map(_.getLemma)
             logger.debug(properties.mkString(", "))
-            result ++= properties.map(lemma => Property(Sym(lemma)))
+            result ++= properties.map(lemma => Property(x => Sym(lemma)(x)))
           }
         }
         logger.debug("\n")

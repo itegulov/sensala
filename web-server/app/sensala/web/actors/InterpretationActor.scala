@@ -64,11 +64,29 @@ case class InterpretationActor() extends Actor with ActorLogging {
           "type-commonnoun",
           List(atomNode(word))
         )
-      case ProperNoun(word) =>
+      case ProperNoun(word, Some(typ), Some(gender)) =>
         SensalaNode(
           "ProperNoun",
           "type-propernoun",
-          List(atomNode(word))
+          List(atomNode(s"$word $typ $gender"))
+        )
+      case ProperNoun(word, Some(typ), None) =>
+        SensalaNode(
+          "ProperNoun",
+          "type-propernoun",
+          List(atomNode(s"$word $typ"))
+        )
+      case ProperNoun(word, None, Some(gender)) =>
+        SensalaNode(
+          "ProperNoun",
+          "type-propernoun",
+          List(atomNode(s"$word $gender"))
+        )
+      case ProperNoun(word, None, None) =>
+        SensalaNode(
+          "ProperNoun",
+          "type-propernoun",
+          List(atomNode(s"$word"))
         )
       case PossessivePronoun(word) =>
         SensalaNode(

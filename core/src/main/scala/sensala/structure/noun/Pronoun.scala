@@ -28,8 +28,8 @@ final case class PossessivePronoun(
   override def properties: List[Property] =
     PronounPropertyMap.possessivePronouns
       .get(word.toLowerCase)
-      .map(sym => List(Property(sym)))
-      .getOrElse(List(Property(animal)))
+      .map(sym => List(Property(x => sym(x))))
+      .getOrElse(List(Property(x => animal(x))))
 }
 
 final case class ReflexivePronoun(
@@ -52,8 +52,8 @@ final case class ReflexivePronoun(
   override def properties: List[Property] =
     PronounPropertyMap.reflexivePronouns
       .get(word.toLowerCase)
-      .map(sym => List(Property(sym)))
-      .getOrElse(List(Property(animal)))
+      .map(sym => List(Property(x => sym(x))))
+      .getOrElse(List(Property(x => animal(x))))
 }
 
 final case class DemonstrativePronoun(

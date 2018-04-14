@@ -49,14 +49,14 @@ final case class Context(
     copy(
       entityProperties = entityProperties.updated(
         newRef,
-        All(newRef, entity, properties.map(p => App(p.symbol, newRef)).reduceLeft(And.apply))
+        All(newRef, entity, properties.map(p => p.propertyExp(newRef)).reduceLeft(And.apply))
       )
     )
   def addEvent(newEvent: Var, properties: List[Property]): Context =
     copy(
       eventProperties = eventProperties.updated(
         newEvent,
-        All(newEvent, event, properties.map(p => App(p.symbol, newEvent)).reduceLeft(And.apply))
+        All(newEvent, event, properties.map(p => p.propertyExp(newEvent)).reduceLeft(And.apply))
       )
     )
   def addEvent(newEvent: Var, properties: E): Context =
