@@ -65,9 +65,16 @@ package object structure {
   val named = Sym("named")
 
   val animal = Sym("animal")
-  val female = Sym("female")
-  val male   = Sym("male")
+  val location = Sym("location")
   val person = Sym("person")
+  val organization = Sym("organization")
+  val money = Sym("money")
+  val percent = Sym("percent")
+  val date = Sym("date")
+  val time = Sym("time")
+  
+  val male   = Sym("male")
+  val female = Sym("female")
 
   // FIXME: find a better way to represent truth
   def truth(x: Sym): E = person(x) \/: ~person(x)

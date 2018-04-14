@@ -1,12 +1,14 @@
 package sensala.parser
 
-import edu.stanford.nlp.ling.IndexedWord
-import edu.stanford.nlp.semgraph.SemanticGraph
-import edu.stanford.nlp.simple
-import edu.stanford.nlp.simple._
+import edu.stanford.nlp.ling.{CoreAnnotations, IndexedWord}
+import edu.stanford.nlp.semgraph.{SemanticGraph, SemanticGraphCoreAnnotations}
 import cats.implicits._
+import edu.stanford.nlp.ling.CoreAnnotations.SentencesAnnotation
+import edu.stanford.nlp.pipeline.Annotation
 import edu.stanford.nlp.process.Morphology
 import edu.stanford.nlp.trees.Tree
+import edu.stanford.nlp.trees.TreeCoreAnnotations.TreeAnnotation
+import edu.stanford.nlp.util.CoreMap
 import sensala.structure._
 import sensala.structure.Sentence
 import sensala.structure.adjective._
@@ -211,6 +213,23 @@ object DiscourseParser {
                              }.sequence[EitherS, PrepositionalPhrase]
     } yield prepositionModifiers.foldRight(nounPhrase)(NounPhrasePreposition.apply)
   }
+  
+  private def parseNer(nerString: String): Option[NamedEntityType] = nerString match {
+    case "LOCATION"     => Some(Person)
+    case "PERSON"       => Some(Person)
+    case "ORGANIZATION" => Some(Organization)
+    case "MONEY"        => Some(Money)
+    case "PERCENT"      => Some(Percent)
+    case "DATE"         => Some(Date)
+    case "TIME"         => Some(Time)
+    case _              => None
+  }
+  
+  private def parseGender(genderString: String): Option[NamedEntityGender] = genderString match {
+    case "MALE"   => Some(Male)
+    case "FEMALE" => Some(Female)
+    case _        => None
+  }
 
   private def parseNounPhrase(
     nounTree: IndexedWord
@@ -240,8 +259,11 @@ object DiscourseParser {
             Left(error)
         }
       case "NNP" =>
+        val ner = Option(nounTree.ner()).flatMap(parseNer)
+        val gender = Option(nounTree.get(classOf[CoreAnnotations.GenderAnnotation])).flatMap(parseGender)
+        val properNoun = ExistentialQuantifier(ProperNoun(nounTree.word, ner, gender))
         for {
-          adjectiveNounPhrase <- parseAdjectiveNounPhrase(nounTree, ExistentialQuantifier(ProperNoun(nounTree.word)))
+          adjectiveNounPhrase <- parseAdjectiveNounPhrase(nounTree, properNoun)
           whNounPhrase        <- parseWhNounPhrase(nounTree, adjectiveNounPhrase)
           prepNounPhrase      <- parsePrepositionalNounPhrase(nounTree, whNounPhrase)
         } yield prepNounPhrase
@@ -368,24 +390,28 @@ object DiscourseParser {
       case _ =>
         sentence
     }
-
-  private def parseSentence(sentence: simple.Sentence): Either[String, Sentence] = {
-    implicit val graph = sentence.dependencyGraph()
+  
+  private def parseSentence(sentence: CoreMap): Either[String, Sentence] = {
+    implicit val graph = sentence.get(classOf[SemanticGraphCoreAnnotations.BasicDependenciesAnnotation])
     val root           = graph.getFirstRoot
     parseSentence(root).map(transformVerbPhraseAnaphora)
   }
 
-  def parse(discourse: String): Either[String, Discourse] = {
-    val document = new Document(discourse)
-    for {
-      result <- document.sentences.toList
-                 .map(parseSentence)
-                 .sequence
-    } yield Discourse(result)
+  def buildPennTaggedTree(discourse: String): List[Tree] = {
+    val document = new Annotation(discourse)
+    SensalaStanfordParser.annotate(document)
+    val sentences: List[CoreMap] = document.get(classOf[SentencesAnnotation]).toList
+    sentences.map(_.get(classOf[TreeAnnotation]))
   }
   
-  def buildPennTaggedTree(discourse: String): List[Tree] = {
-    val document = new Document(discourse)
-    document.sentences.map(_.parse()).toList
+  def parse(discourse: String): Either[String, Discourse] = {
+    val document = new Annotation(discourse)
+    SensalaStanfordParser.annotate(document)
+    val sentences: List[CoreMap] = document.get(classOf[SentencesAnnotation]).toList
+    for {
+      result <- sentences
+        .map(parseSentence)
+        .sequence
+    } yield Discourse(result)
   }
 }
