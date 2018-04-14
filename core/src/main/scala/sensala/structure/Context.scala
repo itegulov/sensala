@@ -11,14 +11,14 @@ import sensala.structure.types.{entity, event}
 import scala.concurrent.duration._
 
 final case class Context(
-  referentProperties: Map[Sym, E],
-  eventProperties: Map[Sym, E],
-  boundSymbols: Set[Sym]
+  entityProperties: Map[Var, E],
+  eventProperties: Map[Var, E],
+  boundVars: Set[Var]
 ) {
   private val clausifier = new TPTPClausifier()
 
-  def findAnaphoricReferent(v: Var, properties: E): Option[Sym] =
-    referentProperties.find {
+  def findAnaphoricEntity(v: Var, properties: E): Option[Var] =
+    entityProperties.find {
       case (_, refProperties) =>
         val cnf = clausifier(
           List(
@@ -31,7 +31,7 @@ final case class Context(
           case _                => false
         }
     }.map(_._1)
-  def findAnaphoricEvent(v: Var, properties: E): Option[Sym] =
+  def findAnaphoricEvent(v: Var, properties: E): Option[Var] =
     eventProperties.find {
       case (_, evProperties) =>
         val cnf = clausifier(
@@ -45,9 +45,9 @@ final case class Context(
           case _                => false
         }
     }.map(_._1)
-  def addReferent(newRef: Var, properties: List[Property]): Context =
+  def addEntity(newRef: Var, properties: List[Property]): Context =
     copy(
-      referentProperties = referentProperties.updated(
+      entityProperties = entityProperties.updated(
         newRef,
         All(newRef, entity, properties.map(p => App(p.symbol, newRef)).reduceLeft(And.apply))
       )
@@ -66,8 +66,8 @@ final case class Context(
         All(newEvent, event, properties)
       )
     )
-  def deleteReferent(oldRef: Sym): Context =
-    copy(referentProperties = referentProperties - oldRef)
-  def addBoundSym(sym: Sym): Context =
-    copy(boundSymbols = boundSymbols + sym)
+  def deleteReferent(oldRef: Var): Context =
+    copy(entityProperties = entityProperties - oldRef)
+  def addBoundVar(v: Var): Context =
+    copy(boundVars = boundVars + v)
 }

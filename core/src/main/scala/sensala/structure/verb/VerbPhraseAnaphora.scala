@@ -1,6 +1,6 @@
 package sensala.structure.verb
 import org.aossie.scavenger.expression.formula.{All, Ex}
-import org.aossie.scavenger.expression.{E, Sym}
+import org.aossie.scavenger.expression.{E, Var}
 import org.atnos.eff.all._
 import sensala.error.{NLError, NLInvalidState}
 import sensala.structure._
@@ -10,7 +10,7 @@ final case class VerbPhraseAnaphora(phrase: String) extends VerbPhrase {
   override def interpret(cont: NLEff[E]): NLEff[E] =
     for {
       x <- bindFreeVar
-      e <- gets[NLFx, Context, Sym](_.findAnaphoricEvent(x, truth(x)).get)
+      e <- gets[NLFx, Context, Var](_.findAnaphoricEvent(x, truth(x)).get)
       properties <- gets[NLFx, Context, E](_.eventProperties(e)) >>= {
                      case All(`e`, `event`, body) =>
                        pure(body)

@@ -92,7 +92,7 @@ object CLI {
           logger.info(
             s"""
                |Context after interpretation:
-               |  ${context.referentProperties.map(_._2.pretty).mkString("\n")}
+               |  ${context.entityProperties.map(_._2.pretty).mkString("\n")}
             """.stripMargin
           )
           val cnf = new TPTPClausifier().apply(List((prettyTerm, AxiomClause)))

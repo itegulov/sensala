@@ -15,7 +15,7 @@ final case class ForallQuantifier(
   override def interpret(cont: NLEff[E]): NLEff[E] =
     for {
       x     <- bindFreeVar
-      _     <- modify[NLFx, Context](_.addReferent(x, properties))
+      _     <- modify[NLFx, Context](_.addEntity(x, properties))
       _     <- putEntity(x)
       nounL <- nounPhrase.interpret(cont)
     } yield All(x, entity, ~nounL)
@@ -29,7 +29,7 @@ final case class ExistentialQuantifier(
   override def interpret(cont: NLEff[E]): NLEff[E] =
     for {
       x     <- bindFreeVar
-      _     <- modify[NLFx, Context](_.addReferent(x, properties))
+      _     <- modify[NLFx, Context](_.addEntity(x, properties))
       _     <- putEntity(x)
       nounL <- nounPhrase.interpret(cont)
     } yield Ex(x, entity, nounL)
@@ -44,7 +44,7 @@ final case class DefiniteNounPhrase(
     for {
       x          <- bindFreeVar
       properties = nounPhrase.properties.map(p => p.symbol(x)).foldLeft(True: E)(_ /\: _)
-      ref        <- gets[NLFx, Context, E](_.findAnaphoricReferent(x, properties).get)
+      ref        <- gets[NLFx, Context, E](_.findAnaphoricEntity(x, properties).get)
       _          <- putEntity(ref.asInstanceOf[Var])
       contL      <- cont
     } yield contL

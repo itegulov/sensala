@@ -48,14 +48,14 @@ package object structure {
       newSym = {
         @tailrec
         def bindFreeVarInternal(range: Seq[Var]): Var =
-          range.find(c => !context.boundSymbols.contains(c)) match {
+          range.find(c => !context.boundVars.contains(c)) match {
             case Some(c) => c
             case _       => bindFreeVarInternal(range.map(s => Var(s.name + "'")))
           }
         val range = ('a' to 'z').map(_.toString).map(Var.apply)
         bindFreeVarInternal(range)
       }
-      _ <- put[NLFx, Context](context.addBoundSym(newSym))
+      _ <- put[NLFx, Context](context.addBoundVar(newSym))
     } yield newSym
 
   val agent       = Sym("agent")

@@ -17,11 +17,11 @@ final case class PossessivePronoun(
       x <- bindFreeVar
       ref <- PronounPropertyMap.possessivePronouns.get(word.toLowerCase) match {
         case Some(property) =>
-          gets[NLFx, Context, E](_.findAnaphoricReferent(x, property(x)).get)
+          gets[NLFx, Context, Var](_.findAnaphoricEntity(x, property(x)).get)
         case None =>
-          left[NLFx, NLError, E](NLUnexpectedWord(word))
+          left[NLFx, NLError, Var](NLUnexpectedWord(word))
       }
-      _     <- putEntity(ref.asInstanceOf[Var]) // FIXME: remove type casting?
+      _     <- putEntity(ref)
       contL <- cont
     } yield contL
 
@@ -41,11 +41,11 @@ final case class ReflexivePronoun(
       x <- bindFreeVar
       ref <- PronounPropertyMap.reflexivePronouns.get(word.toLowerCase) match {
         case Some(property) =>
-          gets[NLFx, Context, E](_.findAnaphoricReferent(x, property(x)).get)
+          gets[NLFx, Context, Var](_.findAnaphoricEntity(x, property(x)).get)
         case None =>
-          left[NLFx, NLError, E](NLUnexpectedWord(word))
+          left[NLFx, NLError, Var](NLUnexpectedWord(word))
       }
-      _     <- putEntity(ref.asInstanceOf[Var]) // FIXME: remove type casting?
+      _     <- putEntity(ref)
       contL <- cont
     } yield contL
 
@@ -63,8 +63,8 @@ final case class DemonstrativePronoun(
   override def interpret(cont: NLEff[E]): NLEff[E] =
     for {
       x     <- bindFreeVar
-      e     <- gets[NLFx, Context, E](_.findAnaphoricEvent(x, truth(x)).get)
-      _     <- putEntity(e.asInstanceOf[Var]) // FIXME: remove type casting?
+      e     <- gets[NLFx, Context, Var](_.findAnaphoricEvent(x, truth(x)).get)
+      _     <- putEntity(e)
       contL <- cont
     } yield contL
 
