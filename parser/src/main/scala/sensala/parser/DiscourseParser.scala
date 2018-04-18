@@ -47,7 +47,7 @@ object DiscourseParser {
       case Nil =>
         // FIXME: Currently treating all common nouns without determiners as indefinite
         Right(Existential)
-      case x :: Nil if x.word.toLowerCase == "a" || x.word.toLowerCase == "an" =>
+      case x :: Nil if x.word.toLowerCase == "a" || x.word.toLowerCase == "an" || x.word.toLowerCase == "some" =>
         Right(Existential)
       case x :: Nil if x.word.toLowerCase == "every" =>
         Right(Forall)
