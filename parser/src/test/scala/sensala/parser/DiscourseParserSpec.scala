@@ -13,13 +13,16 @@ class DiscourseParserSpec extends SensalaSpec {
   def parse(discourse: String): Either[String, Discourse] = {
     DiscourseParser.parse(discourse)
   }
+
+  val John = ExistentialQuantifier(ProperNoun("John", Some(Person), Some(Male)))
+  val Mary = ExistentialQuantifier(ProperNoun("Mary", Some(Person), Some(Female)))
   
   it should "parse simple sentences" in {
     parse("John walks").right.value shouldBe Discourse(List(
-      Sentence(ExistentialQuantifier(ProperNoun("John")), IntransitiveVerb("walks"))
+      Sentence(John, IntransitiveVerb("walks"))
     ))
     parse("Mary loves herself").right.value shouldBe Discourse(List(
-      Sentence(ExistentialQuantifier(ProperNoun("Mary")), TransitiveVerb("loves", ReflexivePronoun("herself")))
+      Sentence(Mary, TransitiveVerb("loves", ReflexivePronoun("herself")))
     ))
   }
 
@@ -63,11 +66,11 @@ class DiscourseParserSpec extends SensalaSpec {
         TransitiveVerb("beats", ReflexivePronoun("it"))
       ),
       Sentence(
-        ExistentialQuantifier(ProperNoun("John")),
+        John,
         TransitiveVerb("is", ExistentialQuantifier(CommonNoun("farmer")))
       ),
       Sentence(
-        ExistentialQuantifier(ProperNoun("John")),
+        John,
         TransitiveVerb("owns", ExistentialQuantifier(CommonNoun("donkey")))
       )
     ))
@@ -98,7 +101,7 @@ class DiscourseParserSpec extends SensalaSpec {
   it should "parse adverb sentences" in {
     parse("John runs quickly").right.value shouldBe Discourse(List(
       Sentence(
-        ExistentialQuantifier(ProperNoun("John")),
+        John,
         VerbAdverbPhrase(Adverb("quickly"), IntransitiveVerb("runs"))
       )
     ))
@@ -107,7 +110,7 @@ class DiscourseParserSpec extends SensalaSpec {
   it should "parse propositional sentences" in {
     parse("John left a wallet on a table").right.value shouldBe Discourse(List(
       Sentence(
-        ExistentialQuantifier(ProperNoun("John")),
+        John,
         VerbInPhrase(
           InPhrase("on", ExistentialQuantifier(CommonNoun("table"))), 
           TransitiveVerb("left", ExistentialQuantifier(CommonNoun("wallet")))

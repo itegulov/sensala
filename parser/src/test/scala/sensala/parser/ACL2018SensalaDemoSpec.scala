@@ -14,38 +14,43 @@ class ACL2018SensalaDemoSpec extends SensalaSpec {
     DiscourseParser.parse(discourse)
   }
   
+  val John = ExistentialQuantifier(ProperNoun("John", Some(Person), Some(Male)))
+  val Bob  = ExistentialQuantifier(ProperNoun("Bob", Some(Person), Some(Male)))
+  val Mary = ExistentialQuantifier(ProperNoun("Mary", Some(Person), Some(Female)))
+  val Ann  = ExistentialQuantifier(ProperNoun("Ann", Some(Person), Some(Female)))
+  
   it should "parse example from ACL 2018 system demonstration paper" in {
     parse("John loves Mary").right.value shouldBe Discourse(List(
-      Sentence(ExistentialQuantifier(ProperNoun("John")), TransitiveVerb("loves", ExistentialQuantifier(ProperNoun("Mary"))))
+      Sentence(John, TransitiveVerb("loves", Mary))
     ))
     
     parse("John runs quickly").right.value shouldBe Discourse(List(
-      Sentence(ExistentialQuantifier(ProperNoun("John")), VerbAdverbPhrase(Adverb("quickly"), IntransitiveVerb("runs")))
+      Sentence(John, VerbAdverbPhrase(Adverb("quickly"), IntransitiveVerb("runs")))
     ))
     
     parse("John loves Mary. She believes him.").right.value shouldBe Discourse(List(
-      Sentence(ExistentialQuantifier(ProperNoun("John")), TransitiveVerb("loves", ExistentialQuantifier(ProperNoun("Mary")))),
+      Sentence(John, TransitiveVerb("loves", Mary)),
       Sentence(ReflexivePronoun("She"), TransitiveVerb("believes", ReflexivePronoun("him")))
     ))
 
     parse("John ate a pizza with a fork. Bob did too.").right.value shouldBe Discourse(List(
       Sentence(
-        ExistentialQuantifier(ProperNoun("John")),
+        John,
         VerbInPhrase(
           InPhrase("with", ExistentialQuantifier(CommonNoun("fork"))),
           TransitiveVerb("ate", ExistentialQuantifier(CommonNoun("pizza")))
         )
       ),
       Sentence(
-        ExistentialQuantifier(ProperNoun("Bob")),
+        Bob,
         VerbPhraseAnaphora("did too")
       )
     ))
 
     parse("Mary is loved by John. So is Ann.").right.value shouldBe Discourse(List(
-      Sentence(ExistentialQuantifier(ProperNoun("John")), TransitiveVerb("loved", ExistentialQuantifier(ProperNoun("Mary")))),
+      Sentence(John, TransitiveVerb("loved", Mary)),
       Sentence(
-        ExistentialQuantifier(ProperNoun("Ann")),
+        Ann,
         VerbPhraseAnaphora("So is")
       )
     ))
@@ -56,27 +61,31 @@ class ACL2018SensalaDemoSpec extends SensalaSpec {
           TransitiveVerb("owns", ExistentialQuantifier(CommonNoun("donkey"))),
           ForallQuantifier(CommonNoun("farmer"))
         ),
-        VerbSentencePhrase("thinks", Sentence(ReflexivePronoun("he"), VerbAdjectivePhrase("is", Adjective("rich"))))
-      )
-    ))
-    
-    parse("John bought a donkey. The animal was stubborn as hell.").right.value shouldBe Discourse(List(
-      Sentence(
-        ExistentialQuantifier(ProperNoun("John")),
-        TransitiveVerb("bought", ExistentialQuantifier(CommonNoun("donkey")))
-      ),
-      Sentence(
-        DefiniteNounPhrase(CommonNoun("animal")),
-        VerbInPhrase(
-          InPhrase("as", ExistentialQuantifier(CommonNoun("hell"))),
-          VerbAdjectivePhrase("was", Adjective("stubborn"))
+        VerbSentencePhrase(
+          "thinks",
+          Sentence(ReflexivePronoun("he"), VerbAdjectivePhrase("is", Adjective("rich")))
         )
       )
     ))
     
+    parse("John bought a donkey. The animal was stubborn as hell.").right.value shouldBe
+      Discourse(List(
+        Sentence(
+          John,
+          TransitiveVerb("bought", ExistentialQuantifier(CommonNoun("donkey")))
+        ),
+        Sentence(
+          DefiniteNounPhrase(CommonNoun("animal")),
+          VerbInPhrase(
+            InPhrase("as", ExistentialQuantifier(CommonNoun("hell"))),
+            VerbAdjectivePhrase("was", Adjective("stubborn"))
+          )
+        )
+      ))
+    
     parse("John left his wallet on a table").right.value shouldBe Discourse(List(
       Sentence(
-        ExistentialQuantifier(ProperNoun("John")),
+        John,
         VerbInPhrase(
           InPhrase("on", ExistentialQuantifier(CommonNoun("table"))),
           TransitiveVerb(
