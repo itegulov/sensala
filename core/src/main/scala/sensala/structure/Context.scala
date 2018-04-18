@@ -71,3 +71,18 @@ final case class Context(
   def addBoundVar(v: Var): Context =
     copy(boundVars = boundVars + v)
 }
+
+object Context {
+  def initial: Context = {
+    val speakerEntity = Var("speaker")
+    val interlocutorEntity = Var("interlocutor")
+    Context(
+      Map(
+        speakerEntity -> speaker(speakerEntity),
+        interlocutorEntity -> interlocutor(interlocutorEntity),
+      ),
+      Map.empty,
+      Set(speakerEntity, interlocutorEntity)
+    )
+  }
+}

@@ -122,6 +122,10 @@ package object structure {
   val male   = Sym("male")
   val female = Sym("female")
   
+  // Special Sensala properties
+  val speaker = Sym("sensala_speaker")
+  val interlocutor = Sym("sensala_interlocutor")
+  
   // FIXME: Make True a case object in Scavenger
   val Truth: E = True
 

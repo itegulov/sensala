@@ -5,6 +5,8 @@ import sensala.structure._
 
 private[noun] object PronounPropertyMap extends {
   val reflexivePronouns = Map(
+    "i"       -> Property(x => speaker(x)),
+    "you"     -> Property(x => interlocutor(x)),
     "it"      -> Property(x => animal(x)),
     "he"      -> Property(x => person(x)),
     "she"     -> Property(x => female(x)),

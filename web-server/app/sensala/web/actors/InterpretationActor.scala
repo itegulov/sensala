@@ -239,7 +239,7 @@ case class InterpretationActor() extends Actor with ActorLogging {
                 sentence
                   .interpret(Eff.pure(True))
                   .runEither[NLError]
-                  .runState[Context](Context(Map.empty, Map.empty, Set.empty))
+                  .runState[Context](Context.initial)
                   .runState[LocalContext](LocalContext.empty)
                   .run
               lambdaTermEither match {
