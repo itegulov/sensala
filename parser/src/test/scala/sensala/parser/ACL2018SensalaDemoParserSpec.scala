@@ -33,6 +33,11 @@ class ACL2018SensalaDemoParserSpec extends SensalaSpec {
       Sentence(ReflexivePronoun("She"), TransitiveVerb("believes", ReflexivePronoun("him")))
     ))
 
+    parse("John loves Mary. She believes this.").right.value shouldBe Discourse(List(
+      Sentence(John, TransitiveVerb("loves", Mary)),
+      Sentence(ReflexivePronoun("She"), TransitiveVerb("believes", DemonstrativePronoun("this")))
+    ))
+
     parse("John ate a pizza with a fork. Bob did too.").right.value shouldBe Discourse(List(
       Sentence(
         John,
