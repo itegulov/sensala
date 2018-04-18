@@ -1,88 +1,8 @@
 package sensala.interpretation
 
-import org.aossie.scavenger.expression._
-import org.aossie.scavenger.expression.formula._
-import org.atnos.eff._
-import org.atnos.eff.syntax.all._
-import org.scalactic.Equality
-import sensala.SensalaSpec
-import sensala.error.NLError
-import sensala.normalization.NormalFormConverter
-import sensala.parser.DiscourseParser
-import sensala.postprocessing.PrettyTransformer
 import sensala.structure._
-import sensala.structure.types._
 
-class InterpretationSpec extends SensalaSpec {
-  def interpret(text: String): E = {
-    DiscourseParser.parse(text) match {
-      case Left(error) =>
-        sys.error(error)
-      case Right(sentence) =>
-        println(s"Sentence: $sentence")
-        val resultM = for {
-          lambda <- sentence.interpret(Eff.pure(True))
-          normalized = NormalFormConverter.normalForm(lambda)
-          prettified = PrettyTransformer.transform(normalized)
-        } yield prettified
-        val ((resultEither, _), _) = resultM
-          .runEither[NLError]
-          .runState[Context](Context(Map.empty, Map.empty, Set.empty))
-          .runState[LocalContext](LocalContext.empty)
-          .run
-        val result = resultEither.right.get
-        println(result.pretty)
-        result   
-    }
-  }
-  
-  // Scalatest treats === as an alpha equality
-  implicit val lambdaEq: Equality[E] =
-    (a: E, b: Any) => 
-      b match {
-        case bl: E => a =+= bl
-        case _ => false
-      }
-  
-  val x = Var("x")
-  val y = Var("y")
-  val z = Var("z")
-  val e = Var("e")
-  val eSucc = Var("e'")
-  val eSuccSucc = Var("e''")
-  
-  val named = Sym("named")
-  def John(v: Var) = named(v, Sym("John"))
-  def Mary(v: Var) = named(v, Sym("Mary"))
-  val walks = Sym("walks")
-  val loves = Sym("loves")
-  val farmer = Sym("farmer")
-  val anthropologist = Sym("anthropologist")
-  val discovered = Sym("discovered")
-  val skeleton = Sym("skeleton")
-  val owns = Sym("owns")
-  val beats = Sym("beats")
-  val donkey = Sym("donkey")
-  val wealthy = Sym("wealthy")
-  val fat = Sym("fat")
-  val smart = Sym("smart")
-  val lawyer = Sym("lawyer")
-  val left = Sym("left")
-  val ill = Sym("ill")
-  val runs = Sym("runs")
-  val quickly = Sym("quickly")
-  val description = Sym("description")
-  val believes = Sym("believes")
-  val said = Sym("said")
-  val wallet = Sym("wallet")
-  val table = Sym("table")
-  val on = Sym("on")
-  
-  def ex(x: Var, e: E): E = Ex(x, entity, e)
-  def exEv(x: Var, e: E): E = Ex(x, event, e)
-  def forall(x: Var, e: E): E = All(x, entity, e)
-  def foallEv(x: Var, e: E): E = All(x, event, e)
-
+class InterpretationSpec extends CommonInterpretationSpec {
   it should "interpret simple sentences" in {
     interpret("John loves Mary") shouldEqual
       ex(x, John(x) /\ ex(y, Mary(y) /\ exEv(e, loves(e) /\ agent(e, x) /\ patient(e, y))))
