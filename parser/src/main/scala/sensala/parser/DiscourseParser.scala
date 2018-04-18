@@ -3,6 +3,7 @@ package sensala.parser
 import edu.stanford.nlp.ling.{CoreAnnotations, IndexedWord}
 import edu.stanford.nlp.semgraph.{SemanticGraph, SemanticGraphCoreAnnotations}
 import cats.implicits._
+import com.typesafe.scalalogging.Logger
 import edu.stanford.nlp.ling.CoreAnnotations.SentencesAnnotation
 import edu.stanford.nlp.pipeline.Annotation
 import edu.stanford.nlp.process.Morphology
@@ -22,6 +23,8 @@ import sensala.parser.SensalaGrammaticalRelations._
 import scala.collection.convert.ImplicitConversionsToScala._
 
 object DiscourseParser {
+  private val logger = Logger[this.type]
+  
   type EitherS[T] = Either[String, T]
 
   private def pairToTuple[U, V](p: edu.stanford.nlp.util.Pair[U, V]): (U, V) =
@@ -304,10 +307,10 @@ object DiscourseParser {
             (agents, auxPassOpt) match {
               case (Nil, _) =>
                 Left("Illegal sentence: no subject and no agent")
-              case (agent :: Nil, Some(verbWord))
+              case (agentWord :: Nil, Some(verbWord))
                   if verbWord.word.toLowerCase == "am" || verbWord.word.toLowerCase == "is" || verbWord.word.toLowerCase == "are" =>
                 for {
-                  agentPhrase <- parseNounPhrase(agent)
+                  agentPhrase <- parseNounPhrase(agentWord)
                   verbPhrase  <- parseVerbPhrasePassive(root)
                 } yield Sentence(agentPhrase, verbPhrase)
               case (_, None) =>
@@ -392,7 +395,8 @@ object DiscourseParser {
     }
   
   private def parseSentence(sentence: CoreMap): Either[String, Sentence] = {
-    implicit val graph = sentence.get(classOf[SemanticGraphCoreAnnotations.BasicDependenciesAnnotation])
+    implicit val graph = sentence.get(classOf[SemanticGraphCoreAnnotations.EnhancedPlusPlusDependenciesAnnotation])
+    logger.info("\n" + graph.toString)
     val root           = graph.getFirstRoot
     parseSentence(root).map(transformVerbPhraseAnaphora)
   }
