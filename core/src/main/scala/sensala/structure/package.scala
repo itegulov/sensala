@@ -69,7 +69,6 @@ package object structure {
   
   def findAnaphoricEntity(properties: E, x: Var): NLEff[Var] =
     for {
-      x <- bindFreeVar
       refOpt <- gets[NLFx, Context, Option[Var]](_.findAnaphoricEntity(x, properties))
       ref <- refOpt match {
         case Some(ref) => right[NLFx, NLError, Var](ref)
@@ -77,11 +76,21 @@ package object structure {
       }
     } yield ref
 
+  def findAnaphoricEntityOpt(properties: E, x: Var): NLEff[Option[Var]] =
+    gets[NLFx, Context, Option[Var]](_.findAnaphoricEntity(x, properties))
+
   def findAnaphoricEntity(properties: List[Property]): NLEff[Var] =
     for {
       x <- bindFreeVar
       propertiesE = properties.map(p => p.propertyExp(x)).foldLeft(truth(x))(_ /\ _)
       result <- findAnaphoricEntity(propertiesE, x)
+    } yield result
+
+  def findAnaphoricEntityOpt(properties: List[Property]): NLEff[Option[Var]] =
+    for {
+      x <- bindFreeVar
+      propertiesE = properties.map(p => p.propertyExp(x)).foldLeft(truth(x))(_ /\ _)
+      result <- findAnaphoricEntityOpt(propertiesE, x)
     } yield result
   
   def findAnaphoricEvent(properties: List[Sym]): NLEff[Var] =
@@ -116,7 +125,7 @@ package object structure {
   // FIXME: Make True a case object in Scavenger
   val Truth: E = True
 
-  // FIXME: find a better way to represent truth
+  // FIXME: find a better way to represent truth and false
   def truth(x: Sym): E = person(x) \/ ~person(x)
 
   def substitute(exp: E, old: Sym, newE: E): E = exp match {

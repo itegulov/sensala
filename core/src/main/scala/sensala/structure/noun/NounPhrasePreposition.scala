@@ -26,4 +26,5 @@ final case class NounPhrasePreposition(
 
   // TODO: Add preposition property
   override def properties: List[Property] = nounPhrase.properties
+  override def definiteProperties: List[Property] = nounPhrase.definiteProperties
 }

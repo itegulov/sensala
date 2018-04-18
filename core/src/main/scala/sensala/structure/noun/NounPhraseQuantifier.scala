@@ -21,6 +21,7 @@ final case class ForallQuantifier(
     } yield All(x, entity, ~nounL)
 
   override def properties = nounPhrase.properties
+  override def definiteProperties: List[Property] = nounPhrase.definiteProperties
 }
 
 final case class ExistentialQuantifier(
@@ -35,6 +36,7 @@ final case class ExistentialQuantifier(
     } yield Ex(x, entity, nounL)
 
   override def properties = nounPhrase.properties
+  override def definiteProperties: List[Property] = nounPhrase.definiteProperties
 }
 
 final case class DefiniteNounPhrase(
@@ -42,10 +44,23 @@ final case class DefiniteNounPhrase(
 ) extends NounPhraseQuantifier {
   override def interpret(cont: NLEff[E]): NLEff[E] =
     for {
-      ref        <- findAnaphoricEntity(nounPhrase.properties)
-      _          <- putEntity(ref)
-      contL      <- cont
-    } yield contL
+      refOpt <- findAnaphoricEntityOpt(nounPhrase.definiteProperties)
+      result <- refOpt match {
+                 case Some(ref) =>
+                   for {
+                     _     <- putEntity(ref)
+                     contL <- cont
+                   } yield contL
+                 case None =>
+                   for {
+                     x     <- bindFreeVar
+                     _     <- modify[NLFx, Context](_.addEntity(x, nounPhrase.properties))
+                     _     <- putEntity(x)
+                     nounL <- nounPhrase.interpret(cont)
+                   } yield Ex(x, entity, nounL)
+               }
+    } yield result
 
   override def properties: List[Property] = nounPhrase.properties
+  override def definiteProperties: List[Property] = nounPhrase.definiteProperties
 }

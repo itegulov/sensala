@@ -36,8 +36,8 @@ final case class ProperNoun(
     case None         => List()
   }
 
-  override def properties: List[Property] =
-    typProperty ++ genderProperty
+  override def properties: List[Property] = typProperty ++ genderProperty
+  override def definiteProperties: List[Property] = properties
 }
 
 final case class CommonNoun(
@@ -52,4 +52,5 @@ final case class CommonNoun(
     } yield w(x) /\ contL
 
   override def properties: List[Property] = WordNetPropertyExtractor.extractProperties(word)
+  override def definiteProperties: List[Property] = List(Property(x => Sym(word)(x)))
 }

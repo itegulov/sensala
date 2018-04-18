@@ -1,6 +1,7 @@
 package sensala.structure.wh
 
 import org.aossie.scavenger.expression._
+import sensala.property.Property
 import sensala.structure.noun.NounPhrase
 import sensala.structure.verb.VerbPhrase
 import sensala.structure._
@@ -24,4 +25,5 @@ final case class WhNounPhrase(
     )
 
   override def properties = nounPhrase.properties
+  override def definiteProperties: List[Property] = nounPhrase.definiteProperties
 }

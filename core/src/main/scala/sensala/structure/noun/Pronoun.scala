@@ -29,6 +29,7 @@ final case class PossessivePronoun(
       .get(word.toLowerCase)
       .map(p => List(p))
       .getOrElse(List(Property(x => animal(x))))
+  override def definiteProperties: List[Property] = properties
 }
 
 final case class ReflexivePronoun(
@@ -52,6 +53,7 @@ final case class ReflexivePronoun(
       .get(word.toLowerCase)
       .map(p => List(p))
       .getOrElse(List(Property(x => animal(x))))
+  override def definiteProperties: List[Property] = properties
 }
 
 final case class DemonstrativePronoun(
@@ -66,4 +68,5 @@ final case class DemonstrativePronoun(
     } yield contL
 
   override def properties: List[Property] = List.empty
+  override def definiteProperties: List[Property] = List.empty
 }
