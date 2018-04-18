@@ -14,15 +14,16 @@ final case class NounPhrasePreposition(
       for {
         e <- getEntity
         preposition <- prepositionalPhrase.nounPhrase.interpret {
-          for {
-            prepEntity <- getEntity
-            w = Sym(prepositionalPhrase.word)
-            contL <- cont
-          } yield w(prepEntity, e) /\ contL
-        }
+                        for {
+                          prepEntity <- getEntity
+                          w          = Sym(prepositionalPhrase.word)
+                          _          <- putEntity(e)
+                          contL      <- cont
+                        } yield w(prepEntity, e) /\ contL
+                      }
       } yield preposition
     }
-  
+
   // TODO: Add preposition property
   override def properties: List[Property] = nounPhrase.properties
 }
