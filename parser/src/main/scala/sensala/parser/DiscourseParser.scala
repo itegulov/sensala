@@ -242,34 +242,34 @@ object DiscourseParser {
         parseCommonNoun(nounTree) match {
           case Right(Existential) =>
             for {
-              adjectiveNounPhrase <- parseAdjectiveNounPhrase(nounTree, ExistentialQuantifier(CommonNoun(nounTree.word)))
+              adjectiveNounPhrase <- parseAdjectiveNounPhrase(nounTree, CommonNoun(nounTree.word))
               whNounPhrase        <- parseWhNounPhrase(nounTree, adjectiveNounPhrase)
               prepNounPhrase      <- parsePrepositionalNounPhrase(nounTree, whNounPhrase)
-            } yield prepNounPhrase
+            } yield ExistentialQuantifier(prepNounPhrase)
           case Right(Forall) =>
             for {
-              adjectiveNounPhrase <- parseAdjectiveNounPhrase(nounTree, ForallQuantifier(CommonNoun(nounTree.word)))
+              adjectiveNounPhrase <- parseAdjectiveNounPhrase(nounTree, CommonNoun(nounTree.word))
               whNounPhrase        <- parseWhNounPhrase(nounTree, adjectiveNounPhrase)
               prepNounPhrase      <- parsePrepositionalNounPhrase(nounTree, whNounPhrase)
-            } yield prepNounPhrase
+            } yield ForallQuantifier(prepNounPhrase)
           case Right(The) =>
             for {
-              adjectiveNounPhrase <- parseAdjectiveNounPhrase(nounTree, DefiniteNounPhrase(CommonNoun(nounTree.word)))
+              adjectiveNounPhrase <- parseAdjectiveNounPhrase(nounTree, CommonNoun(nounTree.word))
               whNounPhrase        <- parseWhNounPhrase(nounTree, adjectiveNounPhrase)
               prepNounPhrase      <- parsePrepositionalNounPhrase(nounTree, whNounPhrase)
-            } yield prepNounPhrase
+            } yield DefiniteNounPhrase(prepNounPhrase)
           case Left(error) =>
             Left(error)
         }
       case "NNP" =>
         val ner = Option(nounTree.ner()).flatMap(parseNer)
         val gender = Option(nounTree.get(classOf[CoreAnnotations.GenderAnnotation])).flatMap(parseGender)
-        val properNoun = ExistentialQuantifier(ProperNoun(nounTree.word, ner, gender))
+        val properNoun = ProperNoun(nounTree.word, ner, gender)
         for {
           adjectiveNounPhrase <- parseAdjectiveNounPhrase(nounTree, properNoun)
           whNounPhrase        <- parseWhNounPhrase(nounTree, adjectiveNounPhrase)
           prepNounPhrase      <- parsePrepositionalNounPhrase(nounTree, whNounPhrase)
-        } yield prepNounPhrase
+        } yield ExistentialQuantifier(prepNounPhrase)
       case "PRP" =>
         for {
           adjectiveNounPhrase <- parseAdjectiveNounPhrase(nounTree, ReflexivePronoun(nounTree.word))

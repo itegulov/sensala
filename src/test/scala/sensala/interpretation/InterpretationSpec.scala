@@ -103,16 +103,16 @@ class InterpretationSpec extends SensalaSpec {
 
   it should "interpret donkey anaphora" in {
     interpret("Every farmer who owns a donkey beats it") shouldEqual
-      forall(x, farmer(x) ->: forall(y, donkey(y) ->: foallEv(e, owns(e) ->: agent(e, x) ->: patient(e, y) ->: exEv(e, beats(e) /\ agent(e, x) /\ patient(e, y)))))
+      forall(x, farmer(x) ->: forall(y, donkey(y) ->: foallEv(e, (owns(e) /\ agent(e, x) /\ patient(e, y)) ->: exEv(e, beats(e) /\ agent(e, x) /\ patient(e, y)))))
     interpret("A farmer who owns a donkey beats it") shouldEqual
       ex(x, farmer(x) /\ ex(y, donkey(y) /\ exEv(e, owns(e) /\ agent(e, x) /\ patient(e, y) /\ exEv(e, beats(e) /\ agent(e, x) /\ patient(e, y)))))
   }
 
   it should "interpret sentences with adjectives" in {
     interpret("Every wealthy farmer owns a fat donkey") shouldEqual
-      forall(x, farmer(x) ->: wealthy(x) ->: ex(y, donkey(y) /\ fat(y) /\ exEv(e, owns(e) /\ agent(e, x) /\ patient(e, y))))
+      forall(x, farmer(x) ->: wealthy(x) ->: ex(y, donkey(y) /\ (fat(y) /\ exEv(e, owns(e) /\ agent(e, x) /\ patient(e, y)))))
     interpret("Every wealthy farmer who owns a fat donkey beats it") shouldEqual
-      forall(x, farmer(x) ->: wealthy(x) ->: forall(y, donkey(y) ->: fat(y) ->: foallEv(e, owns(e) ->: agent(e, x) ->: patient(e, y) ->: exEv(e, beats(e) /\ agent(e, x) /\ patient(e, y)))))
+      forall(x, farmer(x) ->: wealthy(x) ->: forall(y, donkey(y) ->: fat(y) ->: foallEv(e, (owns(e) /\ agent(e, x) /\ patient(e, y)) ->: exEv(e, beats(e) /\ agent(e, x) /\ patient(e, y)))))
   }
 
   it should "interpret adjective verb sentences" in {
@@ -122,9 +122,9 @@ class InterpretationSpec extends SensalaSpec {
 
   it should "interpret other anaphora sentences" in {
     interpret("Every lawyer believes he is smart") shouldEqual
-      forall(x, lawyer(x) ->: exEv(e, exEv(eSucc, description(eSucc) /\ smart(eSucc, x) /\ believes(e) /\ agent(e, x) /\ patient(e, eSucc))))
+      forall(x, lawyer(x) ->: exEv(e, exEv(eSucc, description(eSucc) /\ smart(eSucc, x) /\ (believes(e) /\ agent(e, x) /\ patient(e, eSucc)))))
     interpret("John left. He said he was ill.") shouldEqual
-      ex(x, John(x) /\ exEv(e, left(e) /\ agent(e, x) /\ exEv(eSucc, exEv(eSuccSucc, description(eSuccSucc) /\ ill(eSuccSucc, x) /\ said(eSucc) /\ agent(eSucc, x) /\ patient(eSucc, eSuccSucc)))))
+      ex(x, John(x) /\ exEv(e, left(e) /\ agent(e, x) /\ exEv(eSucc, exEv(eSuccSucc, description(eSuccSucc) /\ ill(eSuccSucc, x) /\ (said(eSucc) /\ agent(eSucc, x) /\ patient(eSucc, eSuccSucc))))))
   }
 
   it should "interpret sentences with adverb for verbs" in {

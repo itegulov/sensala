@@ -41,19 +41,19 @@ class DiscourseParserSpec extends SensalaSpec {
   it should "parse wh noun phrases" in {
     parse("Every farmer who owns a donkey beats it").right.value shouldBe Discourse(List(
       Sentence(
-        WhNounPhrase(TransitiveVerb("owns", ExistentialQuantifier(CommonNoun("donkey"))), ForallQuantifier(CommonNoun("farmer"))),
+        ForallQuantifier(WhNounPhrase(TransitiveVerb("owns", ExistentialQuantifier(CommonNoun("donkey"))), CommonNoun("farmer"))),
         TransitiveVerb("beats", ReflexivePronoun("it"))
       )
     ))
     parse("A farmer who owns a donkey beats it").right.value shouldBe Discourse(List(
       Sentence(
-        WhNounPhrase(TransitiveVerb("owns", ExistentialQuantifier(CommonNoun("donkey"))), ExistentialQuantifier(CommonNoun("farmer"))),
+        ExistentialQuantifier(WhNounPhrase(TransitiveVerb("owns", ExistentialQuantifier(CommonNoun("donkey"))), CommonNoun("farmer"))),
         TransitiveVerb("beats", ReflexivePronoun("it"))
       )
     ))
     parse("A farmer who eats walks").right.value shouldBe Discourse(List(
       Sentence(
-        WhNounPhrase(IntransitiveVerb("eats"), ExistentialQuantifier(CommonNoun("farmer"))),
+        ExistentialQuantifier(WhNounPhrase(IntransitiveVerb("eats"), CommonNoun("farmer"))),
         IntransitiveVerb("walks")
       )
     ))
@@ -62,7 +62,7 @@ class DiscourseParserSpec extends SensalaSpec {
   it should "parse multi-sentence discourses" in {
     parse("Every farmer who owns a donkey beats it. John is a farmer. John owns a donkey.").right.value shouldBe Discourse(List(
       Sentence(
-        WhNounPhrase(TransitiveVerb("owns", ExistentialQuantifier(CommonNoun("donkey"))), ForallQuantifier(CommonNoun("farmer"))),
+        ForallQuantifier(WhNounPhrase(TransitiveVerb("owns", ExistentialQuantifier(CommonNoun("donkey"))), CommonNoun("farmer"))),
         TransitiveVerb("beats", ReflexivePronoun("it"))
       ),
       Sentence(
@@ -79,7 +79,7 @@ class DiscourseParserSpec extends SensalaSpec {
   it should "parse sentences with adjectives" in {
     parse("Every wealthy farmer owns a donkey").right.value shouldBe Discourse(List(
       Sentence(
-        AdjectiveNounPhrase(Adjective("wealthy"), ForallQuantifier(CommonNoun("farmer"))),
+        ForallQuantifier(AdjectiveNounPhrase(Adjective("wealthy"), CommonNoun("farmer"))),
         TransitiveVerb("owns", ExistentialQuantifier(CommonNoun("donkey")))
       )
     ))

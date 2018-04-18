@@ -17,8 +17,8 @@ final case class ForallQuantifier(
       x     <- bindFreeVar
       _     <- modify[NLFx, Context](_.addEntity(x, properties))
       _     <- putEntity(x)
-      nounL <- nounPhrase.interpret(cont)
-    } yield All(x, entity, nounL)
+      nounL <- nounPhrase.interpret(cont.map(~_))
+    } yield All(x, entity, ~nounL)
 
   override def properties = nounPhrase.properties
 }
