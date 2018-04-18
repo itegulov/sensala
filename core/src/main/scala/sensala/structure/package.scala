@@ -5,7 +5,7 @@ import org.atnos.eff._
 import org.atnos.eff.all._
 import org.aossie.scavenger.expression._
 import org.aossie.scavenger.expression.formula._
-import sensala.error.{NLError, NLUnknownAnaphoricReferent}
+import sensala.error.{NLError, NLInvalidState, NLUnknownAnaphoricReferent}
 import sensala.property.Property
 import sensala.structure.types._
 
@@ -22,12 +22,20 @@ package object structure {
   def getEntity: NLEff[Var] =
     for {
       localContext <- get[NLFx, LocalContext]
-    } yield localContext.entity.get
+      entity <- localContext.entity match {
+        case Some(e) => right[NLFx, NLError, Var](e)
+        case None => left[NLFx, NLError, Var](NLInvalidState("Local entity could not be found"))
+      }
+    } yield entity
 
   def getEvent: NLEff[Var] =
     for {
       localContext <- get[NLFx, LocalContext]
-    } yield localContext.event.get
+      event <- localContext.event match {
+        case Some(e) => right[NLFx, NLError, Var](e)
+        case None => left[NLFx, NLError, Var](NLInvalidState("Local event could not be found"))
+      }
+    } yield event
 
   def putEntity(v: Var): NLEff[Unit] =
     for {
