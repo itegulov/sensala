@@ -374,7 +374,7 @@ object DiscourseParser {
                 case Some(soWord) =>
                   for {
                     objPhrase <- parseNounPhrase(root)
-                  } yield Sentence(objPhrase, VerbPhraseAnaphora(soWord.word + " " + cop.word))
+                  } yield Sentence(objPhrase, VerbPhraseAnaphora(soWord.word + " " + cop.word, Passive))
                 case None =>
                   Left("Invalid verb phrase anaphora")
               }
@@ -392,10 +392,10 @@ object DiscourseParser {
     sentence.verbPhrase match {
       case VerbAdverbPhrase(Adverb("too"), IntransitiveVerb(word))
           if word.toLowerCase == "did" || word.toLowerCase == "does" =>
-        Sentence(sentence.nounPhrase, VerbPhraseAnaphora(word + " too"))
+        Sentence(sentence.nounPhrase, VerbPhraseAnaphora(word + " too", Active))
       case VerbAdverbPhrase(Adverb(adWord), IntransitiveVerb(word))
           if adWord.toLowerCase == "so" || (word.toLowerCase == "did" || word.toLowerCase == "is") =>
-        Sentence(sentence.nounPhrase, VerbPhraseAnaphora(adWord + " " + word))
+        Sentence(sentence.nounPhrase, VerbPhraseAnaphora(adWord + " " + word, Passive))
       case _ =>
         sentence
     }

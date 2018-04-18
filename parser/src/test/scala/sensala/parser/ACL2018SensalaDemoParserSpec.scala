@@ -9,7 +9,7 @@ import sensala.structure.prepositional._
 import sensala.structure.verb._
 import sensala.structure.wh._
 
-class ACL2018SensalaDemoSpec extends SensalaSpec {
+class ACL2018SensalaDemoParserSpec extends SensalaSpec {
   def parse(discourse: String): Either[String, Discourse] = {
     DiscourseParser.parse(discourse)
   }
@@ -19,7 +19,7 @@ class ACL2018SensalaDemoSpec extends SensalaSpec {
   val Mary = ExistentialQuantifier(ProperNoun("Mary", Some(Person), Some(Female)))
   val Ann  = ExistentialQuantifier(ProperNoun("Ann", Some(Person), Some(Female)))
   
-  it should "parse example from ACL 2018 system demonstration paper" in {
+  it should "parse examples from ACL 2018 system demonstration paper" in {
     parse("John loves Mary").right.value shouldBe Discourse(List(
       Sentence(John, TransitiveVerb("loves", Mary))
     ))
@@ -43,7 +43,7 @@ class ACL2018SensalaDemoSpec extends SensalaSpec {
       ),
       Sentence(
         Bob,
-        VerbPhraseAnaphora("did too")
+        VerbPhraseAnaphora("did too", Active)
       )
     ))
 
@@ -51,7 +51,7 @@ class ACL2018SensalaDemoSpec extends SensalaSpec {
       Sentence(John, TransitiveVerb("loved", Mary)),
       Sentence(
         Ann,
-        VerbPhraseAnaphora("So is")
+        VerbPhraseAnaphora("So is", Passive)
       )
     ))
 
