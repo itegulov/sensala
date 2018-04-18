@@ -282,6 +282,12 @@ object DiscourseParser {
           whNounPhrase        <- parseWhNounPhrase(nounTree, adjectiveNounPhrase)
           prepNounPhrase      <- parsePrepositionalNounPhrase(nounTree, whNounPhrase)
         } yield prepNounPhrase
+      case "DT" =>
+        for {
+          adjectiveNounPhrase <- parseAdjectiveNounPhrase(nounTree, DemonstrativePronoun(nounTree.word))
+          whNounPhrase        <- parseWhNounPhrase(nounTree, adjectiveNounPhrase)
+          prepNounPhrase      <- parsePrepositionalNounPhrase(nounTree, whNounPhrase)
+        } yield prepNounPhrase
       case _ => Left(s"Unknown noun phrase: (${nounTree.tag}) ${nounTree.word}")
     }
 
