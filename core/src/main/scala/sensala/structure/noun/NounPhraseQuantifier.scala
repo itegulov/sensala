@@ -42,10 +42,8 @@ final case class DefiniteNounPhrase(
 ) extends NounPhraseQuantifier {
   override def interpret(cont: NLEff[E]): NLEff[E] =
     for {
-      x          <- bindFreeVar
-      properties = nounPhrase.properties.map(p => p.propertyExp(x)).foldLeft(True: E)(_ /\ _)
-      ref        <- gets[NLFx, Context, E](_.findAnaphoricEntity(x, properties).get)
-      _          <- putEntity(ref.asInstanceOf[Var])
+      ref        <- findAnaphoricEntity(nounPhrase.properties)
+      _          <- putEntity(ref)
       contL      <- cont
     } yield contL
 

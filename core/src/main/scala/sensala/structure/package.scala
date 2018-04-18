@@ -5,7 +5,8 @@ import org.atnos.eff._
 import org.atnos.eff.all._
 import org.aossie.scavenger.expression._
 import org.aossie.scavenger.expression.formula._
-import sensala.error.NLError
+import sensala.error.{NLError, NLUnknownAnaphoricReferent}
+import sensala.property.Property
 import sensala.structure.types._
 
 import scala.annotation.tailrec
@@ -57,6 +58,34 @@ package object structure {
       }
       _ <- put[NLFx, Context](context.addBoundVar(newSym))
     } yield newSym
+  
+  def findAnaphoricEntity(properties: E, x: Var): NLEff[Var] =
+    for {
+      x <- bindFreeVar
+      refOpt <- gets[NLFx, Context, Option[Var]](_.findAnaphoricEntity(x, properties))
+      ref <- refOpt match {
+        case Some(ref) => right[NLFx, NLError, Var](ref)
+        case None => left[NLFx, NLError, Var](NLUnknownAnaphoricReferent(properties))
+      }
+    } yield ref
+
+  def findAnaphoricEntity(properties: List[Property]): NLEff[Var] =
+    for {
+      x <- bindFreeVar
+      propertiesE = properties.map(p => p.propertyExp(x)).foldLeft(truth(x))(_ /\ _)
+      result <- findAnaphoricEntity(propertiesE, x)
+    } yield result
+  
+  def findAnaphoricEvent(properties: List[Sym]): NLEff[Var] =
+    for {
+      x <- bindFreeVar
+      propertiesE = properties.map(_.apply(x)).foldRight(truth(x))(_ /\ _)
+      refOpt <- gets[NLFx, Context, Option[Var]](_.findAnaphoricEvent(x, propertiesE))
+      ref <- refOpt match {
+        case Some(ref) => right[NLFx, NLError, Var](ref)
+        case None => left[NLFx, NLError, Var](NLUnknownAnaphoricReferent(propertiesE))
+      }
+    } yield ref
 
   val agent       = Sym("agent")
   val patient     = Sym("patient")
@@ -75,6 +104,9 @@ package object structure {
   
   val male   = Sym("male")
   val female = Sym("female")
+  
+  // FIXME: Make True a case object in Scavenger
+  val Truth: E = True
 
   // FIXME: find a better way to represent truth
   def truth(x: Sym): E = person(x) \/ ~person(x)

@@ -1,11 +1,11 @@
 package sensala.error
 
-import sensala.property.Property
+import org.aossie.scavenger.expression.E
 
 sealed trait NLError
 
 final case class NLUnknownAnaphoricReferent(
-  properties: List[Property]
+  properties: E
 ) extends NLError
 
 final case class NLUnexpectedWord(

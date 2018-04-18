@@ -14,10 +14,9 @@ final case class PossessivePronoun(
   with Pronoun {
   override def interpret(cont: NLEff[E]): NLEff[E] =
     for {
-      x <- bindFreeVar
       ref <- PronounPropertyMap.possessivePronouns.get(word.toLowerCase) match {
         case Some(property) =>
-          gets[NLFx, Context, Var](_.findAnaphoricEntity(x, property(x)).get)
+          findAnaphoricEntity(List(property))
         case None =>
           left[NLFx, NLError, Var](NLUnexpectedWord(word))
       }
@@ -28,7 +27,7 @@ final case class PossessivePronoun(
   override def properties: List[Property] =
     PronounPropertyMap.possessivePronouns
       .get(word.toLowerCase)
-      .map(sym => List(Property(x => sym(x))))
+      .map(p => List(p))
       .getOrElse(List(Property(x => animal(x))))
 }
 
@@ -38,10 +37,9 @@ final case class ReflexivePronoun(
   with Pronoun {
   override def interpret(cont: NLEff[E]): NLEff[E] =
     for {
-      x <- bindFreeVar
       ref <- PronounPropertyMap.reflexivePronouns.get(word.toLowerCase) match {
         case Some(property) =>
-          gets[NLFx, Context, Var](_.findAnaphoricEntity(x, property(x)).get)
+          findAnaphoricEntity(List(property))
         case None =>
           left[NLFx, NLError, Var](NLUnexpectedWord(word))
       }
@@ -52,7 +50,7 @@ final case class ReflexivePronoun(
   override def properties: List[Property] =
     PronounPropertyMap.reflexivePronouns
       .get(word.toLowerCase)
-      .map(sym => List(Property(x => sym(x))))
+      .map(p => List(p))
       .getOrElse(List(Property(x => animal(x))))
 }
 
@@ -62,8 +60,7 @@ final case class DemonstrativePronoun(
   with Pronoun {
   override def interpret(cont: NLEff[E]): NLEff[E] =
     for {
-      x     <- bindFreeVar
-      e     <- gets[NLFx, Context, Var](_.findAnaphoricEvent(x, truth(x)).get)
+      e     <- findAnaphoricEvent(List.empty)
       _     <- putEntity(e)
       contL <- cont
     } yield contL
