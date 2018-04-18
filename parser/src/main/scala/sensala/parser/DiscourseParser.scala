@@ -321,7 +321,7 @@ object DiscourseParser {
           case (_, Left(error)) =>
             Left(error)
         }
-      case "JJ" =>
+      case "JJ" | "RB" =>
         val childrenMap = graph.childPairs(root).map(pairToTuple).toMap
         val subjOpt     = childrenMap.get(NSubj)
         val copOpt      = childrenMap.get(Cop)
