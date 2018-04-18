@@ -77,7 +77,7 @@ package object structure {
   val female = Sym("female")
 
   // FIXME: find a better way to represent truth
-  def truth(x: Sym): E = person(x) \/: ~person(x)
+  def truth(x: Sym): E = person(x) \/ ~person(x)
 
   def substitute(exp: E, old: Sym, newE: E): E = exp match {
     case `old`                       => newE
@@ -117,9 +117,9 @@ package object structure {
 
     def apply(args: E*): E = AppRec(lambda, args)
 
-    def \/:(right: E): E = Or(right, lambda)
+    def \/(right: E): E = Or(lambda, right)
 
-    def /\:(right: E): E = And(right, lambda)
+    def /\(right: E): E = And(lambda, right)
 
     def ->:(right: E): E = Imp(right, lambda)
 

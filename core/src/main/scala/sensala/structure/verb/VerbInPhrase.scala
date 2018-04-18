@@ -26,9 +26,9 @@ case class VerbInPhrase(propositionalPhrase: PrepositionalPhrase, verbPhrase: Ve
                                            NLInvalidState("Unexpected properties format")
                                          )
                                      }
-                        _     <- modify[NLFx, Context](_.addEvent(e, properties /\: w(e, x)))
+                        _     <- modify[NLFx, Context](_.addEvent(e, properties /\ w(e, x)))
                         contL <- cont
-                      } yield w(e, x) /\: contL
+                      } yield w(e, x) /\ contL
                     )
       } yield locationL
     )

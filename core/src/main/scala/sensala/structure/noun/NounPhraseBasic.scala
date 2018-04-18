@@ -17,7 +17,7 @@ final case class ProperNoun(
       x     <- getEntity
       w     = Sym(word)
       contL <- cont
-    } yield named(x, w) /\: contL
+    } yield named(x, w) /\ contL
 
   private def typProperty: List[Property] = typ match {
     case Some(Location)     => List(Property(x => location(x)))
@@ -49,7 +49,7 @@ final case class CommonNoun(
       x     <- getEntity
       w     = Sym(word)
       contL <- cont
-    } yield w(x) /\: contL
+    } yield w(x) /\ contL
 
   override def properties: List[Property] = WordNetPropertyExtractor.extractProperties(word)
 }

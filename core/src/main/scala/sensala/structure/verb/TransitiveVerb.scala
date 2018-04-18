@@ -20,9 +20,9 @@ final case class TransitiveVerb(
       objL <- obj.interpret(
                for {
                  y     <- getEntity
-                 _     <- modify[NLFx, Context](_.addEvent(e, w(e) /\: agent(e, x) /\: patient(e, y)))
+                 _     <- modify[NLFx, Context](_.addEvent(e, w(e) /\ agent(e, x) /\ patient(e, y)))
                  contL <- cont
-               } yield Ex(e, event, w(e) /\: agent(e, x) /\: patient(e, y) /\: contL)
+               } yield Ex(e, event, w(e) /\ agent(e, x) /\ patient(e, y) /\ contL)
              )
     } yield objL
 }

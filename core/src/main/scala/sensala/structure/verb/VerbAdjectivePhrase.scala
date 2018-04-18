@@ -20,9 +20,9 @@ final case class VerbAdjectivePhrase(
           e     <- bindFreeVar
           _     <- putEvent(e)
           w     = Sym(adjective.word)
-          _     <- modify[NLFx, Context](_.addEvent(e, description(e) /\: w(e, x)))
+          _     <- modify[NLFx, Context](_.addEvent(e, description(e) /\ w(e, x)))
           contL <- cont
-        } yield Ex(e, event, description(e) /\: w(e, x) /\: contL)
+        } yield Ex(e, event, description(e) /\ w(e, x) /\ contL)
       case other =>
         left[NLFx, NLError, E](NLUnexpectedWord(other))
     }

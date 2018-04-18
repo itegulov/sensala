@@ -18,7 +18,7 @@ final case class ForallQuantifier(
       _     <- modify[NLFx, Context](_.addEntity(x, properties))
       _     <- putEntity(x)
       nounL <- nounPhrase.interpret(cont)
-    } yield All(x, entity, ~nounL)
+    } yield All(x, entity, nounL)
 
   override def properties = nounPhrase.properties
 }
@@ -43,7 +43,7 @@ final case class DefiniteNounPhrase(
   override def interpret(cont: NLEff[E]): NLEff[E] =
     for {
       x          <- bindFreeVar
-      properties = nounPhrase.properties.map(p => p.propertyExp(x)).foldLeft(True: E)(_ /\: _)
+      properties = nounPhrase.properties.map(p => p.propertyExp(x)).foldLeft(True: E)(_ /\ _)
       ref        <- gets[NLFx, Context, E](_.findAnaphoricEntity(x, properties).get)
       _          <- putEntity(ref.asInstanceOf[Var])
       contL      <- cont

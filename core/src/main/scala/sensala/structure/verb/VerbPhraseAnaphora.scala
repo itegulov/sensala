@@ -23,5 +23,5 @@ final case class VerbPhraseAnaphora(phrase: String) extends VerbPhrase {
       _             <- putEvent(newE)
       _             <- modify[NLFx, Context](_.addEvent(newE, newProperties))
       contL         <- cont
-    } yield Ex(newE, event, newProperties /\: contL)
+    } yield Ex(newE, event, newProperties /\ contL)
 }

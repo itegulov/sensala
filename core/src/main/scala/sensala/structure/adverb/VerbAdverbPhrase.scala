@@ -22,8 +22,8 @@ case class VerbAdverbPhrase(adverb: Adverb, verbPhrase: VerbPhrase)
                        case _ =>
                          left[NLFx, NLError, E](NLInvalidState("Unexpected properties format"))
                      }
-        _     <- modify[NLFx, Context](_.addEvent(e, properties /\: w(e)))
+        _     <- modify[NLFx, Context](_.addEvent(e, properties /\ w(e)))
         contL <- cont
-      } yield w(e) /\: contL
+      } yield w(e) /\ contL
     )
 }

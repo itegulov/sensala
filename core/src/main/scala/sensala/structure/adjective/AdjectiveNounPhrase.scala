@@ -14,7 +14,7 @@ final case class AdjectiveNounPhrase(
         y     <- getEntity
         w     = Sym(adjective.word)
         contL <- cont
-      } yield w(y) /\: contL
+      } yield w(y) /\ contL
     )
 
   override def properties = nounPhrase.properties

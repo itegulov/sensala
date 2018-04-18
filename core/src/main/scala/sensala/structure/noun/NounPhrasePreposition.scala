@@ -18,7 +18,7 @@ final case class NounPhrasePreposition(
             prepEntity <- getEntity
             w = Sym(prepositionalPhrase.word)
             contL <- cont
-          } yield w(prepEntity, e) /\: contL
+          } yield w(prepEntity, e) /\ contL
         }
       } yield preposition
     }

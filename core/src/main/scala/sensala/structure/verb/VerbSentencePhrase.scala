@@ -20,10 +20,10 @@ final case class VerbSentencePhrase(
                     for {
                       eSucc <- getEvent
                       _ <- modify[NLFx, Context](
-                            _.addEvent(e, w(e) /\: agent(e, x) /\: patient(e, eSucc))
+                            _.addEvent(e, w(e) /\ agent(e, x) /\ patient(e, eSucc))
                           )
                       contL <- cont
-                    } yield w(e) /\: agent(e, x) /\: patient(e, eSucc) /\: contL
+                    } yield w(e) /\ agent(e, x) /\ patient(e, eSucc) /\ contL
                   )
     } yield Ex(e, event, sentenceL)
 }
