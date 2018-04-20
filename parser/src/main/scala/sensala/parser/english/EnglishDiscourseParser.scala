@@ -10,8 +10,9 @@ import edu.stanford.nlp.semgraph.{SemanticGraph, SemanticGraphCoreAnnotations}
 import edu.stanford.nlp.trees.Tree
 import edu.stanford.nlp.trees.TreeCoreAnnotations.TreeAnnotation
 import edu.stanford.nlp.util.CoreMap
+import sensala.parser.DiscourseParser
 import sensala.parser.english.EnglishSensalaGrammaticalRelations._
-import sensala.structure.{Sentence, _}
+import sensala.structure._
 import sensala.structure.adjective._
 import sensala.structure.adverb._
 import sensala.structure.noun._
@@ -22,7 +23,7 @@ import sensala.structure.wh._
 
 import scala.collection.convert.ImplicitConversionsToScala._
 
-object EnglishDiscourseParser {
+object EnglishDiscourseParser extends DiscourseParser {
   private val logger = Logger[this.type]
   
   type EitherS[T] = Either[String, T]
@@ -216,23 +217,6 @@ object EnglishDiscourseParser {
                              }.sequence[EitherS, PrepositionalPhrase]
     } yield prepositionModifiers.foldRight(nounPhrase)(NounPhrasePreposition.apply)
   }
-  
-  private def parseNer(nerString: String): Option[NamedEntityType] = nerString match {
-    case "LOCATION"     => Some(Person)
-    case "PERSON"       => Some(Person)
-    case "ORGANIZATION" => Some(Organization)
-    case "MONEY"        => Some(Money)
-    case "PERCENT"      => Some(Percent)
-    case "DATE"         => Some(Date)
-    case "TIME"         => Some(Time)
-    case _              => None
-  }
-  
-  private def parseGender(genderString: String): Option[NamedEntityGender] = genderString match {
-    case "MALE"   => Some(Male)
-    case "FEMALE" => Some(Female)
-    case _        => None
-  }
 
   private def parseNounPhrase(
     nounTree: IndexedWord
@@ -423,9 +407,5 @@ object EnglishDiscourseParser {
         .map(parseSentence)
         .sequence
     } yield Discourse(result)
-  }
-
-  def main(args: Array[String]): Unit = {
-    print(parse("Every farmer who owns a donkey beats it"))
   }
 }
