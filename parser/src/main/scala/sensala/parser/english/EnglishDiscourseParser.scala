@@ -1,28 +1,28 @@
-package sensala.parser
+package sensala.parser.english
 
-import edu.stanford.nlp.ling.{CoreAnnotations, IndexedWord}
-import edu.stanford.nlp.semgraph.{SemanticGraph, SemanticGraphCoreAnnotations}
 import cats.implicits._
 import com.typesafe.scalalogging.Logger
 import edu.stanford.nlp.ling.CoreAnnotations.SentencesAnnotation
+import edu.stanford.nlp.ling.{CoreAnnotations, IndexedWord}
 import edu.stanford.nlp.pipeline.Annotation
 import edu.stanford.nlp.process.Morphology
+import edu.stanford.nlp.semgraph.{SemanticGraph, SemanticGraphCoreAnnotations}
 import edu.stanford.nlp.trees.Tree
 import edu.stanford.nlp.trees.TreeCoreAnnotations.TreeAnnotation
 import edu.stanford.nlp.util.CoreMap
-import sensala.structure._
-import sensala.structure.Sentence
+import sensala.parser.english.EnglishSensalaGrammaticalRelations._
+import sensala.structure.{Sentence, _}
 import sensala.structure.adjective._
 import sensala.structure.adverb._
 import sensala.structure.noun._
+import sensala.structure.noun.pronoun._
 import sensala.structure.prepositional._
 import sensala.structure.verb._
 import sensala.structure.wh._
-import sensala.parser.SensalaGrammaticalRelations._
 
 import scala.collection.convert.ImplicitConversionsToScala._
 
-object DiscourseParser {
+object EnglishDiscourseParser {
   private val logger = Logger[this.type]
   
   type EitherS[T] = Either[String, T]
@@ -409,19 +409,23 @@ object DiscourseParser {
 
   def buildPennTaggedTree(discourse: String): List[Tree] = {
     val document = new Annotation(discourse)
-    SensalaStanfordParser.annotate(document)
+    EnglishSensalaStanfordParser.annotate(document)
     val sentences: List[CoreMap] = document.get(classOf[SentencesAnnotation]).toList
     sentences.map(_.get(classOf[TreeAnnotation]))
   }
   
   def parse(discourse: String): Either[String, Discourse] = {
     val document = new Annotation(discourse)
-    SensalaStanfordParser.annotate(document)
+    EnglishSensalaStanfordParser.annotate(document)
     val sentences: List[CoreMap] = document.get(classOf[SentencesAnnotation]).toList
     for {
       result <- sentences
         .map(parseSentence)
         .sequence
     } yield Discourse(result)
+  }
+
+  def main(args: Array[String]): Unit = {
+    print(parse("Every farmer who owns a donkey beats it"))
   }
 }

@@ -1,7 +1,6 @@
 package sensala
 
 import sensala.normalization.NormalFormConverter
-import sensala.parser.DiscourseParser
 import sensala.postprocessing.PrettyTransformer
 import sensala.structure._
 import com.typesafe.scalalogging.Logger
@@ -11,6 +10,7 @@ import org.aossie.scavenger.structure.immutable.AxiomClause
 import org.atnos.eff._
 import org.atnos.eff.syntax.all._
 import sensala.error.NLError
+import sensala.parser.english.EnglishDiscourseParser
 
 object CLI {
   private val logger = Logger[this.type]
@@ -43,7 +43,7 @@ object CLI {
   
   def main(args: Array[String]): Unit = {
     parser.parse(args, Config()) foreach { c =>
-      DiscourseParser.parse(c.discourse) match {
+      EnglishDiscourseParser.parse(c.discourse) match {
         case Left(error) =>
           logger.error(
             s"""Parsing failed:

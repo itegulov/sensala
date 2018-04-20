@@ -1,17 +1,19 @@
 package sensala.parser
 
 import sensala.SensalaSpec
+import sensala.parser.english.EnglishDiscourseParser
 import sensala.structure._
 import sensala.structure.adjective._
 import sensala.structure.adverb._
 import sensala.structure.noun._
+import sensala.structure.noun.pronoun.{DemonstrativePronoun, PossessivePronoun, ReflexivePronoun}
 import sensala.structure.prepositional._
 import sensala.structure.verb._
 import sensala.structure.wh._
 
 class ACL2018SensalaDemoParserSpec extends SensalaSpec {
   def parse(discourse: String): Either[String, Discourse] = {
-    DiscourseParser.parse(discourse)
+    EnglishDiscourseParser.parse(discourse)
   }
   
   val John = ExistentialQuantifier(ProperNoun("John", Some(Person), Some(Male)))

@@ -8,14 +8,14 @@ import org.scalactic.Equality
 import sensala.SensalaSpec
 import sensala.error.NLError
 import sensala.normalization.NormalFormConverter
-import sensala.parser.DiscourseParser
+import sensala.parser.english.EnglishDiscourseParser
 import sensala.postprocessing.PrettyTransformer
 import sensala.structure.types._
 import sensala.structure._
 
 class CommonInterpretationSpec extends SensalaSpec {
   def interpret(text: String): E = {
-    DiscourseParser.parse(text) match {
+    EnglishDiscourseParser.parse(text) match {
       case Left(error) =>
         sys.error(error)
       case Right(sentence) =>

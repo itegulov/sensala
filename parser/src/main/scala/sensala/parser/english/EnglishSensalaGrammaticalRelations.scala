@@ -1,8 +1,8 @@
-package sensala.parser
+package sensala.parser.english
 
 import edu.stanford.nlp.trees.UniversalEnglishGrammaticalRelations
 
-object SensalaGrammaticalRelations {
+object EnglishSensalaGrammaticalRelations {
   val Det = UniversalEnglishGrammaticalRelations.DETERMINER
   val AdjMod = UniversalEnglishGrammaticalRelations.ADJECTIVAL_MODIFIER
   val AdvMod = UniversalEnglishGrammaticalRelations.ADVERBIAL_MODIFIER
