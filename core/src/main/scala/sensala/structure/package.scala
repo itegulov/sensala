@@ -82,25 +82,28 @@ package object structure {
   def findAnaphoricEntity(properties: List[Property]): NLEff[Var] =
     for {
       x <- bindFreeVar
-      propertiesE = properties.map(p => p.propertyExp(x)).foldLeft(truth(x))(_ /\ _)
-      result <- findAnaphoricEntity(propertiesE, x)
+      propertiesE = properties.map(p => p.propertyExp(x))
+      propertiesResult = if (propertiesE.isEmpty) truth(x) else propertiesE.reduceLeft(_ /\ _)
+      result <- findAnaphoricEntity(propertiesResult, x)
     } yield result
 
   def findAnaphoricEntityOpt(properties: List[Property]): NLEff[Option[Var]] =
     for {
       x <- bindFreeVar
-      propertiesE = properties.map(p => p.propertyExp(x)).foldLeft(truth(x))(_ /\ _)
-      result <- findAnaphoricEntityOpt(propertiesE, x)
+      propertiesE = properties.map(p => p.propertyExp(x))
+      propertiesResult = if (propertiesE.isEmpty) truth(x) else propertiesE.reduceLeft(_ /\ _)
+      result <- findAnaphoricEntityOpt(propertiesResult, x)
     } yield result
   
   def findAnaphoricEvent(properties: List[Sym]): NLEff[Var] =
     for {
       x <- bindFreeVar
-      propertiesE = properties.map(_.apply(x)).foldRight(truth(x))(_ /\ _)
-      refOpt <- gets[NLFx, Context, Option[Var]](_.findAnaphoricEvent(x, propertiesE))
+      propertiesE = properties.map(_.apply(x))
+      propertiesResult = if (propertiesE.isEmpty) truth(x) else propertiesE.reduceLeft(_ /\ _)
+      refOpt <- gets[NLFx, Context, Option[Var]](_.findAnaphoricEvent(x, propertiesResult))
       ref <- refOpt match {
         case Some(ref) => right[NLFx, NLError, Var](ref)
-        case None => left[NLFx, NLError, Var](NLUnknownAnaphoricReferent(propertiesE))
+        case None => left[NLFx, NLError, Var](NLUnknownAnaphoricReferent(propertiesResult))
       }
     } yield ref
 
