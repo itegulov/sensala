@@ -16,6 +16,7 @@ import sensala.structure._
 import sensala.structure.adjective._
 import sensala.structure.adverb._
 import sensala.structure.noun._
+import sensala.structure.noun.pronoun._
 import sensala.structure.prepositional._
 import sensala.structure.verb._
 import sensala.structure.wh._
@@ -237,6 +238,41 @@ object GermanDiscourseParser extends DiscourseParser {
     } yield prepositionModifiers.foldRight(nounPhrase)(NounPhrasePreposition.apply)
   }
 
+  private def parsePersonalPronoun(word: IndexedWord): Either[String, PersonalPronoun] = {
+    word.word.toLowerCase match {
+      case "ich" | "meiner"                => Right(FirstPersonSingularPersonalPronoun(word.word))
+      case "du" | "deiner"                 => Right(SecondPersonSingularPersonalPronoun(word.word))
+      case "er" | "ihn" | "ihm" | "seiner" => Right(ThirdPersonSingularPersonalPronoun(word.word, Masculine))
+      case "sie" | "ihr" | "ihrer"         => Right(ThirdPersonSingularPersonalPronoun(word.word, Feminine))
+      case "es"                            => Right(ThirdPersonSingularPersonalPronoun(word.word, Neuter))
+      case "wir" | "unser"                 => Right(FirstPersonPluralPersonalPronoun(word.word))
+      case "ihr" | "euer"                  => Right(SecondPersonPluralPersonalPronoun(word.word))
+      case "sie" | "ihnen" | "ihrer"       => Right(ThirdPersonPluralPersonalPronoun(word.word))
+      case _                               => Left(s"Unknown personal pronoun: ${word.word}")
+    }
+  }
+
+  private def parseReflexivePronoun(word: IndexedWord): Either[String, ReflexivePronoun] = {
+    word.word.toLowerCase match {
+      case "mich" | "mir" => Right(FirstPersonSingularReflexivePronoun(word.word))
+      case "dich" | "dir" => Right(SecondPersonSingularReflexivePronoun(word.word))
+      case "sich"         => Right(ThirdPersonSingularReflexivePronoun(word.word, Neuter))
+      case "uns"          => Right(FirstPersonPluralReflexivePronoun(word.word))
+      case "euch"         => Right(SecondPersonPluralReflexivePronoun(word.word))
+      case "sich"         => Right(ThirdPersonPluralReflexivePronoun(word.word))
+      case _              => Left(s"Unknown reflexive pronoun: ${word.word}")
+    }
+  }
+
+  private def parsePersonalOrReflexivePronoun(word: IndexedWord): Either[String, Pronoun] =
+    parsePersonalPronoun(word).orElse(parseReflexivePronoun(word))
+
+  private def parsePossessivePronoun(word: IndexedWord): Either[String, PossessivePronoun] = {
+    word.word.toLowerCase match {
+      case _                  => Left(s"Unknown possessive pronoun: ${word.word}")
+    }
+  }
+
   private def parseNounPhrase(
     nounTree: IndexedWord
   )(implicit graph: SemanticGraph): Either[String, NounPhrase] =
@@ -276,13 +312,15 @@ object GermanDiscourseParser extends DiscourseParser {
       case "PPER" =>
         logger.info(Option(nounTree.backingLabel().get(classOf[CorefCoreAnnotations.CorefClusterAnnotation])).map(_.toSet).toString)
         for {
-          adjectiveNounPhrase <- parseAdjectiveNounPhrase(nounTree, ReflexivePronoun(nounTree.word))
+          pronoun             <- parsePersonalOrReflexivePronoun(nounTree)
+          adjectiveNounPhrase <- parseAdjectiveNounPhrase(nounTree, pronoun)
           whNounPhrase        <- parseWhNounPhrase(nounTree, adjectiveNounPhrase)
           prepNounPhrase      <- parsePrepositionalNounPhrase(nounTree, whNounPhrase)
         } yield prepNounPhrase
       case "PPOSS" =>
         for {
-          adjectiveNounPhrase <- parseAdjectiveNounPhrase(nounTree, PossessivePronoun(nounTree.word))
+          possessivePronoun   <- parsePossessivePronoun(nounTree)
+          adjectiveNounPhrase <- parseAdjectiveNounPhrase(nounTree, possessivePronoun)
           whNounPhrase        <- parseWhNounPhrase(nounTree, adjectiveNounPhrase)
           prepNounPhrase      <- parsePrepositionalNounPhrase(nounTree, whNounPhrase)
         } yield prepNounPhrase

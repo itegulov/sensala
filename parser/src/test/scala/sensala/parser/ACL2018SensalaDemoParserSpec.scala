@@ -6,20 +6,15 @@ import sensala.structure._
 import sensala.structure.adjective._
 import sensala.structure.adverb._
 import sensala.structure.noun._
-import sensala.structure.noun.pronoun.{DemonstrativePronoun, PossessivePronoun, ReflexivePronoun}
+import sensala.structure.noun.pronoun._
 import sensala.structure.prepositional._
 import sensala.structure.verb._
 import sensala.structure.wh._
 
-class ACL2018SensalaDemoParserSpec extends SensalaSpec {
+class ACL2018SensalaDemoParserSpec extends CommonParserSpec {
   def parse(discourse: String): Either[String, Discourse] = {
     EnglishDiscourseParser.parse(discourse)
   }
-  
-  val John = ExistentialQuantifier(ProperNoun("John", Some(Person), Some(Male)))
-  val Bob  = ExistentialQuantifier(ProperNoun("Bob", Some(Person), Some(Male)))
-  val Mary = ExistentialQuantifier(ProperNoun("Mary", Some(Person), Some(Female)))
-  val Ann  = ExistentialQuantifier(ProperNoun("Ann", Some(Person), Some(Female)))
   
   it should "parse examples from ACL 2018 system demonstration paper" in {
     parse("John loves Mary").right.value shouldBe Discourse(List(
@@ -32,12 +27,12 @@ class ACL2018SensalaDemoParserSpec extends SensalaSpec {
     
     parse("John loves Mary. She believes him.").right.value shouldBe Discourse(List(
       Sentence(John, TransitiveVerb("loves", Mary)),
-      Sentence(ReflexivePronoun("She"), TransitiveVerb("believes", ReflexivePronoun("him")))
+      Sentence(She, TransitiveVerb("believes", him))
     ))
 
     parse("John loves Mary. She believes this.").right.value shouldBe Discourse(List(
       Sentence(John, TransitiveVerb("loves", Mary)),
-      Sentence(ReflexivePronoun("She"), TransitiveVerb("believes", DemonstrativePronoun("this")))
+      Sentence(She, TransitiveVerb("believes", DemonstrativePronoun("this")))
     ))
 
     parse("John ate a pizza with a fork. Bob did too.").right.value shouldBe Discourse(List(
@@ -70,7 +65,7 @@ class ACL2018SensalaDemoParserSpec extends SensalaSpec {
         )),
         VerbSentencePhrase(
           "thinks",
-          Sentence(ReflexivePronoun("he"), VerbAdjectivePhrase("is", Adjective("rich")))
+          Sentence(he, VerbAdjectivePhrase("is", Adjective("rich")))
         )
       )
     ))
@@ -98,7 +93,7 @@ class ACL2018SensalaDemoParserSpec extends SensalaSpec {
           TransitiveVerb(
             "left",
             ExistentialQuantifier(NounPhrasePreposition(
-              PossessionPhrase(PossessivePronoun("his")),
+              PossessionPhrase(his),
               CommonNoun("wallet")
             ))
           )

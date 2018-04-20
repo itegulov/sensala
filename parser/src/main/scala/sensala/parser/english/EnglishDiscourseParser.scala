@@ -218,6 +218,50 @@ object EnglishDiscourseParser extends DiscourseParser {
     } yield prepositionModifiers.foldRight(nounPhrase)(NounPhrasePreposition.apply)
   }
 
+
+
+  private def parsePersonalPronoun(word: IndexedWord): Either[String, PersonalPronoun] = {
+    word.word.toLowerCase match {
+      case "i" | "me"      => Right(FirstPersonSingularPersonalPronoun(word.word))
+      case "you"           => Right(SecondPersonSingularPersonalPronoun(word.word))
+      case "he" | "him"    => Right(ThirdPersonSingularPersonalPronoun(word.word, Masculine))
+      case "she" | "her"   => Right(ThirdPersonSingularPersonalPronoun(word.word, Feminine))
+      case "it"            => Right(ThirdPersonSingularPersonalPronoun(word.word, Neuter))
+      case "we" | "us"     => Right(FirstPersonPluralPersonalPronoun(word.word))
+      case "they" | "them" => Right(ThirdPersonPluralPersonalPronoun(word.word))
+      case _               => Left(s"Unknown personal pronoun: ${word.word}")
+    }
+  }
+
+  private def parseReflexivePronoun(word: IndexedWord): Either[String, ReflexivePronoun] = {
+    word.word.toLowerCase match {
+      case "myself"     => Right(FirstPersonSingularReflexivePronoun(word.word))
+      case "yourself"   => Right(SecondPersonSingularReflexivePronoun(word.word))
+      case "himself"    => Right(ThirdPersonSingularReflexivePronoun(word.word, Masculine))
+      case "herself"    => Right(ThirdPersonSingularReflexivePronoun(word.word, Feminine))
+      case "itself"     => Right(ThirdPersonSingularReflexivePronoun(word.word, Neuter))
+      case "ourselves"  => Right(FirstPersonPluralReflexivePronoun(word.word))
+      case "themselves" => Right(ThirdPersonPluralReflexivePronoun(word.word))
+      case _            => Left(s"Unknown reflexive pronoun: ${word.word}")
+    }
+  }
+  
+  private def parsePersonalOrReflexivePronoun(word: IndexedWord): Either[String, Pronoun] =
+    parsePersonalPronoun(word).orElse(parseReflexivePronoun(word))
+
+  private def parsePossessivePronoun(word: IndexedWord): Either[String, PossessivePronoun] = {
+    word.word.toLowerCase match {
+      case "my" | "mine"      => Right(FirstPersonSingularPossessivePronoun(word.word))
+      case "your" | "yours"   => Right(SecondPersonSingularPossessivePronoun(word.word))
+      case "his"              => Right(ThirdPersonSingularPossessivePronoun(word.word, Masculine))
+      case "her" | "hers"     => Right(ThirdPersonSingularPossessivePronoun(word.word, Feminine))
+      case "its"              => Right(ThirdPersonSingularPossessivePronoun(word.word, Neuter))
+      case "our" | "ours"     => Right(FirstPersonPluralPossessivePronoun(word.word))
+      case "their" | "theirs" => Right(ThirdPersonPluralPossessivePronoun(word.word))
+      case _                  => Left(s"Unknown possessive pronoun: ${word.word}")
+    }
+  }
+
   private def parseNounPhrase(
     nounTree: IndexedWord
   )(implicit graph: SemanticGraph): Either[String, NounPhrase] =
@@ -256,13 +300,15 @@ object EnglishDiscourseParser extends DiscourseParser {
         } yield ExistentialQuantifier(prepNounPhrase)
       case "PRP" =>
         for {
-          adjectiveNounPhrase <- parseAdjectiveNounPhrase(nounTree, ReflexivePronoun(nounTree.word))
+          pronoun             <- parsePersonalOrReflexivePronoun(nounTree)
+          adjectiveNounPhrase <- parseAdjectiveNounPhrase(nounTree, pronoun)
           whNounPhrase        <- parseWhNounPhrase(nounTree, adjectiveNounPhrase)
           prepNounPhrase      <- parsePrepositionalNounPhrase(nounTree, whNounPhrase)
         } yield prepNounPhrase
       case "PRP$" =>
         for {
-          adjectiveNounPhrase <- parseAdjectiveNounPhrase(nounTree, PossessivePronoun(nounTree.word))
+          possessivePronoun   <- parsePossessivePronoun(nounTree)
+          adjectiveNounPhrase <- parseAdjectiveNounPhrase(nounTree, possessivePronoun)
           whNounPhrase        <- parseWhNounPhrase(nounTree, adjectiveNounPhrase)
           prepNounPhrase      <- parsePrepositionalNounPhrase(nounTree, whNounPhrase)
         } yield prepNounPhrase

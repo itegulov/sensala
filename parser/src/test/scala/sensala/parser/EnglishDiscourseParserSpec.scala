@@ -1,30 +1,25 @@
 package sensala.parser
 
-import sensala.SensalaSpec
 import sensala.parser.english.EnglishDiscourseParser
 import sensala.structure._
 import sensala.structure.adjective._
 import sensala.structure.adverb.{Adverb, VerbAdverbPhrase}
 import sensala.structure.noun._
-import sensala.structure.noun.pronoun.ReflexivePronoun
 import sensala.structure.prepositional.InPhrase
 import sensala.structure.verb._
 import sensala.structure.wh._
 
-class EnglishDiscourseParserSpec extends SensalaSpec {
+class EnglishDiscourseParserSpec extends CommonParserSpec {
   def parse(discourse: String): Either[String, Discourse] = {
     EnglishDiscourseParser.parse(discourse)
   }
-
-  val John = ExistentialQuantifier(ProperNoun("John", Some(Person), Some(Male)))
-  val Mary = ExistentialQuantifier(ProperNoun("Mary", Some(Person), Some(Female)))
   
   it should "parse simple sentences" in {
     parse("John walks").right.value shouldBe Discourse(List(
       Sentence(John, IntransitiveVerb("walks"))
     ))
     parse("Mary loves herself").right.value shouldBe Discourse(List(
-      Sentence(Mary, TransitiveVerb("loves", ReflexivePronoun("herself")))
+      Sentence(Mary, TransitiveVerb("loves", herself))
     ))
   }
 
@@ -44,13 +39,13 @@ class EnglishDiscourseParserSpec extends SensalaSpec {
     parse("Every farmer who owns a donkey beats it").right.value shouldBe Discourse(List(
       Sentence(
         ForallQuantifier(WhNounPhrase(TransitiveVerb("owns", ExistentialQuantifier(CommonNoun("donkey"))), CommonNoun("farmer"))),
-        TransitiveVerb("beats", ReflexivePronoun("it"))
+        TransitiveVerb("beats", itPronoun)
       )
     ))
     parse("A farmer who owns a donkey beats it").right.value shouldBe Discourse(List(
       Sentence(
         ExistentialQuantifier(WhNounPhrase(TransitiveVerb("owns", ExistentialQuantifier(CommonNoun("donkey"))), CommonNoun("farmer"))),
-        TransitiveVerb("beats", ReflexivePronoun("it"))
+        TransitiveVerb("beats", itPronoun)
       )
     ))
     parse("A farmer who eats walks").right.value shouldBe Discourse(List(
@@ -65,7 +60,7 @@ class EnglishDiscourseParserSpec extends SensalaSpec {
     parse("Every farmer who owns a donkey beats it. John is a farmer. John owns a donkey.").right.value shouldBe Discourse(List(
       Sentence(
         ForallQuantifier(WhNounPhrase(TransitiveVerb("owns", ExistentialQuantifier(CommonNoun("donkey"))), CommonNoun("farmer"))),
-        TransitiveVerb("beats", ReflexivePronoun("it"))
+        TransitiveVerb("beats", itPronoun)
       ),
       Sentence(
         John,
@@ -92,7 +87,7 @@ class EnglishDiscourseParserSpec extends SensalaSpec {
         VerbSentencePhrase(
           "believes",
           Sentence(
-            ReflexivePronoun("he"),
+            he,
             VerbAdjectivePhrase("is", Adjective("smart"))
           )
         )

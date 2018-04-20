@@ -10,12 +10,13 @@ import org.atnos.eff.syntax.all._
 import play.api.libs.json._
 import sensala.error.NLError
 import sensala.normalization.NormalFormConverter
-import sensala.parser.DiscourseParser
+import sensala.parser.english.EnglishDiscourseParser
 import sensala.postprocessing.PrettyTransformer
 import sensala.structure._
 import sensala.structure.adjective._
 import sensala.structure.adverb._
 import sensala.structure.noun._
+import sensala.structure.noun.pronoun._
 import sensala.structure.prepositional._
 import sensala.structure.verb._
 import sensala.structure.wh._
@@ -88,23 +89,11 @@ case class InterpretationActor() extends Actor with ActorLogging {
           "type-propernoun",
           List(atomNode(s"$word"))
         )
-      case PossessivePronoun(word) =>
+      case pronoun: Pronoun =>
         SensalaNode(
-          "PossessivePronoun",
-          "type-posspronoun",
-          List(atomNode(word))
-        )
-      case ReflexivePronoun(word) =>
-        SensalaNode(
-          "ReflexivePronoun",
-          "type-reflpronoun",
-          List(atomNode(word))
-        )
-      case DemonstrativePronoun(word) =>
-        SensalaNode(
-          "DemonstrativePronoun",
-          "type-demopronoun",
-          List(atomNode(word))
+          pronoun.getClass.getSimpleName,
+          "type-pronoun",
+          List(atomNode(pronoun.word))
         )
       case ForallQuantifier(np) =>
         SensalaNode(
@@ -209,7 +198,7 @@ case class InterpretationActor() extends Actor with ActorLogging {
     case IncomingMessage(message) =>
       message.validate[SensalaInterpretMessage] match {
         case JsSuccess(SensalaRunInterpretation(discourse), _) =>
-          val sentences = DiscourseParser.buildPennTaggedTree(discourse)
+          val sentences = EnglishDiscourseParser.buildPennTaggedTree(discourse)
           log.info(
             s"""
                |Result of Stanford parsing:
@@ -217,7 +206,7 @@ case class InterpretationActor() extends Actor with ActorLogging {
             """.stripMargin
           )
           outgoing ! OutgoingMessage(Json.toJson(StanfordParsed(convertTree(sentences.head))))
-          val parsed = Try(DiscourseParser.parse(discourse))
+          val parsed = Try(EnglishDiscourseParser.parse(discourse))
             .getOrElse(Left("Invalid sentence (maybe a grammatical mistake?)"))
           parsed match {
             case Left(error) =>
