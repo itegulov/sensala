@@ -26,7 +26,7 @@ final case class Context(
             (All(v, entity, ~properties), NegConjectureClause)
           )
         )
-        EPCR.prove(cnf, 5 seconds) match {
+        EPCR.prove(cnf, 1 seconds) match {
           case Unsatisfiable(_) => true
           case _                => false
         }
