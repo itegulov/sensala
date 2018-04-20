@@ -218,7 +218,17 @@ object EnglishDiscourseParser extends DiscourseParser {
     } yield prepositionModifiers.foldRight(nounPhrase)(NounPhrasePreposition.apply)
   }
 
-
+  private def parseIndefinitePronoun(word: IndexedWord): Either[String, IndefinitePronoun] = {
+    word.word.toLowerCase match {
+      case "nobody"                 => Right(NegativePersonSingularIndefinitePronoun(word.word))
+      case "everyone" | "everybody" => Right(UniversalPersonSingularIndefinitePronoun(word.word))
+      case "someone" | "somebody"   => Right(ExistentialPersonSingularIndefinitePronoun(word.word))
+      case "nothing"                => Right(NegativePersonSingularIndefinitePronoun(word.word))
+      case "everything"             => Right(UniversalPersonSingularIndefinitePronoun(word.word))
+      case "something"              => Right(ExistentialPersonSingularIndefinitePronoun(word.word))
+      case _                        => Left(s"Unknown indefinite pronoun: ${word.word}")
+    }
+  }
 
   private def parsePersonalPronoun(word: IndexedWord): Either[String, PersonalPronoun] = {
     word.word.toLowerCase match {
@@ -267,27 +277,32 @@ object EnglishDiscourseParser extends DiscourseParser {
   )(implicit graph: SemanticGraph): Either[String, NounPhrase] =
     nounTree.tag match {
       case "NN" =>
-        parseCommonNoun(nounTree) match {
-          case Right(Existential) =>
-            for {
-              adjectiveNounPhrase <- parseAdjectiveNounPhrase(nounTree, CommonNoun(nounTree.word))
-              whNounPhrase        <- parseWhNounPhrase(nounTree, adjectiveNounPhrase)
-              prepNounPhrase      <- parsePrepositionalNounPhrase(nounTree, whNounPhrase)
-            } yield ExistentialQuantifier(prepNounPhrase)
-          case Right(Forall) =>
-            for {
-              adjectiveNounPhrase <- parseAdjectiveNounPhrase(nounTree, CommonNoun(nounTree.word))
-              whNounPhrase        <- parseWhNounPhrase(nounTree, adjectiveNounPhrase)
-              prepNounPhrase      <- parsePrepositionalNounPhrase(nounTree, whNounPhrase)
-            } yield ForallQuantifier(prepNounPhrase)
-          case Right(The) =>
-            for {
-              adjectiveNounPhrase <- parseAdjectiveNounPhrase(nounTree, CommonNoun(nounTree.word))
-              whNounPhrase        <- parseWhNounPhrase(nounTree, adjectiveNounPhrase)
-              prepNounPhrase      <- parsePrepositionalNounPhrase(nounTree, whNounPhrase)
-            } yield DefiniteNounPhrase(prepNounPhrase)
-          case Left(error) =>
-            Left(error)
+        parseIndefinitePronoun(nounTree) match {
+          case Right(pronoun) =>
+            Right(pronoun)
+          case Left(_) =>
+            parseCommonNoun(nounTree) match {
+              case Right(Existential) =>
+                for {
+                  adjectiveNounPhrase <- parseAdjectiveNounPhrase(nounTree, CommonNoun(nounTree.word))
+                  whNounPhrase        <- parseWhNounPhrase(nounTree, adjectiveNounPhrase)
+                  prepNounPhrase      <- parsePrepositionalNounPhrase(nounTree, whNounPhrase)
+                } yield ExistentialQuantifier(prepNounPhrase)
+              case Right(Forall) =>
+                for {
+                  adjectiveNounPhrase <- parseAdjectiveNounPhrase(nounTree, CommonNoun(nounTree.word))
+                  whNounPhrase        <- parseWhNounPhrase(nounTree, adjectiveNounPhrase)
+                  prepNounPhrase      <- parsePrepositionalNounPhrase(nounTree, whNounPhrase)
+                } yield ForallQuantifier(prepNounPhrase)
+              case Right(The) =>
+                for {
+                  adjectiveNounPhrase <- parseAdjectiveNounPhrase(nounTree, CommonNoun(nounTree.word))
+                  whNounPhrase        <- parseWhNounPhrase(nounTree, adjectiveNounPhrase)
+                  prepNounPhrase      <- parsePrepositionalNounPhrase(nounTree, whNounPhrase)
+                } yield DefiniteNounPhrase(prepNounPhrase)
+              case Left(error) =>
+                Left(error)
+            }   
         }
       case "NNP" =>
         val ner = Option(nounTree.ner()).flatMap(parseNer)
