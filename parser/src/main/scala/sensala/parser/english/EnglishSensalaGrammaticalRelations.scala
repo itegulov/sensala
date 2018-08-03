@@ -10,6 +10,7 @@ object EnglishSensalaGrammaticalRelations {
   val RelClMod = UniversalEnglishGrammaticalRelations.RELATIVE_CLAUSE_MODIFIER
   val NomMod = UniversalEnglishGrammaticalRelations.NOMINAL_MODIFIER
   val NomModOn = UniversalEnglishGrammaticalRelations.valueOf("nmod:on")
+  val NomModOf = UniversalEnglishGrammaticalRelations.valueOf("nmod:of")
   val NomModPoss = UniversalEnglishGrammaticalRelations.valueOf("nmod:poss")
   val DObj = UniversalEnglishGrammaticalRelations.DIRECT_OBJECT
   val NSubj = UniversalEnglishGrammaticalRelations.NOMINAL_SUBJECT

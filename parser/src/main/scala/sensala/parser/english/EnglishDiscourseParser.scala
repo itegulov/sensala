@@ -52,7 +52,7 @@ object EnglishDiscourseParser extends DiscourseParser {
         Right(Existential)
       case x :: Nil if x.word.toLowerCase == "every" =>
         Right(Forall)
-      case x :: Nil if x.word.toLowerCase == "the" =>
+      case x :: Nil if x.word.toLowerCase == "the" || x.word.toLowerCase == "this" || x.word.toLowerCase == "that" =>
         Right(The)
       case x :: Nil =>
         Left(s"Unknown determiner: ${x.word}")
@@ -197,7 +197,11 @@ object EnglishDiscourseParser extends DiscourseParser {
     }
     for {
       prepositionModifiers <- prepositions.map {
-                               case (rel, preposition) if rel == NomModOn =>
+                               case (rel, preposition) if rel == NomModPoss =>
+                                 for {
+                                   prepositionNounPhrase <- parseNounPhrase(preposition)
+                                 } yield PossessionPhrase(prepositionNounPhrase)
+                               case (_, preposition) =>
                                  for {
                                    prepositionNounPhrase <- parseNounPhrase(preposition)
                                    prepositionGraphMap = graph
@@ -205,15 +209,9 @@ object EnglishDiscourseParser extends DiscourseParser {
                                      .map(pairToTuple)
                                      .toMap
                                    caseWord <- prepositionGraphMap
-                                                .get(Case)
-                                                .toRight("Invalid preposition: no case word")
+                                     .get(Case)
+                                     .toRight("Invalid preposition: no case word")
                                  } yield InPhrase(caseWord.word, prepositionNounPhrase)
-                               case (rel, preposition) if rel == NomModPoss =>
-                                 for {
-                                   prepositionNounPhrase <- parseNounPhrase(preposition)
-                                 } yield PossessionPhrase(prepositionNounPhrase)
-                               case _ =>
-                                 Left("Illegal nominal modifier")
                              }.sequence[EitherS, PrepositionalPhrase]
     } yield prepositionModifiers.foldRight(nounPhrase)(NounPhrasePreposition.apply)
   }
