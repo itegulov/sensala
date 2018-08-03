@@ -39,7 +39,7 @@ object EnglishDiscourseParser extends DiscourseParser {
   private def parseCommonNoun(
     nounPhrase: IndexedWord
   )(implicit graph: SemanticGraph): Either[String, CommonNounDeterminer] = {
-    require(nounPhrase.tag == "NN")
+    require(nounPhrase.tag == "NN" || nounPhrase.tag == "NNS")
     val children = graph.childPairs(nounPhrase).toList.map(pairToTuple)
     val determiners = children.collect {
       case (rel, word) if rel == Det => word
@@ -313,6 +313,34 @@ object EnglishDiscourseParser extends DiscourseParser {
           whNounPhrase        <- parseWhNounPhrase(nounTree, adjectiveNounPhrase)
           prepNounPhrase      <- parsePrepositionalNounPhrase(nounTree, whNounPhrase)
         } yield ExistentialQuantifier(prepNounPhrase)
+      case "NNS" =>
+        parseIndefinitePronoun(nounTree) match {
+          case Right(pronoun) =>
+            Right(pronoun)
+          case Left(_) =>
+            parseCommonNoun(nounTree) match {
+              case Right(Existential) =>
+                for {
+                  adjectiveNounPhrase <- parseAdjectiveNounPhrase(nounTree, CommonNoun(nounTree.word))
+                  whNounPhrase        <- parseWhNounPhrase(nounTree, adjectiveNounPhrase)
+                  prepNounPhrase      <- parsePrepositionalNounPhrase(nounTree, whNounPhrase)
+                } yield ExistentialQuantifier(prepNounPhrase)
+              case Right(Forall) =>
+                for {
+                  adjectiveNounPhrase <- parseAdjectiveNounPhrase(nounTree, CommonNoun(nounTree.word))
+                  whNounPhrase        <- parseWhNounPhrase(nounTree, adjectiveNounPhrase)
+                  prepNounPhrase      <- parsePrepositionalNounPhrase(nounTree, whNounPhrase)
+                } yield ForallQuantifier(prepNounPhrase)
+              case Right(The) =>
+                for {
+                  adjectiveNounPhrase <- parseAdjectiveNounPhrase(nounTree, CommonNoun(nounTree.word))
+                  whNounPhrase        <- parseWhNounPhrase(nounTree, adjectiveNounPhrase)
+                  prepNounPhrase      <- parsePrepositionalNounPhrase(nounTree, whNounPhrase)
+                } yield DefiniteNounPhrase(prepNounPhrase)
+              case Left(error) =>
+                Left(error)
+            }
+        }
       case "PRP" =>
         for {
           pronoun             <- parsePersonalOrReflexivePronoun(nounTree)
