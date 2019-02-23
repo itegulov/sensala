@@ -5,6 +5,9 @@ import play.sbt._
 import play.sbt.PlayImport._
 import org.scalajs.sbtplugin.ScalaJSPlugin
 import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport._
+import org.portablescala.sbtplatformdeps.PlatformDepsPlugin.autoImport._
+import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType, _}
+import scalajscrossproject.ScalaJSCrossPlugin.autoImport._
 import webscalajs.WebScalaJS.autoImport._
 import com.typesafe.sbt.gzip.Import._
 import com.typesafe.sbt.web.Import._
@@ -134,22 +137,23 @@ object SensalaBuild {
       scalacOptions += "-P:scalajs:sjsDefinedByDefault",
       scalaJSUseMainModuleInitializer := true,
       libraryDependencies ++= commonDependencies ++ Seq(
-        "org.scala-js" %%% "scalajs-dom"    % "0.9.4",
+        "org.scala-js" %%% "scalajs-dom"    % "0.9.6",
         "org.singlespaced" %%% "scalajs-d3" % "0.3.4",
-        "com.typesafe.play" %%% "play-json" % "2.6.8"
+        "com.typesafe.play" %%% "play-json" % "2.6.10"
       )
     )
     .enablePlugins(ScalaJSPlugin, ScalaJSWeb)
     .dependsOn(webSharedJs)
 
-  lazy val webShared = (crossProject.crossType(CrossType.Pure) in file("web-shared"))
-    .settings(name := "sensala-web-shared")
-    .settings(
-      libraryDependencies ++= Seq(
-        "org.julienrf" %%% "play-json-derived-codecs" % "4.0.0"
+  lazy val webShared =
+    (crossProject(JSPlatform, JVMPlatform).crossType(CrossType.Pure) in file("web-shared"))
+      .settings(name := "sensala-web-shared")
+      .settings(
+        libraryDependencies ++= Seq(
+          "org.julienrf" %%% "play-json-derived-codecs" % "5.0.0"
+        )
       )
-    )
-    .jsConfigure(_.enablePlugins(ScalaJSPlugin, ScalaJSWeb))
+      .jsConfigure(_.enablePlugins(ScalaJSPlugin, ScalaJSWeb))
 
   lazy val webSharedJvm = webShared.jvm
   lazy val webSharedJs  = webShared.js
