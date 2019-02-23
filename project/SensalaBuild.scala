@@ -12,11 +12,13 @@ import com.typesafe.sbt.digest.Import._
 import sbtassembly._
 import webscalajs.ScalaJSWeb
 
+import Dependencies._
+
 object SensalaBuild {
   lazy val commonSettings = Seq(
     organization := "",
     version := "0.1",
-    scalaVersion := "2.12.4",
+    scalaVersion := "2.12.6",
     scalacOptions := Seq(
       "-encoding",
       "UTF-8",
@@ -37,46 +39,42 @@ object SensalaBuild {
     scalacOptions in (Compile, console) -= "-Ywarn-unused-import",
     scalacOptions in (Compile, doc) ++= Seq("-diagrams", "-implicits"),
     scalacOptions in Test ++= Seq("-Yrangepos"),
-    addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.6"),
     sbt.Keys.test in assembly := {}
   )
 
-  lazy val commonDeps = Seq(
-    libraryDependencies ++= Seq(
-      "ch.qos.logback"             % "logback-classic" % "1.2.3",
-      "com.typesafe.scala-logging" %% "scala-logging"  % "3.8.0",
-      "org.scalatest"              %% "scalatest"      % "3.0.5" % Test
-    )
-  )
-
   lazy val core = Project(id = "core", base = file("core"))
-    .settings(commonSettings ++ commonDeps)
+    .settings(commonSettings)
     .settings(name := "sensala-core")
     .settings(
-      libraryDependencies ++= Seq(
-        "org.typelevel"    %% "cats-core"      % "1.1.0",
-        "org.typelevel"    %% "cats-mtl-core"  % "0.2.3",
-        "org.atnos"        %% "eff"            % "5.1.0",
-        "net.sf.jwordnet"  % "jwnl"            % "1.3.3",
-        "com.ironcorelabs" %% "cats-scalatest" % "2.3.1" % Test,
-        "org.aossie"       %% "scavenger"      % "0.2.1-SNAPSHOT"
+      libraryDependencies ++= commonDependencies ++ Seq(
+        catsCore,
+        catsEffect,
+        catsMtl,
+        eff,
+        jwnl,
+        catsLawsTest,
+        catsLawsTestkitTest,
+        scavenger
       )
     )
 
   lazy val parser = Project(id = "parser", base = file("parser"))
-    .settings(commonSettings ++ commonDeps)
+    .settings(commonSettings)
     .settings(name := "sensala-parser")
     .settings(
-      libraryDependencies ++= Seq(
-        "edu.stanford.nlp" % "stanford-corenlp" % "3.9.1",
-        "edu.stanford.nlp" % "stanford-corenlp" % "3.9.1" classifier "models",
-        "edu.stanford.nlp" % "stanford-corenlp" % "3.9.1" classifier "models-german"
+      libraryDependencies ++= commonDependencies ++ Seq(
+        stanfordNlp,
+        stanfordNlpModelsEnglish,
+        stanfordNlpModelsGerman,
+        jaxbImpl,
+        jaxbCore,
+        javaxActivation
       )
     )
     .dependsOn(core)
 
   lazy val commandLine = Project(id = "cli", base = file("cli"))
-    .settings(commonSettings ++ commonDeps)
+    .settings(commonSettings)
     .settings(
       name := "sensala-cli",
       mainClass in assembly := Some("sensala.CLI"),
@@ -84,14 +82,14 @@ object SensalaBuild {
       trapExit in sensala := true,
       fork in sensala := false,
       traceLevel in sensala := 0,
-      libraryDependencies ++= Seq(
-        "com.github.scopt" %% "scopt" % "3.7.0"
+      libraryDependencies ++= commonDependencies ++ Seq(
+        scopt
       )
     )
     .dependsOn(core, parser)
 
   lazy val webServer = Project(id = "web-server", base = file("web-server"))
-    .settings(commonSettings ++ commonDeps)
+    .settings(commonSettings)
     .settings(name := "sensala-web-server")
     .settings(
       scalaJSProjects := Seq(webClient),
@@ -116,29 +114,29 @@ object SensalaBuild {
           val oldStrategy = (assemblyMergeStrategy in assembly).value
           oldStrategy(x)
       },
-      libraryDependencies ++= Seq(
+      libraryDependencies ++= commonDependencies ++ Seq(
         guice,
-        "org.webjars"     % "bootstrap"        % "4.0.0",
-        "org.webjars"     % "jquery"           % "3.3.1",
-        "org.webjars.npm" % "popper.js"        % "1.13.0",
-        "org.webjars"     % "d3js"             % "3.5.17",
-        "org.webjars.npm" % "dagre-d3"         % "0.4.17",
-        "com.vmunier"     %% "scalajs-scripts" % "1.1.1"
+        webjarBootstrap,
+        webjarJquery,
+        webjarPopper,
+        webjarD3js,
+        webjarDagreD3,
+        scalaJsScripts
       )
     )
     .dependsOn(core, parser, webSharedJvm)
     .enablePlugins(PlayScala)
 
   lazy val webClient = Project(id = "web-client", base = file("web-client"))
-    .settings(commonSettings ++ commonDeps)
+    .settings(commonSettings)
     .settings(name := "sensala-web-client")
     .settings(
       scalacOptions += "-P:scalajs:sjsDefinedByDefault",
       scalaJSUseMainModuleInitializer := true,
-      libraryDependencies ++= Seq(
-        "org.scala-js"      %%% "scalajs-dom" % "0.9.4",
-        "org.singlespaced"  %%% "scalajs-d3"  % "0.3.4",
-        "com.typesafe.play" %%% "play-json"   % "2.6.8"
+      libraryDependencies ++= commonDependencies ++ Seq(
+        "org.scala-js" %%% "scalajs-dom"    % "0.9.4",
+        "org.singlespaced" %%% "scalajs-d3" % "0.3.4",
+        "com.typesafe.play" %%% "play-json" % "2.6.8"
       )
     )
     .enablePlugins(ScalaJSPlugin, ScalaJSWeb)
@@ -167,9 +165,10 @@ object SensalaBuild {
       webClient
     )
     .dependsOn(core, parser % "compile->compile;test->test", commandLine)
-    .settings(commonSettings ++ commonDeps)
+    .settings(commonSettings)
     .settings(
-      name := "Sensala"
+      name := "Sensala",
+      libraryDependencies ++= commonDependencies
     )
 
   val sensala = InputKey[Unit]("sensala", "A Dynamic Semantics Framework")

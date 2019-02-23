@@ -1,0 +1,62 @@
+import sbt._
+
+object Dependencies {
+  val catsVersion        = "1.6.0"
+  val catsMtlVersion     = "0.4.0"
+  val stanfordNlpVersion = "3.9.1"
+
+  val catsCore            = "org.typelevel" %% "cats-core"     % catsVersion
+  val catsLawsTest        = "org.typelevel" %% "cats-laws"     % catsVersion % Test
+  val catsLawsTestkitTest = "org.typelevel" %% "cats-testkit"  % catsVersion % Test
+  val catsEffect          = "org.typelevel" %% "cats-effect"   % "1.2.0"
+  val catsMtl             = "org.typelevel" %% "cats-mtl-core" % catsMtlVersion
+  val catsMtlLawsTest     = "org.typelevel" %% "cats-mtl-laws" % catsMtlVersion % Test
+
+  val monix = "io.monix" %% "monix" % "3.0.0-RC2"
+
+  val scalatest           = "org.scalatest"              %% "scalatest"                 % "3.0.5" % Test
+  val scalactic           = "org.scalactic"              %% "scalactic"                 % "3.0.5" % Test
+  val scalacheck          = "org.scalacheck"             %% "scalacheck"                % "1.13.5" % Test
+  val scalacheckNoTest    = "org.scalacheck"             %% "scalacheck"                % "1.13.5"
+  val scalacheckShapeless = "com.github.alexarchambault" %% "scalacheck-shapeless_1.13" % "1.1.8" % Test
+
+  // TODO: Get rid of Eff
+  val eff = "org.atnos" %% "eff" % "5.1.0"
+
+  val jwnl = "net.sf.jwordnet" % "jwnl" % "1.3.3"
+
+  val jaxbImpl        = "com.sun.xml.bind" % "jaxb-impl"  % "2.2.11"
+  val jaxbCore        = "com.sun.xml.bind" % "jaxb-core"  % "2.2.11"
+  val javaxActivation = "javax.activation" % "activation" % "1.1.1"
+
+  val stanfordNlp              = "edu.stanford.nlp" % "stanford-corenlp" % "3.9.1"
+  val stanfordNlpModelsEnglish = "edu.stanford.nlp" % "stanford-corenlp" % "3.9.1" classifier "models"
+  val stanfordNlpModelsGerman  = "edu.stanford.nlp" % "stanford-corenlp" % "3.9.1" classifier "models-german"
+
+  val scopt = "com.github.scopt" %% "scopt" % "3.7.0"
+
+  val scalaLogging   = "com.typesafe.scala-logging" %% "scala-logging"  % "3.9.0"
+  val logbackClassic = "ch.qos.logback"             % "logback-classic" % "1.2.3"
+
+  val scavenger = "org.aossie" %% "scavenger" % "0.2.1-SNAPSHOT"
+
+  val scalaJsScripts = "com.vmunier" %% "scalajs-scripts" % "1.1.1"
+
+  val webjarBootstrap = "org.webjars"     % "bootstrap" % "4.0.0"
+  val webjarJquery    = "org.webjars"     % "jquery"    % "3.3.1"
+  val webjarPopper    = "org.webjars.npm" % "popper.js" % "1.13.0"
+  val webjarD3js      = "org.webjars"     % "d3js"      % "3.5.17"
+  val webjarDagreD3   = "org.webjars.npm" % "dagre-d3"  % "0.4.17"
+
+  val kindProjector    = compilerPlugin("org.spire-math" %% "kind-projector"     % "0.9.8")
+  val betterMonadicFor = compilerPlugin("com.olegpy"     %% "better-monadic-for" % "0.3.0-M4")
+
+  val testingDependencies: Seq[ModuleID] =
+    Seq(scalactic, scalatest, scalacheck)
+  val loggingDependencies: Seq[ModuleID] =
+    Seq(scalaLogging, logbackClassic)
+  val compilerPlugins: Seq[ModuleID] =
+    Seq(kindProjector, betterMonadicFor)
+  val commonDependencies: Seq[ModuleID] =
+    loggingDependencies ++ testingDependencies ++ compilerPlugins
+}
