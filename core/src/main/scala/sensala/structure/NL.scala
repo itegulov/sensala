@@ -1,14 +1,11 @@
 package sensala.structure
 
-import org.aossie.scavenger.expression.{E, Sym}
-import org.atnos.eff.Eff
+import org.aossie.scavenger.expression.E
 
-trait NL {
-  def interpret(cont: NLEff[E]): NLEff[E]
+trait NL[F[_]] {
+  def interpret(cont: F[E]): F[E]
 }
 
-trait Word extends NL {
+trait Word[F[_]] extends NL[F] {
   val word: String
-
-  override def interpret(cont: NLEff[E]): NLEff[E] = Eff.pure(Sym(word))
 }

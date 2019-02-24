@@ -2,4 +2,4 @@ package sensala.structure.verb
 
 import sensala.structure._
 
-trait VerbPhrase extends NL
+trait VerbPhrase[F[_]] extends NL[F]

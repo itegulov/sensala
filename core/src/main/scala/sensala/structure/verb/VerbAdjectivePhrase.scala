@@ -1,29 +1,31 @@
 package sensala.structure.verb
 
+import cats.Monad
+import cats.implicits._
 import org.aossie.scavenger.expression._
 import org.aossie.scavenger.expression.formula.Ex
 import sensala.structure.adjective.Adjective
 import sensala.structure._
-import org.atnos.eff.all._
-import sensala.error.{NLError, NLUnexpectedWord}
+import sensala.error.NLUnexpectedWord
+import sensala.structure.context.{Context, LocalContext}
 import sensala.structure.types.event
 
-final case class VerbAdjectivePhrase(
+final case class VerbAdjectivePhrase[F[_]: Monad: Context: LocalContext: FunctorRaiseNLError](
   verb: String,
   adjective: Adjective
-) extends VerbPhrase {
-  override def interpret(cont: NLEff[E]): NLEff[E] =
+) extends VerbPhrase[F] {
+  override def interpret(cont: F[E]): F[E] =
     verb match {
       case "is" | "was" =>
         for {
-          x     <- getEntity
-          e     <- bindFreeVar
-          _     <- putEvent(e)
+          x     <- LocalContext[F].getEntity
+          e     <- Context[F].bindFreeVar
+          _     <- LocalContext[F].putEvent(e)
           w     = Sym(adjective.word)
-          _     <- modify[NLFx, Context](_.addEvent(e, description(e) /\ w(e, x)))
+          _     <- Context[F].addEvent(e, description(e) /\ w(e, x))
           contL <- cont
         } yield Ex(e, event, description(e) /\ w(e, x) /\ contL)
       case other =>
-        left[NLFx, NLError, E](NLUnexpectedWord(other))
+        FunctorRaiseNLError[F].raise(NLUnexpectedWord(other))
     }
 }

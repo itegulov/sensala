@@ -1,34 +1,43 @@
 package sensala.structure.noun.pronoun
 
+import cats.Monad
+import cats.implicits._
 import org.aossie.scavenger.expression.E
 import sensala.property.Property
 import sensala.structure._
+import sensala.structure.context.{Context, LocalContext}
 
-sealed trait ReflexivePronoun extends Pronoun {
-  override def interpret(cont: NLEff[E]): NLEff[E] =
+sealed abstract class ReflexivePronoun[F[_]: Monad: Context: LocalContext] extends Pronoun[F] {
+  override def interpret(cont: F[E]): F[E] =
     for {
-      ref   <- findAnaphoricEntity(properties)
-      _     <- putEntity(ref)
+      ref   <- Context[F].findAnaphoricEntityUnsafe(properties)
+      _     <- LocalContext[F].putEntity(ref)
       contL <- cont
     } yield contL
 }
 
-sealed trait SingularReflexivePronoun extends ReflexivePronoun
+sealed trait SingularReflexivePronoun[F[_]] extends ReflexivePronoun[F]
 
-final case class FirstPersonSingularReflexivePronoun(word: String) extends SingularReflexivePronoun {
+final case class FirstPersonSingularReflexivePronoun[F[_]: Monad: Context: LocalContext](
+  word: String
+) extends SingularReflexivePronoun[F] {
   override def properties: List[Property] = List(Property(x => speaker(x)))
 
   override def definiteProperties: List[Property] = properties
 }
 
-final case class SecondPersonSingularReflexivePronoun(word: String) extends SingularReflexivePronoun {
+final case class SecondPersonSingularReflexivePronoun[F[_]: Monad: Context: LocalContext](
+  word: String
+) extends SingularReflexivePronoun[F] {
   override def properties: List[Property] = List(Property(x => interlocutor(x)))
 
   override def definiteProperties: List[Property] = properties
 }
 
-final case class ThirdPersonSingularReflexivePronoun(word: String, gender: PronounGender)
-  extends SingularReflexivePronoun {
+final case class ThirdPersonSingularReflexivePronoun[F[_]: Monad: Context: LocalContext](
+  word: String,
+  gender: PronounGender
+) extends SingularReflexivePronoun[F] {
   override def properties: List[Property] = List(
     gender match {
       // For now we are using generic masculine pronoun (e.g. gender-neutral semantics of the pronoun "he")
@@ -41,21 +50,27 @@ final case class ThirdPersonSingularReflexivePronoun(word: String, gender: Prono
   override def definiteProperties: List[Property] = properties
 }
 
-sealed trait PluralReflexivePronoun extends ReflexivePronoun
+sealed trait PluralReflexivePronoun[F[_]] extends ReflexivePronoun[F]
 
-final case class FirstPersonPluralReflexivePronoun(word: String) extends SingularReflexivePronoun {
+final case class FirstPersonPluralReflexivePronoun[F[_]: Monad: Context: LocalContext](
+  word: String
+) extends SingularReflexivePronoun[F] {
   override def properties: List[Property] = List(Property(x => speaker(x)))
 
   override def definiteProperties: List[Property] = properties
 }
 
-final case class SecondPersonPluralReflexivePronoun(word: String) extends SingularReflexivePronoun {
+final case class SecondPersonPluralReflexivePronoun[F[_]: Monad: Context: LocalContext](
+  word: String
+) extends SingularReflexivePronoun[F] {
   override def properties: List[Property] = List(Property(x => interlocutor(x)))
 
   override def definiteProperties: List[Property] = properties
 }
 
-final case class ThirdPersonPluralReflexivePronoun(word: String) extends SingularReflexivePronoun {
+final case class ThirdPersonPluralReflexivePronoun[F[_]: Monad: Context: LocalContext](
+  word: String
+) extends SingularReflexivePronoun[F] {
   override def properties: List[Property] = List()
 
   override def definiteProperties: List[Property] = properties

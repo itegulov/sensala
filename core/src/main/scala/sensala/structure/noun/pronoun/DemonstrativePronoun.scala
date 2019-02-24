@@ -1,16 +1,18 @@
 package sensala.structure.noun.pronoun
 
+import cats.Monad
+import cats.implicits._
 import org.aossie.scavenger.expression.E
 import sensala.property.Property
-import sensala.structure._
+import sensala.structure.context.{Context, LocalContext}
 
-final case class DemonstrativePronoun(
+final case class DemonstrativePronoun[F[_]: Monad: Context: LocalContext](
   word: String
-) extends Pronoun {
-  override def interpret(cont: NLEff[E]): NLEff[E] =
+) extends Pronoun[F] {
+  override def interpret(cont: F[E]): F[E] =
     for {
-      e     <- findAnaphoricEvent(List.empty)
-      _     <- putEntity(e)
+      e     <- Context[F].findAnaphoricEventUnsafe(List.empty)
+      _     <- LocalContext[F].putEntity(e)
       contL <- cont
     } yield contL
 

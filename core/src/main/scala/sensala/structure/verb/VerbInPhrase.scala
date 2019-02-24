@@ -1,32 +1,36 @@
 package sensala.structure.verb
 
+import cats.Monad
+import cats.implicits._
 import org.aossie.scavenger.expression._
 import org.aossie.scavenger.expression.formula.All
-import org.atnos.eff.all._
-import sensala.error.{NLError, NLInvalidState}
+import sensala.error.NLInvalidState
 import sensala.structure._
+import sensala.structure.context.{Context, LocalContext}
 import sensala.structure.types._
 import sensala.structure.prepositional.PrepositionalPhrase
 
-case class VerbInPhrase(propositionalPhrase: PrepositionalPhrase, verbPhrase: VerbPhrase)
-    extends VerbPhrase {
-  override def interpret(cont: NLEff[E]): NLEff[E] =
+case class VerbInPhrase[F[_]: Monad: Context: LocalContext: FunctorRaiseNLError](
+  propositionalPhrase: PrepositionalPhrase[F],
+  verbPhrase: VerbPhrase[F]
+) extends VerbPhrase[F] {
+  override def interpret(cont: F[E]): F[E] =
     verbPhrase.interpret(
       for {
-        e <- getEvent
+        e <- LocalContext[F].getEvent
         locationL <- propositionalPhrase.nounPhrase.interpret(
                       for {
-                        x <- getEntity
+                        x <- LocalContext[F].getEntity
                         w = Sym(propositionalPhrase.word)
-                        properties <- gets[NLFx, Context, E](_.eventProperties(e)) >>= {
+                        properties <- Context[F].eventProperties(e) >>= {
                                        case All(`e`, `event`, body) =>
-                                         pure(body)
+                                         Monad[F].pure[E](body)
                                        case _ =>
-                                         left[NLFx, NLError, E](
+                                         FunctorRaiseNLError[F].raise[E](
                                            NLInvalidState("Unexpected properties format")
                                          )
                                      }
-                        _     <- modify[NLFx, Context](_.addEvent(e, properties /\ w(e, x)))
+                        _     <- Context[F].addEvent(e, properties /\ w(e, x))
                         contL <- cont
                       } yield w(e, x) /\ contL
                     )

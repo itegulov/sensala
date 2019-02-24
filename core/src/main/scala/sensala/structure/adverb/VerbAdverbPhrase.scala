@@ -1,28 +1,32 @@
 package sensala.structure.adverb
 
+import cats.Monad
+import cats.implicits._
 import org.aossie.scavenger.expression.formula.All
 import org.aossie.scavenger.expression.{E, Sym}
-import org.atnos.eff.all._
-import sensala.error.{NLError, NLInvalidState}
+import sensala.error.NLInvalidState
 import sensala.structure._
+import sensala.structure.context.{Context, LocalContext}
 import sensala.structure.types.event
 import sensala.structure.verb.VerbPhrase
 
-case class VerbAdverbPhrase(adverb: Adverb, verbPhrase: VerbPhrase)
-    extends AdverbPhrase
-    with VerbPhrase {
-  override def interpret(cont: NLEff[E]): NLEff[E] =
+case class VerbAdverbPhrase[F[_]: Monad: Context: LocalContext: FunctorRaiseNLError](
+  adverb: Adverb,
+  verbPhrase: VerbPhrase[F]
+) extends AdverbPhrase[F]
+    with VerbPhrase[F] {
+  override def interpret(cont: F[E]): F[E] =
     verbPhrase.interpret(
       for {
-        e <- getEvent
+        e <- LocalContext[F].getEvent
         w = Sym(adverb.word)
-        properties <- gets[NLFx, Context, E](_.eventProperties(e)) >>= {
+        properties <- Context[F].eventProperties(e) >>= {
                        case All(`e`, `event`, body) =>
-                         pure(body)
+                         Monad[F].pure[E](body)
                        case _ =>
-                         left[NLFx, NLError, E](NLInvalidState("Unexpected properties format"))
+                         FunctorRaiseNLError[F].raise[E](NLInvalidState("Unexpected properties format"))
                      }
-        _     <- modify[NLFx, Context](_.addEvent(e, properties /\ w(e)))
+        _     <- Context[F].addEvent(e, properties /\ w(e))
         contL <- cont
       } yield w(e) /\ contL
     )

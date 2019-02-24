@@ -1,111 +1,17 @@
 package sensala
 
-import cats.data.State
-import org.atnos.eff._
-import org.atnos.eff.all._
+import cats.mtl.FunctorRaise
 import org.aossie.scavenger.expression._
 import org.aossie.scavenger.expression.formula._
-import sensala.error.{NLError, NLInvalidState, NLUnknownAnaphoricReferent}
-import sensala.property.Property
+import sensala.error.NLError
 import sensala.structure.types._
 
-import scala.annotation.tailrec
-
 package object structure {
-  type StateContext[A]      = State[Context, A]
-  type StateLocalContext[A] = State[LocalContext, A]
-  type EitherNLError[A]     = Either[NLError, A]
+  type FunctorRaiseNLError[F[_]] = FunctorRaise[F, NLError]
 
-  type NLFx     = Fx.fx3[StateContext, StateLocalContext, EitherNLError]
-  type NLEff[A] = Eff[NLFx, A]
-
-  def getEntity: NLEff[Var] =
-    for {
-      localContext <- get[NLFx, LocalContext]
-      entity <- localContext.entity match {
-        case Some(e) => right[NLFx, NLError, Var](e)
-        case None => left[NLFx, NLError, Var](NLInvalidState("Local entity could not be found"))
-      }
-    } yield entity
-
-  def getEvent: NLEff[Var] =
-    for {
-      localContext <- get[NLFx, LocalContext]
-      event <- localContext.event match {
-        case Some(e) => right[NLFx, NLError, Var](e)
-        case None => left[NLFx, NLError, Var](NLInvalidState("Local event could not be found"))
-      }
-    } yield event
-
-  def putEntity(v: Var): NLEff[Unit] =
-    for {
-      localContext <- get[NLFx, LocalContext]
-      _            <- put[NLFx, LocalContext](localContext.copy(entity = Some(v)))
-    } yield ()
-
-  def putEvent(v: Var): NLEff[Unit] =
-    for {
-      localContext <- get[NLFx, LocalContext]
-      _            <- put[NLFx, LocalContext](localContext.copy(event = Some(v)))
-    } yield ()
-
-  def flushLocalContext(): NLEff[Unit] = put[NLFx, LocalContext](LocalContext(None, None))
-
-  def bindFreeVar: NLEff[Var] =
-    for {
-      context <- get[NLFx, Context]
-      newSym = {
-        @tailrec
-        def bindFreeVarInternal(range: Seq[Var]): Var =
-          range.find(c => !context.boundVars.contains(c)) match {
-            case Some(c) => c
-            case _       => bindFreeVarInternal(range.map(s => Var(s.name + "'")))
-          }
-        val range = ('a' to 'z').map(_.toString).map(Var.apply)
-        bindFreeVarInternal(range)
-      }
-      _ <- put[NLFx, Context](context.addBoundVar(newSym))
-    } yield newSym
-  
-  def findAnaphoricEntity(properties: E, x: Var): NLEff[Var] =
-    for {
-      refOpt <- gets[NLFx, Context, Option[Var]](_.findAnaphoricEntity(x, properties))
-      ref <- refOpt match {
-        case Some(ref) => right[NLFx, NLError, Var](ref)
-        case None => left[NLFx, NLError, Var](NLUnknownAnaphoricReferent(properties))
-      }
-    } yield ref
-
-  def findAnaphoricEntityOpt(properties: E, x: Var): NLEff[Option[Var]] =
-    gets[NLFx, Context, Option[Var]](_.findAnaphoricEntity(x, properties))
-
-  def findAnaphoricEntity(properties: List[Property]): NLEff[Var] =
-    for {
-      x <- bindFreeVar
-      propertiesE = properties.map(p => p.propertyExp(x))
-      propertiesResult = if (propertiesE.isEmpty) truth(x) else propertiesE.reduceLeft(_ /\ _)
-      result <- findAnaphoricEntity(propertiesResult, x)
-    } yield result
-
-  def findAnaphoricEntityOpt(properties: List[Property]): NLEff[Option[Var]] =
-    for {
-      x <- bindFreeVar
-      propertiesE = properties.map(p => p.propertyExp(x))
-      propertiesResult = if (propertiesE.isEmpty) truth(x) else propertiesE.reduceLeft(_ /\ _)
-      result <- findAnaphoricEntityOpt(propertiesResult, x)
-    } yield result
-  
-  def findAnaphoricEvent(properties: List[Sym]): NLEff[Var] =
-    for {
-      x <- bindFreeVar
-      propertiesE = properties.map(_.apply(x))
-      propertiesResult = if (propertiesE.isEmpty) truth(x) else propertiesE.reduceLeft(_ /\ _)
-      refOpt <- gets[NLFx, Context, Option[Var]](_.findAnaphoricEvent(x, propertiesResult))
-      ref <- refOpt match {
-        case Some(ref) => right[NLFx, NLError, Var](ref)
-        case None => left[NLFx, NLError, Var](NLUnknownAnaphoricReferent(propertiesResult))
-      }
-    } yield ref
+  object FunctorRaiseNLError {
+    def apply[F[_]](implicit ev: FunctorRaiseNLError[F]): FunctorRaiseNLError[F] = ev
+  }
 
   val agent       = Sym("agent")
   val patient     = Sym("patient")

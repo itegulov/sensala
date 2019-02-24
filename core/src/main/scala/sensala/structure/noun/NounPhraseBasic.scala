@@ -1,20 +1,23 @@
 package sensala.structure.noun
 
+import cats.Monad
+import cats.implicits._
 import org.aossie.scavenger.expression._
 import sensala.structure._
 import sensala.property.{Property, WordNetPropertyExtractor}
+import sensala.structure.context.LocalContext
 
-sealed trait NounPhraseBasic extends NounPhrase
+sealed trait NounPhraseBasic[F[_]] extends NounPhrase[F]
 
-final case class ProperNoun(
+final case class ProperNoun[F[_]: Monad: LocalContext](
   word: String,
   typ: Option[NamedEntityType],
   gender: Option[NamedEntityGender]
-) extends Word
-    with NounPhraseBasic {
-  override def interpret(cont: NLEff[E]): NLEff[E] =
+) extends Word[F]
+    with NounPhraseBasic[F] {
+  override def interpret(cont: F[E]): F[E] =
     for {
-      x     <- getEntity
+      x     <- LocalContext[F].getEntity
       w     = Sym(word)
       contL <- cont
     } yield named(x, w) /\ contL
@@ -36,21 +39,21 @@ final case class ProperNoun(
     case None         => List()
   }
 
-  override def properties: List[Property] = typProperty ++ genderProperty
+  override def properties: List[Property]         = typProperty ++ genderProperty
   override def definiteProperties: List[Property] = properties
 }
 
-final case class CommonNoun(
+final case class CommonNoun[F[_]: Monad: LocalContext](
   word: String
-) extends Word
-    with NounPhraseBasic {
-  override def interpret(cont: NLEff[E]): NLEff[E] =
+) extends Word[F]
+    with NounPhraseBasic[F] {
+  override def interpret(cont: F[E]): F[E] =
     for {
-      x     <- getEntity
+      x     <- LocalContext[F].getEntity
       w     = Sym(word)
       contL <- cont
     } yield w(x) /\ contL
 
-  override def properties: List[Property] = WordNetPropertyExtractor.extractProperties(word)
+  override def properties: List[Property]         = WordNetPropertyExtractor.extractProperties(word)
   override def definiteProperties: List[Property] = List(Property(x => Sym(word)(x)))
 }
