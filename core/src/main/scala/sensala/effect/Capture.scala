@@ -2,6 +2,7 @@ package sensala.effect
 
 import cats.Monad
 import cats.implicits._
+import monix.eval.Task
 
 /** Monad with effect-capturing unit.
   *
@@ -27,4 +28,9 @@ trait Capture[F[_]] {
 
 object Capture {
   def apply[F[_]](implicit F: Capture[F]): Capture[F] = F
+
+  implicit val taskCapture: Capture[Task] = new Capture[Task] {
+
+    def capture[A](a: => A): Task[A] = Task.delay(a)
+  }
 }

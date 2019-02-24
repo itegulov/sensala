@@ -178,7 +178,7 @@ final case class Context[F[_]: Monad: FunctorRaiseNLError] private[context] (
 object Context {
   def apply[F[_]](implicit ev: Context[F]): Context[F] = ev
   
-  def initial[F[_]: Monad: Capture: FunctorRaiseNLError]: F[Context[F]] = {
+  def initial[F[_]: Monad: Capture: FunctorRaiseNLError]: Context[F] = {
     val speakerEntity      = Var("speaker")
     val interlocutorEntity = Var("interlocutor")
     val state = ContextState(
@@ -189,6 +189,6 @@ object Context {
       Map.empty,
       Set(speakerEntity, interlocutorEntity)
     )
-    Context[F](new AtomicMonadState(AtomicAny(state))).pure[F]
+    Context[F](new AtomicMonadState(AtomicAny(state)))
   }
 }

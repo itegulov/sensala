@@ -1,5 +1,6 @@
 package sensala.parser
 
+import monix.eval.Task
 import sensala.parser.english.EnglishDiscourseParser
 import sensala.structure._
 import sensala.structure.adjective._
@@ -10,45 +11,43 @@ import sensala.structure.verb._
 import sensala.structure.wh._
 
 class EnglishDiscourseParserSpec extends CommonParserSpec {
-  def parse(discourse: String): Either[String, Discourse] = {
-    EnglishDiscourseParser.parse(discourse)
-  }
+  import EnglishParserTask._
   
   it should "parse simple sentences" in {
-    parse("John walks").right.value shouldBe Discourse(List(
+    parse("John walks").right.value shouldBe Discourse[Task](List(
       Sentence(John, IntransitiveVerb("walks"))
     ))
-    parse("Mary loves herself").right.value shouldBe Discourse(List(
+    parse("Mary loves herself").right.value shouldBe Discourse[Task](List(
       Sentence(Mary, TransitiveVerb("loves", herself))
     ))
   }
 
   it should "parse quantified common nouns" in {
-    parse("A donkey walks").right.value shouldBe Discourse(List(
+    parse("A donkey walks").right.value shouldBe Discourse[Task](List(
       Sentence(ExistentialQuantifier(CommonNoun("donkey")), IntransitiveVerb("walks"))
     ))
-    parse("Every farmer walks").right.value shouldBe Discourse(List(
+    parse("Every farmer walks").right.value shouldBe Discourse[Task](List(
       Sentence(ForallQuantifier(CommonNoun("farmer")), IntransitiveVerb("walks"))
     ))
-    parse("Every farmer owns a donkey").right.value shouldBe Discourse(List(
+    parse("Every farmer owns a donkey").right.value shouldBe Discourse[Task](List(
       Sentence(ForallQuantifier(CommonNoun("farmer")), TransitiveVerb("owns", ExistentialQuantifier(CommonNoun("donkey"))))
     ))
   }
 
   it should "parse wh noun phrases" in {
-    parse("Every farmer who owns a donkey beats it").right.value shouldBe Discourse(List(
+    parse("Every farmer who owns a donkey beats it").right.value shouldBe Discourse[Task](List(
       Sentence(
         ForallQuantifier(WhNounPhrase(TransitiveVerb("owns", ExistentialQuantifier(CommonNoun("donkey"))), CommonNoun("farmer"))),
         TransitiveVerb("beats", itPronoun)
       )
     ))
-    parse("A farmer who owns a donkey beats it").right.value shouldBe Discourse(List(
+    parse("A farmer who owns a donkey beats it").right.value shouldBe Discourse[Task](List(
       Sentence(
         ExistentialQuantifier(WhNounPhrase(TransitiveVerb("owns", ExistentialQuantifier(CommonNoun("donkey"))), CommonNoun("farmer"))),
         TransitiveVerb("beats", itPronoun)
       )
     ))
-    parse("A farmer who eats walks").right.value shouldBe Discourse(List(
+    parse("A farmer who eats walks").right.value shouldBe Discourse[Task](List(
       Sentence(
         ExistentialQuantifier(WhNounPhrase(IntransitiveVerb("eats"), CommonNoun("farmer"))),
         IntransitiveVerb("walks")
@@ -57,7 +56,7 @@ class EnglishDiscourseParserSpec extends CommonParserSpec {
   }
   
   it should "parse multi-sentence discourses" in {
-    parse("Every farmer who owns a donkey beats it. John is a farmer. John owns a donkey.").right.value shouldBe Discourse(List(
+    parse("Every farmer who owns a donkey beats it. John is a farmer. John owns a donkey.").right.value shouldBe Discourse[Task](List(
       Sentence(
         ForallQuantifier(WhNounPhrase(TransitiveVerb("owns", ExistentialQuantifier(CommonNoun("donkey"))), CommonNoun("farmer"))),
         TransitiveVerb("beats", itPronoun)
@@ -74,14 +73,14 @@ class EnglishDiscourseParserSpec extends CommonParserSpec {
   }
   
   it should "parse sentences with adjectives" in {
-    parse("Every wealthy farmer owns a donkey").right.value shouldBe Discourse(List(
+    parse("Every wealthy farmer owns a donkey").right.value shouldBe Discourse[Task](List(
       Sentence(
         ForallQuantifier(AdjectiveNounPhrase(Adjective("wealthy"), CommonNoun("farmer"))),
         TransitiveVerb("owns", ExistentialQuantifier(CommonNoun("donkey")))
       )
     ))
 
-    parse("Every lawyer believes he is smart").right.value shouldBe Discourse(List(
+    parse("Every lawyer believes he is smart").right.value shouldBe Discourse[Task](List(
       Sentence(
         ForallQuantifier(CommonNoun("lawyer")),
         VerbSentencePhrase(
@@ -96,7 +95,7 @@ class EnglishDiscourseParserSpec extends CommonParserSpec {
   }
   
   it should "parse adverb sentences" in {
-    parse("John runs quickly").right.value shouldBe Discourse(List(
+    parse("John runs quickly").right.value shouldBe Discourse[Task](List(
       Sentence(
         John,
         VerbAdverbPhrase(Adverb("quickly"), IntransitiveVerb("runs"))
@@ -105,7 +104,7 @@ class EnglishDiscourseParserSpec extends CommonParserSpec {
   }
   
   it should "parse propositional sentences" in {
-    parse("John left a wallet on a table").right.value shouldBe Discourse(List(
+    parse("John left a wallet on a table").right.value shouldBe Discourse[Task](List(
       Sentence(
         John,
         VerbInPhrase(

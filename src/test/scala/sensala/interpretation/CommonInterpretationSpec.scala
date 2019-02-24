@@ -12,6 +12,7 @@ import sensala.parser.english.EnglishDiscourseParser
 import sensala.postprocessing.PrettyTransformer
 import sensala.structure.types._
 import sensala.structure._
+import sensala.structure.context.{Context, LocalContext}
 
 class CommonInterpretationSpec extends SensalaSpec {
   def interpret(text: String): E = {

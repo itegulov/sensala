@@ -48,10 +48,10 @@ final case class LocalContext[F[_]: Monad: FunctorRaiseNLError] private[context]
 object LocalContext {
   def apply[F[_]](implicit ev: LocalContext[F]): LocalContext[F] = ev
   
-  def empty[F[_]: Monad: Capture: FunctorRaiseNLError]: F[LocalContext[F]] =
+  def empty[F[_]: Monad: Capture: FunctorRaiseNLError]: LocalContext[F] =
     LocalContext(
       new AtomicMonadState(
         AtomicAny(LocalContextState(None, None))
       )
-    ).pure[F]
+    )
 }

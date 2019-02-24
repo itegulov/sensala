@@ -1,16 +1,19 @@
 package sensala
 
+import cats.{Functor, Monad}
+import cats.mtl.FunctorRaise
 import sensala.normalization.NormalFormConverter
 import sensala.postprocessing.PrettyTransformer
 import sensala.structure._
 import com.typesafe.scalalogging.Logger
+import monix.eval.Task
+import monix.execution.Scheduler.Implicits.global
 import org.aossie.scavenger.expression.formula.True
 import org.aossie.scavenger.preprocessing.TPTPClausifier
 import org.aossie.scavenger.structure.immutable.AxiomClause
-import org.atnos.eff._
-import org.atnos.eff.syntax.all._
 import sensala.error.NLError
 import sensala.parser.english.EnglishDiscourseParser
+import sensala.structure.context.{Context, LocalContext}
 
 object CLI {
   private val logger = Logger[this.type]
@@ -26,11 +29,14 @@ object CLI {
       """.stripMargin
     )
 
-    arg[String]("<discourse>...") optional () action { (v, c) =>
-      c.copy(discourse = v)
-    } text "interpret <discourse>\n"
+    arg[String]("<discourse>...")
+      .optional()
+      .action { (v, c) =>
+        c.copy(discourse = v)
+      }
+      .text("interpret <discourse>\n")
 
-    help("help") text "print this usage text"
+    help("help").text("print this usage text")
 
     note(
       """Example:
@@ -40,14 +46,22 @@ object CLI {
     )
   }
 
-  
-  def main(args: Array[String]): Unit = {
-    parser.parse(args, Config()) foreach { c =>
-      EnglishDiscourseParser.parse(c.discourse) match {
+  def main(args: Array[String]): Unit =
+    parser.parse(args, Config()).foreach { c =>
+      implicit val raiseNLError = new FunctorRaise[Task, NLError] {
+        override val functor: Functor[Task] = Functor[Task]
+
+        override def raise[A](e: NLError): Task[A] =
+          throw new RuntimeException(e.toString)
+      }
+      implicit val sensalaContext      = Context.initial[Task]
+      implicit val sensalaLocalContext = LocalContext.empty[Task]
+      val parser                       = EnglishDiscourseParser[Task]()
+      parser.parse(c.discourse) match {
         case Left(error) =>
           logger.error(
             s"""Parsing failed:
-              |  $error
+               |  $error
             """.stripMargin
           )
         case Right(sentence) =>
@@ -57,16 +71,12 @@ object CLI {
                |  $sentence
             """.stripMargin
           )
-          val ((lambdaTermEither, context), localContext) = 
-            sentence.interpret(Eff.pure(True))
-              .runEither[NLError]
-              .runState[Context](Context.initial)
-              .runState[LocalContext](LocalContext.empty)
-              .run
-          val lambdaTerm = lambdaTermEither match {
-            case Right(e) => e
-            case Left(error) => sys.error(s"Erorr: $error")
-          }
+          val (lambdaTerm, context, localContext) =
+            (for {
+              lambdaTerm   <- sentence.interpret(Monad[Task].pure(True))
+              context      <- sensalaContext.state.get
+              localContext <- sensalaLocalContext.state.get
+            } yield (lambdaTerm, context, localContext)).runSyncUnsafe()
           logger.info(
             s"""
                |Result of discourse interpretation:
@@ -104,5 +114,4 @@ object CLI {
           )
       }
     }
-  }
 }

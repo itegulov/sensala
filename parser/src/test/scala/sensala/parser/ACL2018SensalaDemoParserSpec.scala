@@ -1,7 +1,6 @@
 package sensala.parser
 
-import sensala.SensalaSpec
-import sensala.parser.english.EnglishDiscourseParser
+import monix.eval.Task
 import sensala.structure._
 import sensala.structure.adjective._
 import sensala.structure.adverb._
@@ -12,30 +11,28 @@ import sensala.structure.verb._
 import sensala.structure.wh._
 
 class ACL2018SensalaDemoParserSpec extends CommonParserSpec {
-  def parse(discourse: String): Either[String, Discourse] = {
-    EnglishDiscourseParser.parse(discourse)
-  }
+  import EnglishParserTask._
   
   it should "parse examples from ACL 2018 system demonstration paper" in {
-    parse("John loves Mary").right.value shouldBe Discourse(List(
+    parse("John loves Mary").right.value shouldBe Discourse[Task](List(
       Sentence(John, TransitiveVerb("loves", Mary))
     ))
     
-    parse("John runs quickly").right.value shouldBe Discourse(List(
+    parse("John runs quickly").right.value shouldBe Discourse[Task](List(
       Sentence(John, VerbAdverbPhrase(Adverb("quickly"), IntransitiveVerb("runs")))
     ))
     
-    parse("John loves Mary. She believes him.").right.value shouldBe Discourse(List(
+    parse("John loves Mary. She believes him.").right.value shouldBe Discourse[Task](List(
       Sentence(John, TransitiveVerb("loves", Mary)),
       Sentence(She, TransitiveVerb("believes", him))
     ))
 
-    parse("John loves Mary. She believes this.").right.value shouldBe Discourse(List(
+    parse("John loves Mary. She believes this.").right.value shouldBe Discourse[Task](List(
       Sentence(John, TransitiveVerb("loves", Mary)),
       Sentence(She, TransitiveVerb("believes", DemonstrativePronoun("this")))
     ))
 
-    parse("John ate a pizza with a fork. Bob did too.").right.value shouldBe Discourse(List(
+    parse("John ate a pizza with a fork. Bob did too.").right.value shouldBe Discourse[Task](List(
       Sentence(
         John,
         VerbInPhrase(
@@ -49,7 +46,7 @@ class ACL2018SensalaDemoParserSpec extends CommonParserSpec {
       )
     ))
 
-    parse("Mary is loved by John. So is Ann.").right.value shouldBe Discourse(List(
+    parse("Mary is loved by John. So is Ann.").right.value shouldBe Discourse[Task](List(
       Sentence(John, TransitiveVerb("loved", Mary)),
       Sentence(
         Ann,
@@ -57,7 +54,7 @@ class ACL2018SensalaDemoParserSpec extends CommonParserSpec {
       )
     ))
 
-    parse("Every farmer who owns a donkey thinks he is rich").right.value shouldBe Discourse(List(
+    parse("Every farmer who owns a donkey thinks he is rich").right.value shouldBe Discourse[Task](List(
       Sentence(
         ForallQuantifier(WhNounPhrase(
           TransitiveVerb("owns", ExistentialQuantifier(CommonNoun("donkey"))),
@@ -71,7 +68,7 @@ class ACL2018SensalaDemoParserSpec extends CommonParserSpec {
     ))
     
     parse("John bought a donkey. The animal was stubborn as hell.").right.value shouldBe
-      Discourse(List(
+      Discourse[Task](List(
         Sentence(
           John,
           TransitiveVerb("bought", ExistentialQuantifier(CommonNoun("donkey")))
@@ -85,7 +82,7 @@ class ACL2018SensalaDemoParserSpec extends CommonParserSpec {
         )
       ))
     
-    parse("John left his wallet on a table").right.value shouldBe Discourse(List(
+    parse("John left his wallet on a table").right.value shouldBe Discourse[Task](List(
       Sentence(
         John,
         VerbInPhrase(

@@ -1,12 +1,14 @@
 package sensala.web.actors
 
 import akka.actor.{Actor, ActorLogging, ActorRef}
+import cats.{Functor, Monad}
+import cats.mtl.FunctorRaise
 import edu.stanford.nlp.trees.Tree
+import monix.eval.Task
+import monix.execution.Scheduler.Implicits.global
 import org.aossie.scavenger.expression.formula.True
 import org.aossie.scavenger.preprocessing.TPTPClausifier
 import org.aossie.scavenger.structure.immutable.AxiomClause
-import org.atnos.eff.Eff
-import org.atnos.eff.syntax.all._
 import play.api.libs.json._
 import sensala.error.NLError
 import sensala.normalization.NormalFormConverter
@@ -15,6 +17,7 @@ import sensala.postprocessing.PrettyTransformer
 import sensala.structure._
 import sensala.structure.adjective._
 import sensala.structure.adverb._
+import sensala.structure.context.{Context, LocalContext}
 import sensala.structure.noun._
 import sensala.structure.noun.pronoun._
 import sensala.structure.prepositional._
@@ -26,6 +29,16 @@ import sensala.web.shared._
 import scala.util.Try
 
 case class InterpretationActor() extends Actor with ActorLogging {
+  implicit val raiseNLError = new FunctorRaise[Task, NLError] {
+    override val functor: Functor[Task] = Functor[Task]
+
+    override def raise[A](e: NLError): Task[A] =
+      throw new RuntimeException(e.toString)
+  }
+  implicit val sensalaContext = Context.initial[Task]
+  implicit val sensalaLocalContext = LocalContext.empty[Task]
+  val parser = EnglishDiscourseParser[Task]()
+  
   override def receive: Receive = {
     case Connected(actorRef) =>
       context.become(connected(actorRef))
@@ -45,7 +58,7 @@ case class InterpretationActor() extends Actor with ActorLogging {
       Nil
     )
 
-  private def convertNL(nl: NL): SensalaNode = {
+  private def convertNL(nl: NL[Task]): SensalaNode = {
     nl match {
       case Discourse(sentences) =>
         SensalaNode(
@@ -89,7 +102,7 @@ case class InterpretationActor() extends Actor with ActorLogging {
           "type-propernoun",
           List(atomNode(s"$word"))
         )
-      case pronoun: Pronoun =>
+      case pronoun: Pronoun[Task] =>
         SensalaNode(
           pronoun.getClass.getSimpleName,
           "type-pronoun",
@@ -129,7 +142,14 @@ case class InterpretationActor() extends Actor with ActorLogging {
         SensalaNode(
           "VerbAdjectivePhrase",
           "type-verbadjphrase",
-          List(atomNode(verb), convertNL(adjective))
+          List(
+            atomNode(verb),
+            SensalaNode(
+              "Adjective",
+              "type-adjective",
+              List(atomNode(adjective.word))
+            )
+          )
         )
       case VerbAdverbPhrase(adverb, verbPhrase) =>
         SensalaNode(
@@ -179,17 +199,18 @@ case class InterpretationActor() extends Actor with ActorLogging {
           "type-possessionphrase",
           List(convertNL(nounPhrase))
         )
-      case Adjective(word) =>
-        SensalaNode(
-          "Adjective",
-          "type-adjective",
-          List(atomNode(word))
-        )
       case AdjectiveNounPhrase(adjective, nounPhrase) =>
         SensalaNode(
           "AdjectiveNounPhrase",
           "type-adjectivenounphrase",
-          List(convertNL(adjective), convertNL(nounPhrase))
+          List(
+            SensalaNode(
+              "Adjective",
+              "type-adjective",
+              List(atomNode(adjective.word))
+            ),
+            convertNL(nounPhrase)
+          )
         )
     }
   }
@@ -198,7 +219,7 @@ case class InterpretationActor() extends Actor with ActorLogging {
     case IncomingMessage(message) =>
       message.validate[SensalaInterpretMessage] match {
         case JsSuccess(SensalaRunInterpretation(discourse), _) =>
-          val sentences = EnglishDiscourseParser.buildPennTaggedTree(discourse)
+          val sentences = parser.buildPennTaggedTree(discourse)
           log.info(
             s"""
                |Result of Stanford parsing:
@@ -206,7 +227,7 @@ case class InterpretationActor() extends Actor with ActorLogging {
             """.stripMargin
           )
           outgoing ! OutgoingMessage(Json.toJson(StanfordParsed(convertTree(sentences.head))))
-          val parsed = Try(EnglishDiscourseParser.parse(discourse))
+          val parsed = Try(parser.parse(discourse))
             .getOrElse(Left("Invalid sentence (maybe a grammatical mistake?)"))
           parsed match {
             case Left(error) =>
@@ -224,61 +245,49 @@ case class InterpretationActor() extends Actor with ActorLogging {
                 """.stripMargin
               )
               outgoing ! OutgoingMessage(Json.toJson(SensalaParsed(convertNL(sentence))))
-              val ((lambdaTermEither, context), localContext) =
-                sentence
-                  .interpret(Eff.pure(True))
-                  .runEither[NLError]
-                  .runState[Context](Context.initial)
-                  .runState[LocalContext](LocalContext.empty)
-                  .run
-              lambdaTermEither match {
-                case Left(error) =>
-                  log.error(
-                    s"""Interpreting failed:
-                       |  $error
-                    """.stripMargin
-                  )
-                  outgoing ! OutgoingMessage(
-                    Json.toJson(SensalaError(s"Interpreting failed: $error"))
-                  )
-                case Right(lambdaTerm) =>
-                  log.info(
-                    s"""
-                       |Result of discourse interpretation:
-                       |  $lambdaTerm
-                       |  ${lambdaTerm.pretty}
-                    """.stripMargin
-                  )
-                  val result = NormalFormConverter.normalForm(lambdaTerm)
-                  log.info(
-                    s"""
-                       |Result of applying β-reduction:
-                       |  $result
-                       |  ${result.pretty}
-                    """.stripMargin
-                  )
-                  val prettyTerm = PrettyTransformer.transform(result)
-                  log.info(
-                    s"""
-                       |Result of applying pretty transform:
-                       |  ${prettyTerm.pretty}
-                    """.stripMargin
-                  )
-                  log.info(
-                    s"""
-                       |Context after interpretation:
-                       |  ${context.entityProperties.map(_._2.pretty).mkString("\n")}
-                    """.stripMargin
-                  )
-                  val cnf = new TPTPClausifier().apply(List((prettyTerm, AxiomClause)))
-                  log.info(
-                    s"""
-                       |Result of clausification:
-                       |${cnf.clauses.mkString("\n")}
-                    """.stripMargin
-                  )
-                  outgoing ! OutgoingMessage(Json.toJson(SensalaInterpreted(prettyTerm.pretty)))
-              }
+              
+              val (lambdaTerm, context, localContext) =
+                (for {
+                  lambdaTerm <- sentence.interpret(Monad[Task].pure(True))
+                  context <- sensalaContext.state.get
+                  localContext <- sensalaLocalContext.state.get
+                } yield (lambdaTerm, context, localContext)).runSyncUnsafe()
+              log.info(
+                s"""
+                   |Result of discourse interpretation:
+                   |  $lambdaTerm
+                   |  ${lambdaTerm.pretty}
+                """.stripMargin
+              )
+              val result = NormalFormConverter.normalForm(lambdaTerm)
+              log.info(
+                s"""
+                   |Result of applying β-reduction:
+                   |  $result
+                   |  ${result.pretty}
+                """.stripMargin
+              )
+              val prettyTerm = PrettyTransformer.transform(result)
+              log.info(
+                s"""
+                   |Result of applying pretty transform:
+                   |  ${prettyTerm.pretty}
+                """.stripMargin
+              )
+              log.info(
+                s"""
+                   |Context after interpretation:
+                   |  ${context.entityProperties.map(_._2.pretty).mkString("\n")}
+                """.stripMargin
+              )
+              val cnf = new TPTPClausifier().apply(List((prettyTerm, AxiomClause)))
+              log.info(
+                s"""
+                   |Result of clausification:
+                   |${cnf.clauses.mkString("\n")}
+                """.stripMargin
+              )
+              outgoing ! OutgoingMessage(Json.toJson(SensalaInterpreted(prettyTerm.pretty)))
           }
         case JsSuccess(other, _) =>
           log.warning(s"Unexpected message from ${sender()}: $other")
