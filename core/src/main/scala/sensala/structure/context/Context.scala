@@ -62,7 +62,7 @@ final case class Context[F[_]: Monad: FunctorRaiseNLError] private[context] (
 
   def findAnaphoricEntity(properties: List[Property]): F[Option[Var]] =
     for {
-      x <- bindFreeVar
+      x           <- bindFreeVar
       propertiesE = convertPropertiesToE(x, properties)
       result      <- findAnaphoricEntity(x, propertiesE)
     } yield result
@@ -70,11 +70,11 @@ final case class Context[F[_]: Monad: FunctorRaiseNLError] private[context] (
   def findAnaphoricEntityUnsafe(properties: List[Property]): F[Var] =
     findAnaphoricEntity(properties).flatMap {
       case Some(ref) => ref.pure[F]
-      case None      =>
+      case None =>
         for {
-          x <- bindFreeVar
+          x           <- bindFreeVar
           propertiesE = convertPropertiesToE(x, properties)
-          result <- FunctorRaiseNLError[F].raise[Var](NLUnknownAnaphoricReferent(propertiesE))
+          result      <- FunctorRaiseNLError[F].raise[Var](NLUnknownAnaphoricReferent(propertiesE))
         } yield result
     }
 
@@ -95,22 +95,22 @@ final case class Context[F[_]: Monad: FunctorRaiseNLError] private[context] (
 
   def findAnaphoricEvent(properties: List[Sym]): F[Option[Var]] =
     for {
-      x                <- bindFreeVar
-      propertiesE      = convertSymsToE(x, properties)
-      result           <- findAnaphoricEvent(x, propertiesE)
+      x           <- bindFreeVar
+      propertiesE = convertSymsToE(x, properties)
+      result      <- findAnaphoricEvent(x, propertiesE)
     } yield result
-  
+
   def findAnaphoricEventUnsafe(properties: List[Sym]): F[Var] =
     findAnaphoricEvent(properties).flatMap {
       case Some(ref) => ref.pure[F]
       case None =>
         for {
-          x <- bindFreeVar
+          x           <- bindFreeVar
           propertiesE = convertSymsToE(x, properties)
-          result <- FunctorRaiseNLError[F].raise[Var](NLUnknownAnaphoricReferent(propertiesE))
+          result      <- FunctorRaiseNLError[F].raise[Var](NLUnknownAnaphoricReferent(propertiesE))
         } yield result
     }
-  
+
   def eventProperties(event: Var): F[E] =
     state.get.map(_.eventProperties(event))
 
@@ -177,7 +177,7 @@ final case class Context[F[_]: Monad: FunctorRaiseNLError] private[context] (
 
 object Context {
   def apply[F[_]](implicit ev: Context[F]): Context[F] = ev
-  
+
   def initial[F[_]: Monad: Capture: FunctorRaiseNLError]: Context[F] = {
     val speakerEntity      = Var("speaker")
     val interlocutorEntity = Var("interlocutor")

@@ -25,9 +25,10 @@ import sensala.structure.wh._
 
 import scala.collection.convert.ImplicitConversionsToScala._
 
-final case class EnglishDiscourseParser[F[_]: Monad: Context: LocalContext: FunctorRaiseNLError]() extends DiscourseParser[F] {
+final case class EnglishDiscourseParser[F[_]: Monad: Context: LocalContext: FunctorRaiseNLError]()
+    extends DiscourseParser[F] {
   private val logger = Logger[this.type]
-  
+
   type EitherS[T] = Either[String, T]
 
   private def pairToTuple[U, V](p: edu.stanford.nlp.util.Pair[U, V]): (U, V) =
@@ -50,7 +51,8 @@ final case class EnglishDiscourseParser[F[_]: Monad: Context: LocalContext: Func
       case Nil =>
         // FIXME: Currently treating all common nouns without determiners as indefinite
         Right(Existential)
-      case x :: Nil if x.word.toLowerCase == "a" || x.word.toLowerCase == "an" || x.word.toLowerCase == "some" =>
+      case x :: Nil
+          if x.word.toLowerCase == "a" || x.word.toLowerCase == "an" || x.word.toLowerCase == "some" =>
         Right(Existential)
       case x :: Nil if x.word.toLowerCase == "every" =>
         Right(Forall)
@@ -220,7 +222,7 @@ final case class EnglishDiscourseParser[F[_]: Monad: Context: LocalContext: Func
     } yield prepositionModifiers.foldRight(nounPhrase)(NounPhrasePreposition.apply)
   }
 
-  private def parseIndefinitePronoun(word: IndexedWord): Either[String, IndefinitePronoun[F]] = {
+  private def parseIndefinitePronoun(word: IndexedWord): Either[String, IndefinitePronoun[F]] =
     word.word.toLowerCase match {
       case "nobody"                 => Right(NegativePersonSingularIndefinitePronoun(word.word))
       case "everyone" | "everybody" => Right(UniversalPersonSingularIndefinitePronoun(word.word))
@@ -230,9 +232,8 @@ final case class EnglishDiscourseParser[F[_]: Monad: Context: LocalContext: Func
       case "something"              => Right(ExistentialPersonSingularIndefinitePronoun(word.word))
       case _                        => Left(s"Unknown indefinite pronoun: ${word.word}")
     }
-  }
 
-  private def parsePersonalPronoun(word: IndexedWord): Either[String, PersonalPronoun[F]] = {
+  private def parsePersonalPronoun(word: IndexedWord): Either[String, PersonalPronoun[F]] =
     word.word.toLowerCase match {
       case "i" | "me"      => Right(FirstPersonSingularPersonalPronoun(word.word))
       case "you"           => Right(SecondPersonSingularPersonalPronoun(word.word))
@@ -243,9 +244,8 @@ final case class EnglishDiscourseParser[F[_]: Monad: Context: LocalContext: Func
       case "they" | "them" => Right(ThirdPersonPluralPersonalPronoun(word.word))
       case _               => Left(s"Unknown personal pronoun: ${word.word}")
     }
-  }
 
-  private def parseReflexivePronoun(word: IndexedWord): Either[String, ReflexivePronoun[F]] = {
+  private def parseReflexivePronoun(word: IndexedWord): Either[String, ReflexivePronoun[F]] =
     word.word.toLowerCase match {
       case "myself"     => Right(FirstPersonSingularReflexivePronoun(word.word))
       case "yourself"   => Right(SecondPersonSingularReflexivePronoun(word.word))
@@ -256,12 +256,11 @@ final case class EnglishDiscourseParser[F[_]: Monad: Context: LocalContext: Func
       case "themselves" => Right(ThirdPersonPluralReflexivePronoun(word.word))
       case _            => Left(s"Unknown reflexive pronoun: ${word.word}")
     }
-  }
-  
+
   private def parsePersonalOrReflexivePronoun(word: IndexedWord): Either[String, Pronoun[F]] =
     parsePersonalPronoun(word).orElse(parseReflexivePronoun(word))
 
-  private def parsePossessivePronoun(word: IndexedWord): Either[String, PossessivePronoun[F]] = {
+  private def parsePossessivePronoun(word: IndexedWord): Either[String, PossessivePronoun[F]] =
     word.word.toLowerCase match {
       case "my" | "mine"      => Right(FirstPersonSingularPossessivePronoun(word.word))
       case "your" | "yours"   => Right(SecondPersonSingularPossessivePronoun(word.word))
@@ -272,7 +271,6 @@ final case class EnglishDiscourseParser[F[_]: Monad: Context: LocalContext: Func
       case "their" | "theirs" => Right(ThirdPersonPluralPossessivePronoun(word.word))
       case _                  => Left(s"Unknown possessive pronoun: ${word.word}")
     }
-  }
 
   private def parseNounPhrase(
     nounTree: IndexedWord
@@ -286,29 +284,39 @@ final case class EnglishDiscourseParser[F[_]: Monad: Context: LocalContext: Func
             parseCommonNoun(nounTree) match {
               case Right(Existential) =>
                 for {
-                  adjectiveNounPhrase <- parseAdjectiveNounPhrase(nounTree, CommonNoun(nounTree.word))
-                  whNounPhrase        <- parseWhNounPhrase(nounTree, adjectiveNounPhrase)
-                  prepNounPhrase      <- parsePrepositionalNounPhrase(nounTree, whNounPhrase)
+                  adjectiveNounPhrase <- parseAdjectiveNounPhrase(
+                                          nounTree,
+                                          CommonNoun(nounTree.word)
+                                        )
+                  whNounPhrase   <- parseWhNounPhrase(nounTree, adjectiveNounPhrase)
+                  prepNounPhrase <- parsePrepositionalNounPhrase(nounTree, whNounPhrase)
                 } yield ExistentialQuantifier(prepNounPhrase)
               case Right(Forall) =>
                 for {
-                  adjectiveNounPhrase <- parseAdjectiveNounPhrase(nounTree, CommonNoun(nounTree.word))
-                  whNounPhrase        <- parseWhNounPhrase(nounTree, adjectiveNounPhrase)
-                  prepNounPhrase      <- parsePrepositionalNounPhrase(nounTree, whNounPhrase)
+                  adjectiveNounPhrase <- parseAdjectiveNounPhrase(
+                                          nounTree,
+                                          CommonNoun(nounTree.word)
+                                        )
+                  whNounPhrase   <- parseWhNounPhrase(nounTree, adjectiveNounPhrase)
+                  prepNounPhrase <- parsePrepositionalNounPhrase(nounTree, whNounPhrase)
                 } yield ForallQuantifier(prepNounPhrase)
               case Right(The) =>
                 for {
-                  adjectiveNounPhrase <- parseAdjectiveNounPhrase(nounTree, CommonNoun(nounTree.word))
-                  whNounPhrase        <- parseWhNounPhrase(nounTree, adjectiveNounPhrase)
-                  prepNounPhrase      <- parsePrepositionalNounPhrase(nounTree, whNounPhrase)
+                  adjectiveNounPhrase <- parseAdjectiveNounPhrase(
+                                          nounTree,
+                                          CommonNoun(nounTree.word)
+                                        )
+                  whNounPhrase   <- parseWhNounPhrase(nounTree, adjectiveNounPhrase)
+                  prepNounPhrase <- parsePrepositionalNounPhrase(nounTree, whNounPhrase)
                 } yield DefiniteNounPhrase(prepNounPhrase)
               case Left(error) =>
                 Left(error)
-            }   
+            }
         }
       case "NNP" =>
         val ner = Option(nounTree.ner()).flatMap(parseNer)
-        val gender = Option(nounTree.get(classOf[CoreAnnotations.GenderAnnotation])).flatMap(parseGender)
+        val gender =
+          Option(nounTree.get(classOf[CoreAnnotations.GenderAnnotation])).flatMap(parseGender)
         val properNoun = ProperNoun[F](nounTree.word, ner, gender)
         for {
           adjectiveNounPhrase <- parseAdjectiveNounPhrase(nounTree, properNoun)
@@ -331,9 +339,12 @@ final case class EnglishDiscourseParser[F[_]: Monad: Context: LocalContext: Func
         } yield prepNounPhrase
       case "DT" =>
         for {
-          adjectiveNounPhrase <- parseAdjectiveNounPhrase(nounTree, DemonstrativePronoun(nounTree.word))
-          whNounPhrase        <- parseWhNounPhrase(nounTree, adjectiveNounPhrase)
-          prepNounPhrase      <- parsePrepositionalNounPhrase(nounTree, whNounPhrase)
+          adjectiveNounPhrase <- parseAdjectiveNounPhrase(
+                                  nounTree,
+                                  DemonstrativePronoun(nounTree.word)
+                                )
+          whNounPhrase   <- parseWhNounPhrase(nounTree, adjectiveNounPhrase)
+          prepNounPhrase <- parsePrepositionalNounPhrase(nounTree, whNounPhrase)
         } yield prepNounPhrase
       case _ => Left(s"Unknown noun phrase: (${nounTree.tag}) ${nounTree.word}")
     }
@@ -421,7 +432,8 @@ final case class EnglishDiscourseParser[F[_]: Monad: Context: LocalContext: Func
                 case Some(soWord) =>
                   for {
                     objPhrase <- parseNounPhrase(root)
-                  } yield Sentence(objPhrase, VerbPhraseAnaphora(soWord.word + " " + cop.word, Passive))
+                  } yield
+                    Sentence(objPhrase, VerbPhraseAnaphora(soWord.word + " " + cop.word, Passive))
                 case None =>
                   Left("Invalid verb phrase anaphora")
               }
@@ -446,11 +458,12 @@ final case class EnglishDiscourseParser[F[_]: Monad: Context: LocalContext: Func
       case _ =>
         sentence
     }
-  
+
   private def parseSentence(sentence: CoreMap): Either[String, Sentence[F]] = {
-    implicit val graph = sentence.get(classOf[SemanticGraphCoreAnnotations.EnhancedPlusPlusDependenciesAnnotation])
+    implicit val graph =
+      sentence.get(classOf[SemanticGraphCoreAnnotations.EnhancedPlusPlusDependenciesAnnotation])
     logger.info("\n" + graph.toString)
-    val root           = graph.getFirstRoot
+    val root = graph.getFirstRoot
     parseSentence(root).map(transformVerbPhraseAnaphora)
   }
 
@@ -460,15 +473,15 @@ final case class EnglishDiscourseParser[F[_]: Monad: Context: LocalContext: Func
     val sentences: List[CoreMap] = document.get(classOf[SentencesAnnotation]).toList
     sentences.map(_.get(classOf[TreeAnnotation]))
   }
-  
+
   def parse(discourse: String): Either[String, Discourse[F]] = {
     val document = new Annotation(discourse)
     EnglishSensalaStanfordParser.annotate(document)
     val sentences: List[CoreMap] = document.get(classOf[SentencesAnnotation]).toList
     for {
       result <- sentences
-        .map(parseSentence)
-        .sequence
+                 .map(parseSentence)
+                 .sequence
     } yield Discourse(result)
   }
 }

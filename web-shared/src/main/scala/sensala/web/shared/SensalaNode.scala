@@ -9,16 +9,16 @@ final case class SensalaNode(label: String, nodeType: String, children: List[Sen
 
 object SensalaNode {
   val stanfordNodeReads: Reads[SensalaNode] = (
-      (JsPath \ "label").read[String] and
+    (JsPath \ "label").read[String] and
       (JsPath \ "nodeType").read[String] and
       (JsPath \ "children").lazyRead(Reads.list[SensalaNode](stanfordNodeReads))
-    )(SensalaNode.apply _)
+  )(SensalaNode.apply _)
 
   val stanfordNodeWrites: Writes[SensalaNode] = (
-      (JsPath \ "label").write[String] and
+    (JsPath \ "label").write[String] and
       (JsPath \ "nodeType").write[String] and
       (JsPath \ "children").lazyWrite(Writes.list[SensalaNode](stanfordNodeWrites))
-    )(unlift(SensalaNode.unapply))
-  
+  )(unlift(SensalaNode.unapply))
+
   implicit val jsonFormat = Format(stanfordNodeReads, stanfordNodeWrites)
 }

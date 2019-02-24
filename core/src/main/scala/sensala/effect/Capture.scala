@@ -5,14 +5,14 @@ import cats.implicits._
 import monix.eval.Task
 
 /** Monad with effect-capturing unit.
-  *
-  * Cribbed from [doobie](http://github.com/tpolecat/doobie)
-  */
+ *
+ * Cribbed from [doobie](http://github.com/tpolecat/doobie)
+ */
 trait Capture[F[_]] {
 
   /** Captures the effect of producing `A`, including any exceptions that may
-    * be thrown.
-    */
+   * be thrown.
+   */
   def capture[A](a: => A): F[A]
 
   /** Alias for `capture`. */

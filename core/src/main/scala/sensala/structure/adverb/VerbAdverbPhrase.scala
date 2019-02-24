@@ -24,7 +24,8 @@ case class VerbAdverbPhrase[F[_]: Monad: Context: LocalContext: FunctorRaiseNLEr
                        case All(`e`, `event`, body) =>
                          Monad[F].pure[E](body)
                        case _ =>
-                         FunctorRaiseNLError[F].raise[E](NLInvalidState("Unexpected properties format"))
+                         FunctorRaiseNLError[F]
+                           .raise[E](NLInvalidState("Unexpected properties format"))
                      }
         _     <- Context[F].addEvent(e, properties /\ w(e))
         contL <- cont

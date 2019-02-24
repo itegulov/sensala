@@ -35,10 +35,10 @@ case class InterpretationActor() extends Actor with ActorLogging {
     override def raise[A](e: NLError): Task[A] =
       throw new RuntimeException(e.toString)
   }
-  implicit val sensalaContext = Context.initial[Task]
+  implicit val sensalaContext      = Context.initial[Task]
   implicit val sensalaLocalContext = LocalContext.empty[Task]
-  val parser = EnglishDiscourseParser[Task]()
-  
+  val parser                       = EnglishDiscourseParser[Task]()
+
   override def receive: Receive = {
     case Connected(actorRef) =>
       context.become(connected(actorRef))
@@ -245,11 +245,11 @@ case class InterpretationActor() extends Actor with ActorLogging {
                 """.stripMargin
               )
               outgoing ! OutgoingMessage(Json.toJson(SensalaParsed(convertNL(sentence))))
-              
+
               val (lambdaTerm, context, localContext) =
                 (for {
-                  lambdaTerm <- sentence.interpret(Monad[Task].pure(True))
-                  context <- sensalaContext.state.get
+                  lambdaTerm   <- sentence.interpret(Monad[Task].pure(True))
+                  context      <- sensalaContext.state.get
                   localContext <- sensalaLocalContext.state.get
                 } yield (lambdaTerm, context, localContext)).runSyncUnsafe()
               log.info(

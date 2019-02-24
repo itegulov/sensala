@@ -6,7 +6,8 @@ import org.aossie.scavenger.expression._
 import sensala.structure.context.{Context, LocalContext}
 import sensala.structure.types._
 
-final case class Discourse[F[_]: Monad: Context: LocalContext](sentences: List[Sentence[F]]) extends NL[F] {
+final case class Discourse[F[_]: Monad: Context: LocalContext](sentences: List[Sentence[F]])
+    extends NL[F] {
   override def interpret(cont: F[E]): F[E] =
     for {
       x <- Context[F].bindFreeVar

@@ -10,7 +10,7 @@ import sensala.structure.context.{Context, LocalContext}
 import sensala.structure.types.event
 
 sealed trait Voice
-case object Active extends Voice
+case object Active  extends Voice
 case object Passive extends Voice
 
 final case class VerbPhraseAnaphora[F[_]: Monad: Context: LocalContext: FunctorRaiseNLError](
@@ -29,13 +29,13 @@ final case class VerbPhraseAnaphora[F[_]: Monad: Context: LocalContext: FunctorR
                        )
                    }
       entity <- LocalContext[F].getEntity
-      newE          <- Context[F].bindFreeVar
+      newE   <- Context[F].bindFreeVar
       newProperties = voice match {
-        case Active => substitute(substitute(properties, e, newE), agent, 1, entity)
+        case Active  => substitute(substitute(properties, e, newE), agent, 1, entity)
         case Passive => substitute(substitute(properties, e, newE), patient, 1, entity)
       }
-      _             <- LocalContext[F].putEvent(newE)
-      _             <- Context[F].addEvent(newE, newProperties)
-      contL         <- cont
+      _     <- LocalContext[F].putEvent(newE)
+      _     <- Context[F].addEvent(newE, newProperties)
+      contL <- cont
     } yield Ex(newE, event, newProperties /\ contL)
 }

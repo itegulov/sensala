@@ -6,7 +6,8 @@ import play.api.libs.json.OFormat
 sealed trait SensalaInterpretMessage
 
 object SensalaInterpretMessage {
-  implicit val jsonFormat: OFormat[SensalaInterpretMessage] = derived.oformat[SensalaInterpretMessage]()
+  implicit val jsonFormat: OFormat[SensalaInterpretMessage] =
+    derived.oformat[SensalaInterpretMessage]()
 }
 
 final case class SensalaRunInterpretation(discourse: String) extends SensalaInterpretMessage

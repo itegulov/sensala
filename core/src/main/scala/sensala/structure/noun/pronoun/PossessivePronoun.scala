@@ -7,7 +7,6 @@ import sensala.property.Property
 import sensala.structure._
 import sensala.structure.context.{Context, LocalContext}
 
-
 sealed abstract class PossessivePronoun[F[_]: Monad: Context: LocalContext] extends Pronoun[F] {
   override def interpret(cont: F[E]): F[E] =
     for {

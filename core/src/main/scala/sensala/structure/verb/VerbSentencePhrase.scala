@@ -21,7 +21,7 @@ final case class VerbSentencePhrase[F[_]: Monad: Context: LocalContext: FunctorR
       sentenceL <- sentence.interpret(
                     for {
                       eSucc <- LocalContext[F].getEvent
-                      _ <- Context[F].addEvent(e, w(e) /\ agent(e, x) /\ patient(e, eSucc))
+                      _     <- Context[F].addEvent(e, w(e) /\ agent(e, x) /\ patient(e, eSucc))
                       contL <- cont
                     } yield w(e) /\ agent(e, x) /\ patient(e, eSucc) /\ contL
                   )

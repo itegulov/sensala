@@ -19,14 +19,15 @@ final case class WhNounPhrase[F[_]: Monad: Context: LocalContext: FunctorRaiseNL
       for {
         x <- LocalContext[F].getEntity
         vpL <- verbPhrase.interpret(
-          for {
-            _     <- LocalContext[F].putEntity(x) // Because who clause can redefine current entity
-            contL <- cont
-          } yield contL
-        )
+                for {
+                  _ <- LocalContext[F]
+                        .putEntity(x) // Because who clause can redefine current entity
+                  contL <- cont
+                } yield contL
+              )
       } yield vpL
     )
 
-  override def properties = nounPhrase.properties
+  override def properties                         = nounPhrase.properties
   override def definiteProperties: List[Property] = nounPhrase.definiteProperties
 }

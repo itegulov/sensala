@@ -14,30 +14,29 @@ import scala.util.Try
 
 object WordNetPropertyExtractor {
   val logger = Logger[this.type]
-  
+
   JWNL.initialize(getClass.getResourceAsStream("/jwnl-properties.xml"))
-  val dictionary = Dictionary.getInstance()
+  val dictionary   = Dictionary.getInstance()
   val pointerUtils = PointerUtils.getInstance()
 
   private def getPointers(synset: Synset, typ: PointerType): Array[Pointer] = {
-    val list = ArrayBuffer.empty[Pointer]
+    val list     = ArrayBuffer.empty[Pointer]
     val pointers = synset.getPointers()
     for (pointer <- pointers) {
       if (pointer.getType == typ) list += pointer
     }
     list.toArray
   }
-  
+
   private def getTargets(synset: Synset, typ: PointerType): Array[PointerTarget] = {
     val pointers = getPointers(synset, typ)
-    val targets = new Array[PointerTarget](pointers.length)
+    val targets  = new Array[PointerTarget](pointers.length)
     for ((pointer, i) <- pointers.zipWithIndex) {
       targets(i) = pointer.getTarget
     }
     targets
   }
-  
-  
+
   private def makePointerTargetTreeList(
     synset: Synset,
     searchTypes: Array[PointerType],
@@ -53,7 +52,8 @@ object WordNetPropertyExtractor {
         for (itr <- targets.toList.map(_.asInstanceOf[PointerTargetNode])) {
           val node = new PointerTargetTreeNode(
             itr.getPointerTarget,
-            if (labelType == null) typ else labelType, parent
+            if (labelType == null) typ else labelType,
+            parent
           )
           if (allowRedundancies || !list.contains(node)) {
             if (depth != 1) {
@@ -75,16 +75,21 @@ object WordNetPropertyExtractor {
     }
     list
   }
-  
-  private def makePointerTargetTreeList(set: Synset, searchType: PointerType, depth: Int): PointerTargetTreeNodeList = {
+
+  private def makePointerTargetTreeList(set: Synset,
+                                        searchType: PointerType,
+                                        depth: Int): PointerTargetTreeNodeList = {
     val searchTypes = new Array[PointerType](1)
     searchTypes(0) = searchType
     makePointerTargetTreeList(set, searchTypes, null, depth, true, null)
   }
-  
+
   private def getHypernymTree(synset: Synset): PointerTargetTree =
-    new PointerTargetTree(synset, makePointerTargetTreeList(synset, PointerType.HYPERNYM, Integer.MAX_VALUE))
-  
+    new PointerTargetTree(
+      synset,
+      makePointerTargetTreeList(synset, PointerType.HYPERNYM, Integer.MAX_VALUE)
+    )
+
   def extractProperties(word: String): List[Property] = {
     val result = ArrayBuffer.empty[Property]
     for (indexWord <- dictionary.lookupAllIndexWords(word).getIndexWordArray) {
@@ -94,7 +99,7 @@ object WordNetPropertyExtractor {
         for (pathAny <- tree.map(tree => tree.toList.toList).getOrElse(List.empty)) {
           val path = pathAny.asInstanceOf[PointerTargetNodeList]
           for (nodeAny <- path.toList) {
-            val node = nodeAny.asInstanceOf[PointerTargetNode]
+            val node       = nodeAny.asInstanceOf[PointerTargetNode]
             val properties = node.getSynset.getWords.map(_.getLemma)
             logger.debug(properties.mkString(", "))
             result ++= properties.map(lemma => Property(x => Sym(lemma)(x)))
@@ -106,7 +111,6 @@ object WordNetPropertyExtractor {
     result.toList
   }
 
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]): Unit =
     extractProperties("farmer")
-  }
 }

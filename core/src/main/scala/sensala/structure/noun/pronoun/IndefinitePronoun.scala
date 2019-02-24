@@ -23,9 +23,9 @@ final case class NegativePersonSingularIndefinitePronoun[F[_]: Monad: Context: L
 ) extends PersonSingularIndefinitePronoun[F] {
   override def interpret(cont: F[E]): F[E] =
     for {
-      x <- Context[F].bindFreeVar
-      _ <- Context[F].addEntity(x, properties)
-      _ <- LocalContext[F].putEntity(x)
+      x     <- Context[F].bindFreeVar
+      _     <- Context[F].addEntity(x, properties)
+      _     <- LocalContext[F].putEntity(x)
       contL <- cont
     } yield ~Ex(x, entity, contL)
 }
@@ -34,9 +34,9 @@ final case class UniversalPersonSingularIndefinitePronoun[F[_]: Monad: Context: 
 ) extends PersonSingularIndefinitePronoun[F] {
   override def interpret(cont: F[E]): F[E] =
     for {
-      x <- Context[F].bindFreeVar
-      _ <- Context[F].addEntity(x, properties)
-      _ <- LocalContext[F].putEntity(x)
+      x     <- Context[F].bindFreeVar
+      _     <- Context[F].addEntity(x, properties)
+      _     <- LocalContext[F].putEntity(x)
       contL <- cont
     } yield All(x, entity, contL)
 }
@@ -45,9 +45,9 @@ final case class ExistentialPersonSingularIndefinitePronoun[F[_]: Monad: Context
 ) extends PersonSingularIndefinitePronoun[F] {
   override def interpret(cont: F[E]): F[E] =
     for {
-      x <- Context[F].bindFreeVar
-      _ <- Context[F].addEntity(x, properties)
-      _ <- LocalContext[F].putEntity(x)
+      x     <- Context[F].bindFreeVar
+      _     <- Context[F].addEntity(x, properties)
+      _     <- LocalContext[F].putEntity(x)
       contL <- cont
     } yield Ex(x, entity, contL)
 }
@@ -62,9 +62,9 @@ final case class NegativeThingSingularIndefinitePronoun[F[_]: Monad: Context: Lo
 ) extends ThingSingularIndefinitePronoun[F] {
   override def interpret(cont: F[E]): F[E] =
     for {
-      x <- Context[F].bindFreeVar
-      _ <- Context[F].addEntity(x, properties)
-      _ <- LocalContext[F].putEntity(x)
+      x     <- Context[F].bindFreeVar
+      _     <- Context[F].addEntity(x, properties)
+      _     <- LocalContext[F].putEntity(x)
       contL <- cont
     } yield ~Ex(x, entity, contL)
 }
@@ -73,9 +73,9 @@ final case class UniversalThingSingularIndefinitePronoun[F[_]: Monad: Context: L
 ) extends ThingSingularIndefinitePronoun[F] {
   override def interpret(cont: F[E]): F[E] =
     for {
-      x <- Context[F].bindFreeVar
-      _ <- Context[F].addEntity(x, properties)
-      _ <- LocalContext[F].putEntity(x)
+      x     <- Context[F].bindFreeVar
+      _     <- Context[F].addEntity(x, properties)
+      _     <- LocalContext[F].putEntity(x)
       contL <- cont
     } yield All(x, entity, contL)
 }
@@ -84,9 +84,9 @@ final case class ExistentialThingSingularIndefinitePronoun[F[_]: Monad: Context:
 ) extends ThingSingularIndefinitePronoun[F] {
   override def interpret(cont: F[E]): F[E] =
     for {
-      x <- Context[F].bindFreeVar
-      _ <- Context[F].addEntity(x, properties)
-      _ <- LocalContext[F].putEntity(x)
+      x     <- Context[F].bindFreeVar
+      _     <- Context[F].addEntity(x, properties)
+      _     <- LocalContext[F].putEntity(x)
       contL <- cont
     } yield Ex(x, entity, contL)
 }

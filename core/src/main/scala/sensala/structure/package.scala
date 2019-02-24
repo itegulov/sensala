@@ -19,22 +19,22 @@ package object structure {
 
   val named = Sym("named")
 
-  val animal = Sym("animal")
-  val location = Sym("location")
-  val person = Sym("person")
+  val animal       = Sym("animal")
+  val location     = Sym("location")
+  val person       = Sym("person")
   val organization = Sym("organization")
-  val money = Sym("money")
-  val percent = Sym("percent")
-  val date = Sym("date")
-  val time = Sym("time")
-  
+  val money        = Sym("money")
+  val percent      = Sym("percent")
+  val date         = Sym("date")
+  val time         = Sym("time")
+
   val male   = Sym("male")
   val female = Sym("female")
-  
+
   // Special Sensala properties
-  val speaker = Sym("sensala_speaker")
+  val speaker      = Sym("sensala_speaker")
   val interlocutor = Sym("sensala_interlocutor")
-  
+
   // FIXME: Make True a case object in Scavenger
   val Truth: E = True
 

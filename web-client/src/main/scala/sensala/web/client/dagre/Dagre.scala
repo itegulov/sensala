@@ -7,14 +7,16 @@ object Dagre {
   private def fun0[T0](x: js.Function0[T0]): js.Function0[T0] = x
 
   def newD3Digraph =
-    new `dagreD3.graphlib.Graph`(js.Dynamic.literal()).
-      setGraph(js.Dynamic.literal()).
-      setDefaultEdgeLabel(fun0 { () => js.Dynamic.literal() })
+    new `dagreD3.graphlib.Graph`(js.Dynamic.literal())
+      .setGraph(js.Dynamic.literal())
+      .setDefaultEdgeLabel(fun0 { () =>
+        js.Dynamic.literal()
+      })
 
   def newD3Digraph(gOpt: js.Object, fEdgeLabel: js.Function0[js.Dynamic]) =
-    new `dagreD3.graphlib.Graph`(gOpt).
-      setGraph(js.Dynamic.literal()).
-      setDefaultEdgeLabel(fEdgeLabel)
+    new `dagreD3.graphlib.Graph`(gOpt)
+      .setGraph(js.Dynamic.literal())
+      .setDefaultEdgeLabel(fEdgeLabel)
 
   def newD3Renderer = new `dagreD3.render`
 }
@@ -34,9 +36,9 @@ class `dagreD3.graphlib.Graph`(opt: js.Object) extends Graph {
   def setEdge(sourceId: String, targetId: String, attr: js.Any = null): js.Any = js.native
 
   def graph(): `dagreD3.graphlib.Graph` = js.native
-  
+
   def width(): Double = js.native
-  
+
   def height(): Double = js.native
 }
 

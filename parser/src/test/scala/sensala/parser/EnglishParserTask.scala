@@ -15,11 +15,10 @@ object EnglishParserTask {
     override def raise[A](e: NLError): Task[A] =
       throw new RuntimeException(e.toString)
   }
-  implicit val context = Context.initial[Task]
+  implicit val context      = Context.initial[Task]
   implicit val localContext = LocalContext.empty[Task]
-  val parser = EnglishDiscourseParser[Task]()
-  
-  def parse(discourse: String): Either[String, Discourse[Task]] = {
+  val parser                = EnglishDiscourseParser[Task]()
+
+  def parse(discourse: String): Either[String, Discourse[Task]] =
     parser.parse(discourse)
-  }
 }

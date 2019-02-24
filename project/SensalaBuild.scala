@@ -13,6 +13,7 @@ import com.typesafe.sbt.gzip.Import._
 import com.typesafe.sbt.web.Import._
 import com.typesafe.sbt.digest.Import._
 import sbtassembly._
+import org.scalafmt.sbt.ScalafmtPlugin.autoImport._
 import webscalajs.ScalaJSWeb
 
 import Dependencies._
@@ -42,7 +43,8 @@ object SensalaBuild {
     scalacOptions in (Compile, console) -= "-Ywarn-unused-import",
     scalacOptions in (Compile, doc) ++= Seq("-diagrams", "-implicits"),
     scalacOptions in Test ++= Seq("-Yrangepos"),
-    sbt.Keys.test in assembly := {}
+    sbt.Keys.test in assembly := {},
+    scalafmtOnCompile := true
   )
 
   lazy val core = Project(id = "core", base = file("core"))

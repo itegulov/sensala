@@ -21,18 +21,20 @@ final case class LocalContext[F[_]: Monad: FunctorRaiseNLError] private[context]
     for {
       localContext <- state.get
       entity <- localContext.entity match {
-        case Some(e) => e.pure[F]
-        case None => FunctorRaiseNLError[F].raise(NLInvalidState("Local entity could not be found"))
-      }
+                 case Some(e) => e.pure[F]
+                 case None =>
+                   FunctorRaiseNLError[F].raise(NLInvalidState("Local entity could not be found"))
+               }
     } yield entity
 
   def getEvent: F[Var] =
     for {
       localContext <- state.get
       event <- localContext.event match {
-        case Some(e) => e.pure[F]
-        case None => FunctorRaiseNLError[F].raise(NLInvalidState("Local event could not be found"))
-      }
+                case Some(e) => e.pure[F]
+                case None =>
+                  FunctorRaiseNLError[F].raise(NLInvalidState("Local event could not be found"))
+              }
     } yield event
 
   def putEntity(v: Var): F[Unit] =
@@ -40,14 +42,14 @@ final case class LocalContext[F[_]: Monad: FunctorRaiseNLError] private[context]
 
   def putEvent(v: Var): F[Unit] =
     state.modify(_.copy(event = Some(v)))
-  
+
   def clear: F[Unit] =
     state.set(LocalContextState(None, None))
 }
 
 object LocalContext {
   def apply[F[_]](implicit ev: LocalContext[F]): LocalContext[F] = ev
-  
+
   def empty[F[_]: Monad: Capture: FunctorRaiseNLError]: LocalContext[F] =
     LocalContext(
       new AtomicMonadState(
