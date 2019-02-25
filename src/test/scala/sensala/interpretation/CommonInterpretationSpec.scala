@@ -24,9 +24,6 @@ class CommonInterpretationSpec extends SensalaSpec {
     override def raise[A](e: NLError): Task[A] =
       throw new RuntimeException(e.toString)
   }
-  implicit val sensalaContext      = Context.initial[Task]
-  implicit val sensalaLocalContext = LocalContext.empty[Task]
-  val interpreter                  = Interpreter[Task]()
 
   def interpret(text: String): E =
     EnglishDiscourseParser.parse(text) match {
@@ -34,6 +31,9 @@ class CommonInterpretationSpec extends SensalaSpec {
         sys.error(error)
       case Right(sentence) =>
         println(s"Sentence: $sentence")
+        implicit val sensalaContext: Context[Task]           = Context.initial[Task]
+        implicit val sensalaLocalContext: LocalContext[Task] = LocalContext.empty[Task]
+        val interpreter                                      = Interpreter[Task]()
         (for {
           lambda     <- interpreter.interpret(sentence, Task.pure(True))
           normalized = NormalFormConverter.normalForm(lambda)
