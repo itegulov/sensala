@@ -1,6 +1,6 @@
 package sensala
 
-import cats.{Functor, Monad}
+import cats.Functor
 import cats.mtl.FunctorRaise
 import sensala.normalization.NormalFormConverter
 import sensala.postprocessing.PrettyTransformer
@@ -12,6 +12,7 @@ import org.aossie.scavenger.expression.formula.True
 import org.aossie.scavenger.preprocessing.TPTPClausifier
 import org.aossie.scavenger.structure.immutable.AxiomClause
 import sensala.error.NLError
+import sensala.interpreter.Interpreter
 import sensala.parser.english.EnglishDiscourseParser
 import sensala.structure.context.{Context, LocalContext}
 
@@ -56,8 +57,8 @@ object CLI {
       }
       implicit val sensalaContext      = Context.initial[Task]
       implicit val sensalaLocalContext = LocalContext.empty[Task]
-      val parser                       = EnglishDiscourseParser[Task]()
-      parser.parse(c.discourse) match {
+      val interpreter                  = Interpreter[Task]()
+      EnglishDiscourseParser.parse(c.discourse) match {
         case Left(error) =>
           logger.error(
             s"""Parsing failed:
@@ -73,7 +74,7 @@ object CLI {
           )
           val (lambdaTerm, context, localContext) =
             (for {
-              lambdaTerm   <- sentence.interpret(Monad[Task].pure(True))
+              lambdaTerm   <- interpreter.interpret(sentence, Task.pure(True))
               context      <- sensalaContext.state.get
               localContext <- sensalaLocalContext.state.get
             } yield (lambdaTerm, context, localContext)).runSyncUnsafe()

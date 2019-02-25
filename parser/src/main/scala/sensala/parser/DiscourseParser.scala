@@ -2,7 +2,7 @@ package sensala.parser
 
 import sensala.structure.noun._
 
-trait DiscourseParser[F[_]] {
+trait DiscourseParser {
   def parseNer(nerString: String): Option[NamedEntityType] = nerString match {
     case "LOCATION"     => Some(Person)
     case "PERSON"       => Some(Person)

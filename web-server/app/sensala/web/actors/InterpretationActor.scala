@@ -11,6 +11,7 @@ import org.aossie.scavenger.preprocessing.TPTPClausifier
 import org.aossie.scavenger.structure.immutable.AxiomClause
 import play.api.libs.json._
 import sensala.error.NLError
+import sensala.interpreter.Interpreter
 import sensala.normalization.NormalFormConverter
 import sensala.parser.english.EnglishDiscourseParser
 import sensala.postprocessing.PrettyTransformer
@@ -37,7 +38,7 @@ case class InterpretationActor() extends Actor with ActorLogging {
   }
   implicit val sensalaContext      = Context.initial[Task]
   implicit val sensalaLocalContext = LocalContext.empty[Task]
-  val parser                       = EnglishDiscourseParser[Task]()
+  val interpreter                  = Interpreter[Task]()
 
   override def receive: Receive = {
     case Connected(actorRef) =>
@@ -58,7 +59,7 @@ case class InterpretationActor() extends Actor with ActorLogging {
       Nil
     )
 
-  private def convertNL(nl: NL[Task]): SensalaNode = {
+  private def convertNL(nl: NL): SensalaNode = {
     nl match {
       case Discourse(sentences) =>
         SensalaNode(
@@ -102,7 +103,7 @@ case class InterpretationActor() extends Actor with ActorLogging {
           "type-propernoun",
           List(atomNode(s"$word"))
         )
-      case pronoun: Pronoun[Task] =>
+      case pronoun: Pronoun =>
         SensalaNode(
           pronoun.getClass.getSimpleName,
           "type-pronoun",
@@ -219,7 +220,7 @@ case class InterpretationActor() extends Actor with ActorLogging {
     case IncomingMessage(message) =>
       message.validate[SensalaInterpretMessage] match {
         case JsSuccess(SensalaRunInterpretation(discourse), _) =>
-          val sentences = parser.buildPennTaggedTree(discourse)
+          val sentences = EnglishDiscourseParser.buildPennTaggedTree(discourse)
           log.info(
             s"""
                |Result of Stanford parsing:
@@ -227,7 +228,7 @@ case class InterpretationActor() extends Actor with ActorLogging {
             """.stripMargin
           )
           outgoing ! OutgoingMessage(Json.toJson(StanfordParsed(convertTree(sentences.head))))
-          val parsed = Try(parser.parse(discourse))
+          val parsed = Try(EnglishDiscourseParser.parse(discourse))
             .getOrElse(Left("Invalid sentence (maybe a grammatical mistake?)"))
           parsed match {
             case Left(error) =>
@@ -248,7 +249,7 @@ case class InterpretationActor() extends Actor with ActorLogging {
 
               val (lambdaTerm, context, localContext) =
                 (for {
-                  lambdaTerm   <- sentence.interpret(Monad[Task].pure(True))
+                  lambdaTerm   <- interpreter.interpret(sentence, Monad[Task].pure(True))
                   context      <- sensalaContext.state.get
                   localContext <- sensalaLocalContext.state.get
                 } yield (lambdaTerm, context, localContext)).runSyncUnsafe()

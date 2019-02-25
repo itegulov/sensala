@@ -2,6 +2,6 @@ package sensala.structure.adverb
 
 import sensala.structure.NL
 
-trait AdverbPhrase[F[_]] extends NL[F] {
+trait AdverbPhrase extends NL {
   val adverb: Adverb
 }

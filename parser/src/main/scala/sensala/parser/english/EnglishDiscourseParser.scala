@@ -1,6 +1,5 @@
 package sensala.parser.english
 
-import cats.Monad
 import cats.implicits._
 import com.typesafe.scalalogging.Logger
 import edu.stanford.nlp.ling.CoreAnnotations.SentencesAnnotation
@@ -16,7 +15,6 @@ import sensala.parser.english.EnglishSensalaGrammaticalRelations._
 import sensala.structure._
 import sensala.structure.adjective._
 import sensala.structure.adverb._
-import sensala.structure.context.{Context, LocalContext}
 import sensala.structure.noun._
 import sensala.structure.noun.pronoun._
 import sensala.structure.prepositional._
@@ -25,8 +23,7 @@ import sensala.structure.wh._
 
 import scala.collection.convert.ImplicitConversionsToScala._
 
-final case class EnglishDiscourseParser[F[_]: Monad: Context: LocalContext: FunctorRaiseNLError]()
-    extends DiscourseParser[F] {
+object EnglishDiscourseParser extends DiscourseParser {
   private val logger = Logger[this.type]
 
   type EitherS[T] = Either[String, T]
@@ -67,8 +64,8 @@ final case class EnglishDiscourseParser[F[_]: Monad: Context: LocalContext: Func
 
   private def parseAdjectiveNounPhrase(
     nounTree: IndexedWord,
-    nounPhrase: NounPhrase[F]
-  )(implicit graph: SemanticGraph): Either[String, NounPhrase[F]] = {
+    nounPhrase: NounPhrase
+  )(implicit graph: SemanticGraph): Either[String, NounPhrase] = {
     val modifiers = graph.childPairs(nounTree).toList.map(pairToTuple).collect {
       case (rel, word) if rel == AdjMod => word
     }
@@ -82,8 +79,8 @@ final case class EnglishDiscourseParser[F[_]: Monad: Context: LocalContext: Func
 
   private def parseWhNounPhrase(
     nounTree: IndexedWord,
-    nounPhrase: NounPhrase[F]
-  )(implicit graph: SemanticGraph): Either[String, NounPhrase[F]] = {
+    nounPhrase: NounPhrase
+  )(implicit graph: SemanticGraph): Either[String, NounPhrase] = {
     val refs = graph.childPairs(nounTree).toList.map(pairToTuple).collect {
       case (rel, word) if rel == Ref => word
     }
@@ -96,14 +93,14 @@ final case class EnglishDiscourseParser[F[_]: Monad: Context: LocalContext: Func
       whClauses <- clauses.collect {
                     case (ref, relClause) if ref.word.toLowerCase == "who" =>
                       parseVerbPhrase(relClause)
-                  }.sequence[EitherS, VerbPhrase[F]]
+                  }.sequence[EitherS, VerbPhrase]
     } yield whClauses.foldRight(nounPhrase)(WhNounPhrase.apply)
   }
 
   private def parseAdverbVerbPhrase(
     verbTree: IndexedWord,
-    verbPhrase: VerbPhrase[F]
-  )(implicit graph: SemanticGraph): Either[String, VerbPhrase[F]] = {
+    verbPhrase: VerbPhrase
+  )(implicit graph: SemanticGraph): Either[String, VerbPhrase] = {
     val adverbs = graph.childPairs(verbTree).toList.map(pairToTuple).collect {
       case (rel, word) if rel == AdvMod => word
     }
@@ -113,8 +110,8 @@ final case class EnglishDiscourseParser[F[_]: Monad: Context: LocalContext: Func
 
   private def parsePrepositionalVerbPhrase(
     verbTree: IndexedWord,
-    verbPhrase: VerbPhrase[F]
-  )(implicit graph: SemanticGraph): Either[String, VerbPhrase[F]] = {
+    verbPhrase: VerbPhrase
+  )(implicit graph: SemanticGraph): Either[String, VerbPhrase] = {
     val prepositions = graph.childPairs(verbTree).toList.map(pairToTuple).collect {
       case (rel, word) if NomMod.isAncestor(rel) => word
     }
@@ -130,13 +127,13 @@ final case class EnglishDiscourseParser[F[_]: Monad: Context: LocalContext: Func
                                               .get(Case)
                                               .toRight("Invalid preposition: no case word")
                                } yield InPhrase(caseWord.word, prepositionNounPhrase)
-                             }.sequence[EitherS, InPhrase[F]]
+                             }.sequence[EitherS, InPhrase]
     } yield prepositionModifiers.foldRight(verbPhrase)(VerbInPhrase.apply)
   }
 
   private def parseVerbPhrase(
     verbTree: IndexedWord
-  )(implicit graph: SemanticGraph): Either[String, VerbPhrase[F]] =
+  )(implicit graph: SemanticGraph): Either[String, VerbPhrase] =
     verbTree.tag match {
       case "VB" | "VBZ" | "VBP" | "VBD" | "VBN" | "VBG" =>
         val childrenMap         = graph.childPairs(verbTree).map(pairToTuple).toMap
@@ -175,7 +172,7 @@ final case class EnglishDiscourseParser[F[_]: Monad: Context: LocalContext: Func
 
   private def parseVerbPhrasePassive(
     verbTree: IndexedWord
-  )(implicit graph: SemanticGraph): Either[String, VerbPhrase[F]] =
+  )(implicit graph: SemanticGraph): Either[String, VerbPhrase] =
     verbTree.tag match {
       case "VB" | "VBZ" | "VBP" | "VBD" | "VBN" | "VBG" =>
         val childrenMap = graph.childPairs(verbTree).map(pairToTuple).toMap
@@ -194,8 +191,8 @@ final case class EnglishDiscourseParser[F[_]: Monad: Context: LocalContext: Func
 
   private def parsePrepositionalNounPhrase(
     nounTree: IndexedWord,
-    nounPhrase: NounPhrase[F]
-  )(implicit graph: SemanticGraph): Either[String, NounPhrase[F]] = {
+    nounPhrase: NounPhrase
+  )(implicit graph: SemanticGraph): Either[String, NounPhrase] = {
     val prepositions = graph.childPairs(nounTree).toList.map(pairToTuple).collect {
       case (rel, word) if NomMod.isAncestor(rel) || rel == NomModPoss => (rel, word)
     }
@@ -218,11 +215,11 @@ final case class EnglishDiscourseParser[F[_]: Monad: Context: LocalContext: Func
                                  } yield PossessionPhrase(prepositionNounPhrase)
                                case _ =>
                                  Left("Illegal nominal modifier")
-                             }.sequence[EitherS, PrepositionalPhrase[F]]
+                             }.sequence[EitherS, PrepositionalPhrase]
     } yield prepositionModifiers.foldRight(nounPhrase)(NounPhrasePreposition.apply)
   }
 
-  private def parseIndefinitePronoun(word: IndexedWord): Either[String, IndefinitePronoun[F]] =
+  private def parseIndefinitePronoun(word: IndexedWord): Either[String, IndefinitePronoun] =
     word.word.toLowerCase match {
       case "nobody"                 => Right(NegativePersonSingularIndefinitePronoun(word.word))
       case "everyone" | "everybody" => Right(UniversalPersonSingularIndefinitePronoun(word.word))
@@ -233,7 +230,7 @@ final case class EnglishDiscourseParser[F[_]: Monad: Context: LocalContext: Func
       case _                        => Left(s"Unknown indefinite pronoun: ${word.word}")
     }
 
-  private def parsePersonalPronoun(word: IndexedWord): Either[String, PersonalPronoun[F]] =
+  private def parsePersonalPronoun(word: IndexedWord): Either[String, PersonalPronoun] =
     word.word.toLowerCase match {
       case "i" | "me"      => Right(FirstPersonSingularPersonalPronoun(word.word))
       case "you"           => Right(SecondPersonSingularPersonalPronoun(word.word))
@@ -245,7 +242,7 @@ final case class EnglishDiscourseParser[F[_]: Monad: Context: LocalContext: Func
       case _               => Left(s"Unknown personal pronoun: ${word.word}")
     }
 
-  private def parseReflexivePronoun(word: IndexedWord): Either[String, ReflexivePronoun[F]] =
+  private def parseReflexivePronoun(word: IndexedWord): Either[String, ReflexivePronoun] =
     word.word.toLowerCase match {
       case "myself"     => Right(FirstPersonSingularReflexivePronoun(word.word))
       case "yourself"   => Right(SecondPersonSingularReflexivePronoun(word.word))
@@ -257,10 +254,10 @@ final case class EnglishDiscourseParser[F[_]: Monad: Context: LocalContext: Func
       case _            => Left(s"Unknown reflexive pronoun: ${word.word}")
     }
 
-  private def parsePersonalOrReflexivePronoun(word: IndexedWord): Either[String, Pronoun[F]] =
+  private def parsePersonalOrReflexivePronoun(word: IndexedWord): Either[String, Pronoun] =
     parsePersonalPronoun(word).orElse(parseReflexivePronoun(word))
 
-  private def parsePossessivePronoun(word: IndexedWord): Either[String, PossessivePronoun[F]] =
+  private def parsePossessivePronoun(word: IndexedWord): Either[String, PossessivePronoun] =
     word.word.toLowerCase match {
       case "my" | "mine"      => Right(FirstPersonSingularPossessivePronoun(word.word))
       case "your" | "yours"   => Right(SecondPersonSingularPossessivePronoun(word.word))
@@ -274,7 +271,7 @@ final case class EnglishDiscourseParser[F[_]: Monad: Context: LocalContext: Func
 
   private def parseNounPhrase(
     nounTree: IndexedWord
-  )(implicit graph: SemanticGraph): Either[String, NounPhrase[F]] =
+  )(implicit graph: SemanticGraph): Either[String, NounPhrase] =
     nounTree.tag match {
       case "NN" =>
         parseIndefinitePronoun(nounTree) match {
@@ -317,7 +314,7 @@ final case class EnglishDiscourseParser[F[_]: Monad: Context: LocalContext: Func
         val ner = Option(nounTree.ner()).flatMap(parseNer)
         val gender =
           Option(nounTree.get(classOf[CoreAnnotations.GenderAnnotation])).flatMap(parseGender)
-        val properNoun = ProperNoun[F](nounTree.word, ner, gender)
+        val properNoun = ProperNoun(nounTree.word, ner, gender)
         for {
           adjectiveNounPhrase <- parseAdjectiveNounPhrase(nounTree, properNoun)
           whNounPhrase        <- parseWhNounPhrase(nounTree, adjectiveNounPhrase)
@@ -351,7 +348,7 @@ final case class EnglishDiscourseParser[F[_]: Monad: Context: LocalContext: Func
 
   private def parseSentence(
     root: IndexedWord
-  )(implicit graph: SemanticGraph): Either[String, Sentence[F]] =
+  )(implicit graph: SemanticGraph): Either[String, Sentence] =
     root.tag match {
       case "VB" | "VBZ" | "VBP" | "VBD" | "VBN" | "VBG" =>
         val children         = graph.childPairs(root).map(pairToTuple).toList
@@ -395,7 +392,7 @@ final case class EnglishDiscourseParser[F[_]: Monad: Context: LocalContext: Func
             if (stemCop.word.toLowerCase == "be") {
               for {
                 subjPhrase              <- parseNounPhrase(subj)
-                verbPhrase              = VerbAdjectivePhrase[F](cop.word, Adjective(root.word))
+                verbPhrase              = VerbAdjectivePhrase(cop.word, Adjective(root.word))
                 adverbVerbPhrase        <- parseAdverbVerbPhrase(root, verbPhrase)
                 prepositionalVerbPhrase <- parsePrepositionalVerbPhrase(root, adverbVerbPhrase)
               } yield Sentence(subjPhrase, prepositionalVerbPhrase)
@@ -447,7 +444,7 @@ final case class EnglishDiscourseParser[F[_]: Monad: Context: LocalContext: Func
         }
     }
 
-  private def transformVerbPhraseAnaphora(sentence: Sentence[F]): Sentence[F] =
+  private def transformVerbPhraseAnaphora(sentence: Sentence): Sentence =
     sentence.verbPhrase match {
       case VerbAdverbPhrase(Adverb("too"), IntransitiveVerb(word))
           if word.toLowerCase == "did" || word.toLowerCase == "does" =>
@@ -459,7 +456,7 @@ final case class EnglishDiscourseParser[F[_]: Monad: Context: LocalContext: Func
         sentence
     }
 
-  private def parseSentence(sentence: CoreMap): Either[String, Sentence[F]] = {
+  private def parseSentence(sentence: CoreMap): Either[String, Sentence] = {
     implicit val graph =
       sentence.get(classOf[SemanticGraphCoreAnnotations.EnhancedPlusPlusDependenciesAnnotation])
     logger.info("\n" + graph.toString)
@@ -474,7 +471,7 @@ final case class EnglishDiscourseParser[F[_]: Monad: Context: LocalContext: Func
     sentences.map(_.get(classOf[TreeAnnotation]))
   }
 
-  def parse(discourse: String): Either[String, Discourse[F]] = {
+  def parse(discourse: String): Either[String, Discourse] = {
     val document = new Annotation(discourse)
     EnglishSensalaStanfordParser.annotate(document)
     val sentences: List[CoreMap] = document.get(classOf[SentencesAnnotation]).toList

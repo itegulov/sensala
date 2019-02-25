@@ -1,27 +1,16 @@
 package sensala.structure.noun
 
-import cats.Monad
-import cats.implicits._
 import org.aossie.scavenger.expression._
 import sensala.structure._
 import sensala.property.{Property, WordNetPropertyExtractor}
-import sensala.structure.context.LocalContext
 
-sealed trait NounPhraseBasic[F[_]] extends NounPhrase[F]
+sealed trait NounPhraseBasic extends NounPhrase
 
-final case class ProperNoun[F[_]: Monad: LocalContext](
+final case class ProperNoun(
   word: String,
   typ: Option[NamedEntityType],
   gender: Option[NamedEntityGender]
-) extends Word[F]
-    with NounPhraseBasic[F] {
-  override def interpret(cont: F[E]): F[E] =
-    for {
-      x     <- LocalContext[F].getEntity
-      w     = Sym(word)
-      contL <- cont
-    } yield named(x, w) /\ contL
-
+) extends NounPhraseBasic {
   private def typProperty: List[Property] = typ match {
     case Some(Location)     => List(Property(x => location(x)))
     case Some(Person)       => List(Property(x => person(x)))
@@ -43,17 +32,9 @@ final case class ProperNoun[F[_]: Monad: LocalContext](
   override def definiteProperties: List[Property] = properties
 }
 
-final case class CommonNoun[F[_]: Monad: LocalContext](
+final case class CommonNoun(
   word: String
-) extends Word[F]
-    with NounPhraseBasic[F] {
-  override def interpret(cont: F[E]): F[E] =
-    for {
-      x     <- LocalContext[F].getEntity
-      w     = Sym(word)
-      contL <- cont
-    } yield w(x) /\ contL
-
+) extends NounPhraseBasic {
   override def properties: List[Property]         = WordNetPropertyExtractor.extractProperties(word)
   override def definiteProperties: List[Property] = List(Property(x => Sym(word)(x)))
 }

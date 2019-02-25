@@ -1,12 +1,15 @@
 package sensala.interpretation
 
+import cats.Functor
+import cats.mtl.FunctorRaise
+import monix.eval.Task
+import monix.execution.Scheduler.Implicits.global
 import org.aossie.scavenger.expression.{E, Sym, Var}
 import org.aossie.scavenger.expression.formula.{All, Ex, True}
-import org.atnos.eff.Eff
-import org.atnos.eff.syntax.all._
 import org.scalactic.Equality
 import sensala.SensalaSpec
 import sensala.error.NLError
+import sensala.interpreter.Interpreter
 import sensala.normalization.NormalFormConverter
 import sensala.parser.english.EnglishDiscourseParser
 import sensala.postprocessing.PrettyTransformer
@@ -15,24 +18,27 @@ import sensala.structure._
 import sensala.structure.context.{Context, LocalContext}
 
 class CommonInterpretationSpec extends SensalaSpec {
+  implicit val raiseNLError = new FunctorRaise[Task, NLError] {
+    override val functor: Functor[Task] = Functor[Task]
+
+    override def raise[A](e: NLError): Task[A] =
+      throw new RuntimeException(e.toString)
+  }
+  implicit val sensalaContext      = Context.initial[Task]
+  implicit val sensalaLocalContext = LocalContext.empty[Task]
+  val interpreter                  = Interpreter[Task]()
+
   def interpret(text: String): E =
     EnglishDiscourseParser.parse(text) match {
       case Left(error) =>
         sys.error(error)
       case Right(sentence) =>
         println(s"Sentence: $sentence")
-        val resultM = for {
-          lambda     <- sentence.interpret(Eff.pure(True))
+        (for {
+          lambda     <- interpreter.interpret(sentence, Task.pure(True))
           normalized = NormalFormConverter.normalForm(lambda)
           prettified = PrettyTransformer.transform(normalized)
-        } yield prettified
-        val ((resultEither, _), _) = resultM
-          .runEither[NLError]
-          .runState[Context](Context(Map.empty, Map.empty, Set.empty))
-          .runState[LocalContext](LocalContext.empty)
-          .run
-        val result = resultEither.right.get
-        result
+        } yield prettified).runSyncUnsafe()
     }
 
   // Scalatest treats === as an alpha equality
