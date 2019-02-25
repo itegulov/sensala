@@ -1,4 +1,4 @@
-image: java:8
+image: hseeberger/scala-sbt:11.0.1_2.12.8_1.2.7
 
 before_script:
   - apt-get update -y
