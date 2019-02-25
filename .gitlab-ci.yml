@@ -12,5 +12,4 @@ before_script:
 
 test:
   script:
-    - SBT_OPTS="-Xmx4G" sbt clean coverage test coverageReport
-    - sbt coverageAggregate
+    - SBT_OPTS="-Xmx4G" sbt clean compile test:compile
