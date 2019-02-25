@@ -20,9 +20,6 @@ object Dependencies {
   val scalacheckNoTest    = "org.scalacheck"             %% "scalacheck"                % "1.13.5"
   val scalacheckShapeless = "com.github.alexarchambault" %% "scalacheck-shapeless_1.13" % "1.1.8" % Test
 
-  // TODO: Get rid of Eff
-  val eff = "org.atnos" %% "eff" % "5.5.0"
-
   val jwnl = "net.sf.jwordnet" % "jwnl" % "1.4_rc3"
 
   val jaxbImpl        = "com.sun.xml.bind" % "jaxb-impl"  % "2.2.11"
