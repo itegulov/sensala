@@ -35,8 +35,8 @@ final case class Interpreter[F[_]: Monad: Context: LocalContext: FunctorRaiseNLE
             vpL <- interpret(
                     verbPhrase,
                     for {
-                      _ <- LocalContext[F]
-                            .putEntity(x) // Because who clause can redefine current entity
+                      // Because who clause can redefine current entity
+                      _     <- LocalContext[F].putEntity(x)
                       contL <- cont
                     } yield contL
                   )
