@@ -22,7 +22,7 @@ object SensalaBuild {
   lazy val commonSettings = Seq(
     organization := "",
     version := "0.1",
-    scalaVersion := "2.12.6",
+    scalaVersion := "2.12.8",
     scalacOptions := Seq(
       "-encoding",
       "UTF-8",
