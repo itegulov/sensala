@@ -8,7 +8,7 @@ import sensala.error.{NLInvalidState, NLUnexpectedWord}
 import sensala.structure._
 import sensala.structure.adjective.AdjectiveNounPhrase
 import sensala.structure.adverb.VerbAdverbPhrase
-import sensala.structure.context.{Context, LocalContext}
+import sensala.interpreter.context.{Context, LocalContext}
 import sensala.structure.noun._
 import sensala.structure.noun.pronoun._
 import sensala.structure.prepositional.{InPhrase, PossessionPhrase}

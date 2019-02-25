@@ -15,7 +15,7 @@ import sensala.parser.english.EnglishDiscourseParser
 import sensala.postprocessing.PrettyTransformer
 import sensala.structure.types._
 import sensala.structure._
-import sensala.structure.context.{Context, LocalContext}
+import sensala.interpreter.context.{Context, LocalContext}
 
 class CommonInterpretationSpec extends SensalaSpec {
   implicit val raiseNLError = new FunctorRaise[Task, NLError] {

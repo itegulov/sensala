@@ -1,4 +1,4 @@
-package sensala.structure.context
+package sensala.interpreter.context
 
 import cats.Monad
 import cats.mtl.MonadState

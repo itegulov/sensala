@@ -14,7 +14,7 @@ import org.aossie.scavenger.structure.immutable.AxiomClause
 import sensala.error.NLError
 import sensala.interpreter.Interpreter
 import sensala.parser.english.EnglishDiscourseParser
-import sensala.structure.context.{Context, LocalContext}
+import sensala.interpreter.context.{Context, LocalContext}
 
 object CLI {
   private val logger = Logger[this.type]

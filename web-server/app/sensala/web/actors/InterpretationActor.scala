@@ -18,7 +18,7 @@ import sensala.postprocessing.PrettyTransformer
 import sensala.structure._
 import sensala.structure.adjective._
 import sensala.structure.adverb._
-import sensala.structure.context.{Context, LocalContext}
+import sensala.interpreter.context.{Context, LocalContext}
 import sensala.structure.noun._
 import sensala.structure.noun.pronoun._
 import sensala.structure.prepositional._
