@@ -3,6 +3,7 @@ import sbt._
 object Dependencies {
   val catsVersion        = "1.6.0"
   val catsMtlVersion     = "0.4.0"
+  val http4sVersion      = "0.19.0"
   val stanfordNlpVersion = "3.9.1"
 
   val catsCore            = "org.typelevel" %% "cats-core"     % catsVersion
@@ -11,6 +12,12 @@ object Dependencies {
   val catsEffect          = "org.typelevel" %% "cats-effect"   % "1.2.0"
   val catsMtl             = "org.typelevel" %% "cats-mtl-core" % catsMtlVersion
   val catsMtlLawsTest     = "org.typelevel" %% "cats-mtl-laws" % catsMtlVersion % Test
+
+  val http4sBlazeClient = "org.http4s" %% "http4s-blaze-client" % http4sVersion
+  val http4sBlazeServer = "org.http4s" %% "http4s-blaze-server" % http4sVersion
+  val http4sCirce       = "org.http4s" %% "http4s-circe"        % http4sVersion
+  val http4sDSL         = "org.http4s" %% "http4s-dsl"          % http4sVersion
+  val http4sTwirl       = "org.http4s" %% "http4s-twirl"        % http4sVersion
 
   val monix = "io.monix" %% "monix" % "3.0.0-RC2"
 
@@ -47,6 +54,15 @@ object Dependencies {
 
   val kindProjector    = compilerPlugin("org.spire-math" %% "kind-projector"     % "0.9.8")
   val betterMonadicFor = compilerPlugin("com.olegpy"     %% "better-monadic-for" % "0.3.0-M4")
+
+  val http4sDependencies: Seq[ModuleID] =
+    Seq(
+      http4sDSL,
+      http4sBlazeServer,
+      http4sBlazeClient,
+      http4sCirce,
+      http4sTwirl
+    )
 
   val testingDependencies: Seq[ModuleID] =
     Seq(scalactic, scalatest, scalacheck)

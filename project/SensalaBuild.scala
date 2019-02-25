@@ -6,7 +6,7 @@ import play.sbt.PlayImport._
 import org.scalajs.sbtplugin.ScalaJSPlugin
 import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport._
 import org.portablescala.sbtplatformdeps.PlatformDepsPlugin.autoImport._
-import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType, _}
+import sbtcrossproject.CrossPlugin.autoImport.{CrossType, crossProject, _}
 import scalajscrossproject.ScalaJSCrossPlugin.autoImport._
 import webscalajs.WebScalaJS.autoImport._
 import com.typesafe.sbt.gzip.Import._
@@ -15,8 +15,9 @@ import com.typesafe.sbt.digest.Import._
 import sbtassembly._
 import org.scalafmt.sbt.ScalafmtPlugin.autoImport._
 import webscalajs.ScalaJSWeb
-
 import Dependencies._
+import com.typesafe.sbt.web.SbtWeb
+import play.twirl.sbt.SbtTwirl
 
 object SensalaBuild {
   lazy val commonSettings = Seq(
@@ -132,10 +133,46 @@ object SensalaBuild {
     .dependsOn(core, parser, webSharedJvm)
     .enablePlugins(PlayScala)
 
+  lazy val webHttp4sServer = Project(id = "web-http4s-server", base = file("web-http4s-server"))
+    .settings(commonSettings)
+    .settings(name := "sensala-web-http4s-server")
+    .settings(
+      scalaJSProjects := Seq(webClient),
+      pipelineStages in Assets := Seq(scalaJSPipeline),
+      pipelineStages := Seq(digest, gzip),
+      compile in Compile := (compile in Compile).dependsOn(scalaJSPipeline).value,
+      mainClass in assembly := Some("sensala.web.Server"),
+      // Allows to read the generated JS on client
+      resources in Compile += (fastOptJS in (webClient, Compile)).value.data,
+      // Lets the backend to read the .map file for js
+      resources in Compile += (fastOptJS in (webClient, Compile)).value
+        .map((x: sbt.File) => new File(x.getAbsolutePath + ".map"))
+        .data,
+      // Lets the server read the jsdeps file
+      (managedResources in Compile) += (artifactPath in (webClient, Compile, packageJSDependencies)).value,
+      // This settings makes reStart to rebuild if a scala.js file changes on the client
+      watchSources ++= (watchSources in webClient).value,
+      libraryDependencies ++= commonDependencies ++ http4sDependencies ++ Seq(
+        guice,
+        webjarBootstrap,
+        webjarJquery,
+        webjarPopper,
+        webjarD3js,
+        webjarDagreD3,
+        scalaJsScripts
+      )
+    )
+    .dependsOn(core, parser, webSharedJvm)
+    .enablePlugins(SbtTwirl, SbtWeb)
+
   lazy val webClient = Project(id = "web-client", base = file("web-client"))
     .settings(commonSettings)
     .settings(name := "sensala-web-client")
     .settings(
+      // Build a js dependencies file
+      skip in packageJSDependencies := false,
+      jsEnv := new org.scalajs.jsenv.nodejs.NodeJSEnv(), // Put the jsdeps file on a place reachable for the server
+      crossTarget in (Compile, packageJSDependencies) := (resourceManaged in Compile).value,
       scalacOptions += "-P:scalajs:sjsDefinedByDefault",
       scalaJSUseMainModuleInitializer := true,
       libraryDependencies ++= commonDependencies ++ Seq(
@@ -168,6 +205,7 @@ object SensalaBuild {
       webSharedJvm,
       webSharedJs,
       webServer,
+      webHttp4sServer,
       webClient
     )
     .dependsOn(core, parser % "compile->compile;test->test", commandLine)

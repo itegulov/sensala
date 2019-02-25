@@ -1,6 +1,7 @@
 package sensala.effect
 
 import cats.Monad
+import cats.effect.IO
 import cats.implicits._
 import monix.eval.Task
 
@@ -32,5 +33,10 @@ object Capture {
   implicit val taskCapture: Capture[Task] = new Capture[Task] {
 
     def capture[A](a: => A): Task[A] = Task.delay(a)
+  }
+
+  implicit val ioCapture: Capture[IO] = new Capture[IO] {
+
+    def capture[A](a: => A): IO[A] = IO.delay(a)
   }
 }

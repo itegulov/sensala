@@ -298,3 +298,7 @@ final case class Interpreter[F[_]: Monad: Context: LocalContext: FunctorRaiseNLE
         )
     }
 }
+
+object Interpreter {
+  def apply[F[_]](implicit ev: Interpreter[F]): Interpreter[F] = ev
+}

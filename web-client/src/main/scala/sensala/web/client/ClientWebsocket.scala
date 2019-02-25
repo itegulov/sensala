@@ -12,14 +12,17 @@ import sensala.web.shared.SensalaInterpretMessage._
 import scala.collection.mutable.ArrayBuffer
 import scala.scalajs.js.timers.setTimeout
 import scala.scalajs.js
+import scala.scalajs.js.annotation.ScalaJSDefined
 
 case class ClientWebsocket(loader: Div, termHeading: Heading) {
   private lazy val wsURL = s"ws://${window.location.host}/ws"
 
   var socket: WebSocket = _
 
+  @ScalaJSDefined
   class DagreNode(val id: Int, val label: String, val nodeClass: String) extends js.Object
 
+  @ScalaJSDefined
   class DagreEdge(val source: Int, val target: Int, val id: String) extends js.Object
 
   private def renderText(tree: SensalaNode, id: String): Unit = {
