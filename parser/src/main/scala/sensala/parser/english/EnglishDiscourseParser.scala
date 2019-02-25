@@ -13,13 +13,6 @@ import edu.stanford.nlp.util.CoreMap
 import sensala.parser.DiscourseParser
 import sensala.parser.english.EnglishSensalaGrammaticalRelations._
 import sensala.structure._
-import sensala.structure.adjective._
-import sensala.structure.adverb._
-import sensala.structure.noun._
-import sensala.structure.noun.pronoun._
-import sensala.structure.prepositional._
-import sensala.structure.verb._
-import sensala.structure.wh._
 
 import scala.collection.convert.ImplicitConversionsToScala._
 

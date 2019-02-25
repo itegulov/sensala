@@ -1,4 +1,4 @@
-package sensala.structure.noun.pronoun
+package sensala.structure
 
 sealed trait PronounGender
 

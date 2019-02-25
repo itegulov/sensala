@@ -1,6 +1,6 @@
 package sensala.parser
 
-import sensala.structure.noun._
+import sensala.structure._
 
 trait DiscourseParser {
   def parseNer(nerString: String): Option[NamedEntityType] = nerString match {

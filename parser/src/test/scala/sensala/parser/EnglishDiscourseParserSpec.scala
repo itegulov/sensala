@@ -2,12 +2,6 @@ package sensala.parser
 
 import sensala.parser.english.EnglishDiscourseParser._
 import sensala.structure._
-import sensala.structure.adjective._
-import sensala.structure.adverb.{Adverb, VerbAdverbPhrase}
-import sensala.structure.noun._
-import sensala.structure.prepositional.InPhrase
-import sensala.structure.verb._
-import sensala.structure.wh._
 
 class EnglishDiscourseParserSpec extends CommonParserSpec {
   it should "parse simple sentences" in {

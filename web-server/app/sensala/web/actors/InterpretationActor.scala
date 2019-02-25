@@ -16,14 +16,7 @@ import sensala.normalization.NormalFormConverter
 import sensala.parser.english.EnglishDiscourseParser
 import sensala.postprocessing.PrettyTransformer
 import sensala.structure._
-import sensala.structure.adjective._
-import sensala.structure.adverb._
 import sensala.interpreter.context.{Context, LocalContext}
-import sensala.structure.noun._
-import sensala.structure.noun.pronoun._
-import sensala.structure.prepositional._
-import sensala.structure.verb._
-import sensala.structure.wh._
 import sensala.web.actors.InterpretationActor.{Connected, IncomingMessage, OutgoingMessage}
 import sensala.web.shared._
 

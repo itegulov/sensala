@@ -1,8 +1,7 @@
 package sensala.parser
 
 import sensala.SensalaSpec
-import sensala.structure.noun.pronoun._
-import sensala.structure.noun._
+import sensala.structure._
 
 class CommonParserSpec extends SensalaSpec {
   val John = ExistentialQuantifier(ProperNoun("John", Some(Person), Some(Male)))

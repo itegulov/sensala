@@ -1,4 +1,4 @@
-package sensala.structure.noun
+package sensala.structure
 
 sealed trait NamedEntityType
 

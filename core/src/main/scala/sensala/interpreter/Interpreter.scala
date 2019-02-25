@@ -6,15 +6,8 @@ import org.aossie.scavenger.expression._
 import org.aossie.scavenger.expression.formula.{All, Ex}
 import sensala.error.{NLInvalidState, NLUnexpectedWord}
 import sensala.structure._
-import sensala.structure.adjective.AdjectiveNounPhrase
-import sensala.structure.adverb.VerbAdverbPhrase
 import sensala.interpreter.context.{Context, LocalContext}
-import sensala.structure.noun._
-import sensala.structure.noun.pronoun._
-import sensala.structure.prepositional.{InPhrase, PossessionPhrase}
 import sensala.structure.types.{entity, event}
-import sensala.structure.verb._
-import sensala.structure.wh.WhNounPhrase
 
 final case class Interpreter[F[_]: Monad: Context: LocalContext: FunctorRaiseNLError]() {
   def interpret(nl: NL, cont: F[E]): F[E] =
