@@ -8,3 +8,7 @@ build:
   stage: build
   script:
     - SBT_OPTS="-Xmx4G" sbt clean compile test:compile
+scalafmtCheck:
+  stage: scalafmtCheck
+  script:
+    - SBT_OPTS="-Xmx4G" sbt scalafmtCheck test:scalafmtCheck scalafmtSbtCheck
