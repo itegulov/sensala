@@ -5,10 +5,11 @@ import org.scalajs.dom.html.{Div, Heading}
 import org.singlespaced.d3js.d3
 import io.circe.syntax._
 import io.circe.parser._
+import sensala.models.SensalaNode
 import sensala.web.client.MainJS.moveOnZoom
 import sensala.web.client.dagre.Dagre
-import sensala.web.shared._
-import sensala.web.shared.GenericDerivation._
+import sensala.models._
+import sensala.models.GenericDerivation._
 
 import scala.collection.mutable.ArrayBuffer
 import scala.scalajs.js.timers.setTimeout

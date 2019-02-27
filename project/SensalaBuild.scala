@@ -120,7 +120,7 @@ object SensalaBuild {
         scalaJsScripts
       )
     )
-    .dependsOn(core, parser, webSharedJvm)
+    .dependsOn(core, parser, models.jvm)
     .enablePlugins(SbtTwirl, SbtWeb)
 
   lazy val frontend = Project(id = "frontend", base = file("frontend"))
@@ -139,26 +139,23 @@ object SensalaBuild {
       )
     )
     .enablePlugins(ScalaJSPlugin, ScalaJSWeb)
-    .dependsOn(webSharedJs)
+    .dependsOn(models.js)
 
-  lazy val webShared =
-    (crossProject(JSPlatform, JVMPlatform).crossType(CrossType.Pure) in file("web-shared"))
-      .settings(name := "sensala-web-shared")
+  lazy val models =
+    (crossProject(JSPlatform, JVMPlatform).crossType(CrossType.Pure) in file("models"))
+      .settings(name := "sensala-models")
       .settings(
         libraryDependencies ++= circeDependencies.value
       )
       .jsConfigure(_.enablePlugins(ScalaJSPlugin, ScalaJSWeb))
-
-  lazy val webSharedJvm = webShared.jvm
-  lazy val webSharedJs  = webShared.js
 
   lazy val root = Project(id = "sensala", base = file("."))
     .aggregate(
       core,
       parser,
       commandLine,
-      webSharedJvm,
-      webSharedJs,
+      models.js,
+      models.jvm,
       backend,
       frontend
     )

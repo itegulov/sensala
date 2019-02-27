@@ -1,4 +1,4 @@
-package sensala.web.shared
+package sensala.models
 
 import cats.syntax.functor._
 import io.circe._

@@ -23,13 +23,14 @@ import org.http4s.websocket.WebSocketFrame.Text
 import sensala.effect.Capture
 import sensala.error.NLError
 import sensala.interpreter.context.{Context, LocalContext}
+import sensala.models.SensalaNode
 import sensala.normalization.NormalFormConverter
 import sensala.parser.english.EnglishDiscourseParser
 import sensala.postprocessing.PrettyTransformer
 import sensala.property.PropertyExtractor
 import sensala.structure._
-import sensala.web.shared._
-import sensala.web.shared.GenericDerivation._
+import sensala.models._
+import sensala.models.GenericDerivation._
 
 import scala.util.Try
 
