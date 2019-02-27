@@ -4,7 +4,6 @@ import cats.Functor
 import cats.effect._
 import cats.implicits._
 import cats.mtl.FunctorRaise
-import org.http4s.dsl.Http4sDsl
 import org.http4s.server.Router
 import org.http4s.server.blaze._
 import org.http4s.implicits._
@@ -28,7 +27,6 @@ object Server extends IOApp {
     implicit val sensalaLocalContext: LocalContext[IO]    = LocalContext.empty
     implicit val propertyExtractor: PropertyExtractor[IO] = PropertyExtractor()
     implicit val interpreter: Interpreter[IO]             = Interpreter()
-    implicit val http4sDsl: Http4sDsl[IO]                 = Http4sDsl[IO]
     val applicationService                                = ApplicationService[IO]()
     val webjarService                                     = WebjarService[IO]()
     val staticFileService                                 = StaticFileService[IO]()

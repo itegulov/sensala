@@ -6,9 +6,7 @@ import org.http4s.dsl.Http4sDsl
 
 import scala.concurrent.ExecutionContext.global
 
-final case class StaticFileService[F[_]: Sync: ContextShift]()(implicit http4sDsl: Http4sDsl[F]) {
-  import http4sDsl._
-
+final case class StaticFileService[F[_]: Sync: ContextShift]() extends Http4sDsl[F] {
   val staticFiles = HttpRoutes.of[F] {
     // Serve static css files
     case request @ GET -> Root / "css" / path if path.endsWith(".css") =>
