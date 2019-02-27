@@ -1,4 +1,4 @@
-package sensala.interpretation
+package sensala.interpreter
 
 import cats.Functor
 import cats.mtl.FunctorRaise
@@ -25,7 +25,7 @@ class CommonInterpretationSpec extends SensalaSpec {
     override def raise[A](e: NLError): Task[A] =
       throw new RuntimeException(e.toString)
   }
-  implicit val propertyExtractor   = PropertyExtractor[Task]()
+  implicit val propertyExtractor = PropertyExtractor[Task]()
 
   def interpret(text: String): E =
     EnglishDiscourseParser.parse(text) match {

@@ -12,7 +12,6 @@ import edu.stanford.nlp.trees.TreeCoreAnnotations.TreeAnnotation
 import edu.stanford.nlp.util.CoreMap
 import sensala.parser.DiscourseParser
 import sensala.parser.english.EnglishSensalaGrammaticalRelations._
-import sensala.structure._
 import sensala.models.nl._
 
 import scala.collection.convert.ImplicitConversionsToScala._

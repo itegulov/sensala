@@ -61,7 +61,7 @@ object SensalaBuild {
         scavenger
       )
     )
-    .dependsOn(models.jvm)
+    .dependsOn(models.jvm, parser % "compile->compile;test->test")
 
   lazy val parser = Project(id = "parser", base = file("parser"))
     .settings(commonSettings)
@@ -76,7 +76,7 @@ object SensalaBuild {
         javaxActivation
       )
     )
-    .dependsOn(core)
+    .dependsOn(models.jvm)
 
   lazy val commandLine = Project(id = "cli", base = file("cli"))
     .settings(commonSettings)
@@ -160,7 +160,7 @@ object SensalaBuild {
       backend,
       frontend
     )
-    .dependsOn(core, parser % "compile->compile;test->test", commandLine)
+    .dependsOn(commandLine)
     .settings(commonSettings)
     .settings(
       name := "Sensala",

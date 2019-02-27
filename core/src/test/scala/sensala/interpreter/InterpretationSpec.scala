@@ -1,4 +1,4 @@
-package sensala.interpretation
+package sensala.interpreter
 
 import sensala.structure._
 
