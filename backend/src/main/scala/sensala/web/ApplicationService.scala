@@ -22,6 +22,7 @@ import org.http4s.websocket.WebSocketFrame
 import org.http4s.websocket.WebSocketFrame.Text
 import sensala.effect.Capture
 import sensala.error.NLError
+import sensala.error.NLError.FunctorRaiseNLError
 import sensala.interpreter.context.{Context, LocalContext}
 import sensala.models.SensalaNode
 import sensala.normalization.NormalFormConverter
@@ -29,7 +30,6 @@ import sensala.parser.english.EnglishDiscourseParser
 import sensala.postprocessing.PrettyTransformer
 import sensala.property.PropertyExtractor
 import sensala.structure._
-import sensala.models.nl._
 import sensala.models._
 
 import scala.util.Try
@@ -44,13 +44,6 @@ final case class ApplicationService[F[_]: Sync: Concurrent: Capture: Interpreter
       tree.label.value,
       if (tree.children.toList.isEmpty) "type-TK" else "type-" + tree.label.value,
       tree.children.toList.map(convertTree)
-    )
-
-  private def atomNode(word: String): SensalaNode =
-    SensalaNode(
-      word,
-      "type-word",
-      Nil
     )
 
   val application = HttpRoutes.of[F] {

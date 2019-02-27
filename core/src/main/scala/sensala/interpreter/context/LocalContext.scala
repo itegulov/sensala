@@ -6,8 +6,8 @@ import cats.implicits._
 import monix.execution.atomic.AtomicAny
 import org.aossie.scavenger.expression.Var
 import sensala.effect.{AtomicMonadState, Capture}
+import sensala.error.NLError.FunctorRaiseNLError
 import sensala.error.NLInvalidState
-import sensala.structure.FunctorRaiseNLError
 
 private[context] final case class LocalContextState(
   entity: Option[Var],

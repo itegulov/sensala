@@ -4,9 +4,10 @@ import cats.Monad
 import cats.implicits._
 import org.aossie.scavenger.expression._
 import org.aossie.scavenger.expression.formula.{All, Ex}
+import sensala.error.NLError.FunctorRaiseNLError
 import sensala.error.{NLInvalidState, NLUnexpectedWord}
 import sensala.structure._
-import sensala.structure.types._
+import sensala.types._
 import sensala.interpreter.context.{Context, LocalContext}
 import sensala.property.PropertyExtractor
 import sensala.models.nl._

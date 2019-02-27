@@ -1,18 +1,10 @@
 package sensala
 
-import cats.mtl.FunctorRaise
 import org.aossie.scavenger.expression._
 import org.aossie.scavenger.expression.formula._
-import sensala.error.NLError
-import sensala.structure.types._
+import sensala.types._
 
 package object structure {
-  type FunctorRaiseNLError[F[_]] = FunctorRaise[F, NLError]
-
-  object FunctorRaiseNLError {
-    def apply[F[_]](implicit ev: FunctorRaiseNLError[F]): FunctorRaiseNLError[F] = ev
-  }
-
   val agent       = Sym("agent")
   val patient     = Sym("patient")
   val description = Sym("description")

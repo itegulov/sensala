@@ -10,9 +10,10 @@ import org.aossie.scavenger.preprocessing.TPTPClausifier
 import org.aossie.scavenger.prover.{EPCR, Unsatisfiable}
 import org.aossie.scavenger.structure.immutable.{AxiomClause, NegConjectureClause}
 import sensala.effect.{AtomicMonadState, Capture}
+import sensala.error.NLError.FunctorRaiseNLError
 import sensala.error.NLUnknownAnaphoricReferent
 import sensala.property.Property
-import sensala.structure.types.{entity, event}
+import sensala.types.{entity, event}
 import sensala.structure._
 
 import scala.annotation.tailrec

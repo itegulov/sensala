@@ -1,4 +1,4 @@
-package sensala.structure
+package sensala
 
 import org.aossie.scavenger.expression.{Atomic, T}
 

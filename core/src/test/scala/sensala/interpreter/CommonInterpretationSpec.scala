@@ -13,7 +13,7 @@ import sensala.interpreter.Interpreter
 import sensala.normalization.NormalFormConverter
 import sensala.parser.english.EnglishDiscourseParser
 import sensala.postprocessing.PrettyTransformer
-import sensala.structure.types._
+import sensala.types._
 import sensala.structure._
 import sensala.interpreter.context.{Context, LocalContext}
 import sensala.property.PropertyExtractor
