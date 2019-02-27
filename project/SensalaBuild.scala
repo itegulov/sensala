@@ -96,21 +96,21 @@ object SensalaBuild {
     .settings(commonSettings)
     .settings(name := "sensala-backend")
     .settings(
-      scalaJSProjects := Seq(webClient),
+      scalaJSProjects := Seq(frontend),
       pipelineStages in Assets := Seq(scalaJSPipeline),
       pipelineStages := Seq(digest, gzip),
       compile in Compile := (compile in Compile).dependsOn(scalaJSPipeline).value,
       mainClass in assembly := Some("sensala.web.Server"),
       // Allows to read the generated JS on client
-      resources in Compile += (fastOptJS in (webClient, Compile)).value.data,
+      resources in Compile += (fastOptJS in (frontend, Compile)).value.data,
       // Lets the backend to read the .map file for js
-      resources in Compile += (fastOptJS in (webClient, Compile)).value
+      resources in Compile += (fastOptJS in (frontend, Compile)).value
         .map((x: sbt.File) => new File(x.getAbsolutePath + ".map"))
         .data,
       // Lets the server read the jsdeps file
-      (managedResources in Compile) += (artifactPath in (webClient, Compile, packageJSDependencies)).value,
+      (managedResources in Compile) += (artifactPath in (frontend, Compile, packageJSDependencies)).value,
       // This settings makes reStart to rebuild if a scala.js file changes on the client
-      watchSources ++= (watchSources in webClient).value,
+      watchSources ++= (watchSources in frontend).value,
       libraryDependencies ++= commonDependencies ++ http4sDependencies ++ Seq(
         webjarBootstrap,
         webjarJquery,
@@ -123,9 +123,9 @@ object SensalaBuild {
     .dependsOn(core, parser, webSharedJvm)
     .enablePlugins(SbtTwirl, SbtWeb)
 
-  lazy val webClient = Project(id = "web-client", base = file("web-client"))
+  lazy val frontend = Project(id = "frontend", base = file("frontend"))
     .settings(commonSettings)
-    .settings(name := "sensala-web-client")
+    .settings(name := "sensala-frontend")
     .settings(
       // Build a js dependencies file
       skip in packageJSDependencies := false,
@@ -163,7 +163,7 @@ object SensalaBuild {
       webSharedJvm,
       webSharedJs,
       backend,
-      webClient
+      frontend
     )
     .dependsOn(core, parser % "compile->compile;test->test", commandLine)
     .settings(commonSettings)
