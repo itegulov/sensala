@@ -1,4 +1,4 @@
-package sensala.structure
+package sensala.models.nl
 
 sealed trait NamedEntityGender
 case object Male   extends NamedEntityGender

@@ -3,6 +3,7 @@ package sensala.property
 import cats.effect.Sync
 import cats.implicits._
 import org.aossie.scavenger.expression.Sym
+import sensala.models.nl._
 import sensala.structure._
 
 final case class PropertyExtractor[F[_]: Sync]() {

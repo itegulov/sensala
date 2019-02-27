@@ -61,6 +61,7 @@ object SensalaBuild {
         scavenger
       )
     )
+    .dependsOn(models.jvm)
 
   lazy val parser = Project(id = "parser", base = file("parser"))
     .settings(commonSettings)

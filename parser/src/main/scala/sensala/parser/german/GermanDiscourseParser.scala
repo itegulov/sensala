@@ -13,6 +13,7 @@ import edu.stanford.nlp.util.CoreMap
 import sensala.parser.DiscourseParser
 import sensala.parser.german.GermanSensalaGrammaticalRelations._
 import sensala.structure._
+import sensala.models.nl._
 
 import scala.collection.convert.ImplicitConversionsToScala._
 

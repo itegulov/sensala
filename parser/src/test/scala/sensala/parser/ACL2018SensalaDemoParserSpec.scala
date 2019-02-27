@@ -1,7 +1,7 @@
 package sensala.parser
 
 import sensala.parser.english.EnglishDiscourseParser._
-import sensala.structure._
+import sensala.models.nl._
 
 class ACL2018SensalaDemoParserSpec extends CommonParserSpec {
 

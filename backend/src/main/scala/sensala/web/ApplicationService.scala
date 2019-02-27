@@ -29,6 +29,7 @@ import sensala.parser.english.EnglishDiscourseParser
 import sensala.postprocessing.PrettyTransformer
 import sensala.property.PropertyExtractor
 import sensala.structure._
+import sensala.models.nl._
 import sensala.models._
 import sensala.models.GenericDerivation._
 
