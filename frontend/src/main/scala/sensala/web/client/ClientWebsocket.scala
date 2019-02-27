@@ -9,7 +9,7 @@ import sensala.models.SensalaNode
 import sensala.web.client.MainJS.moveOnZoom
 import sensala.web.client.dagre.Dagre
 import sensala.models._
-import sensala.models.GenericDerivation._
+import sensala.models.nl._
 
 import scala.collection.mutable.ArrayBuffer
 import scala.scalajs.js.timers.setTimeout
@@ -32,7 +32,20 @@ case class ClientWebsocket(loader: Div, termHeading: Heading) {
     val edges = new ArrayBuffer[DagreEdge]()
 
     populate(tree, nodes, edges)
+    renderText(nodes, edges, id)
+  }
 
+  private def renderText(nl: NL, id: String): Unit = {
+    val nodes = new ArrayBuffer[DagreNode]()
+    val edges = new ArrayBuffer[DagreEdge]()
+
+    populate(nl, nodes, edges)
+    renderText(nodes, edges, id)
+  }
+
+  private def renderText(nodes: ArrayBuffer[DagreNode],
+                         edges: ArrayBuffer[DagreEdge],
+                         id: String): Unit = {
     val g = Dagre.newD3Digraph
 
     nodes.foreach(
@@ -76,6 +89,167 @@ case class ClientWebsocket(loader: Div, termHeading: Heading) {
     nodes += newNode
 
     tree.children.foreach(child => {
+      val childNode = populate(child, nodes, edges)
+      edges += new DagreEdge(newNode.id, childNode.id, newNode.id + "-" + childNode.id)
+    })
+
+    newNode
+  }
+
+  private def populate(
+    nl: NL,
+    nodes: ArrayBuffer[DagreNode],
+    edges: ArrayBuffer[DagreEdge]
+  ): DagreNode = {
+    val newNode = new DagreNode(nodes.length, nl.getClass.getSimpleName, nl.getClass.getSimpleName)
+
+    nodes += newNode
+
+    def processWord(word: String): Unit = {
+      val childNode = new DagreNode(nodes.length, word, "word")
+      nodes += childNode
+      edges += new DagreEdge(newNode.id, childNode.id, newNode.id + "-" + childNode.id)
+    }
+
+    val children: List[NL] = nl match {
+      case Discourse(sentences) => sentences
+      case Sentence(nounPhrase, verbPhrase) =>
+        List(nounPhrase, verbPhrase)
+      case WhNounPhrase(verbPhrase, nounPhrase) =>
+        List(verbPhrase, nounPhrase)
+      case IntransitiveVerb(word) =>
+        processWord(word)
+        List.empty
+      case TransitiveVerb(word, obj) =>
+        processWord(word)
+        List(obj)
+      case VerbAdjectivePhrase(verb, adj) =>
+        processWord(verb)
+        processWord(adj.word)
+        List.empty
+      case VerbInPhrase(preposition, vp) =>
+        List(preposition, vp)
+      case VerbPhraseAnaphora(phrase, voice) =>
+        processWord(phrase)
+        processWord(voice.toString)
+        List.empty
+      case VerbSentencePhrase(word, sentence) =>
+        processWord(word)
+        List(sentence)
+      case VerbAdverbPhrase(adverb, verbPhrase) =>
+        processWord(adverb.word)
+        List(verbPhrase)
+      case InPhrase(verbWord, nounPhrase) =>
+        processWord(verbWord)
+        List(nounPhrase)
+      case PossessionPhrase(nounPhrase) =>
+        List(nounPhrase)
+      case WhNounPhrase(verbPhrase, nounPhrase) =>
+        List(verbPhrase, nounPhrase)
+      case ProperNoun(word, typ, gender) =>
+        processWord(s"$word $typ $gender")
+        List.empty
+      case CommonNoun(word) =>
+        processWord(word)
+        List.empty
+      case NounPhrasePreposition(prepositionalPhrase, nounPhrase) =>
+        List(prepositionalPhrase, nounPhrase)
+      case ForallQuantifier(nounPhrase) =>
+        List(nounPhrase)
+      case ExistentialQuantifier(nounPhrase) =>
+        List(nounPhrase)
+      case DefiniteNounPhrase(nounPhrase) =>
+        List(nounPhrase)
+      case DemonstrativePronoun(word) =>
+        processWord(word)
+        List.empty
+      case NegativePersonSingularIndefinitePronoun(word) =>
+        processWord(word)
+        List.empty
+      case UniversalPersonSingularIndefinitePronoun(word) =>
+        processWord(word)
+        List.empty
+      case ExistentialPersonSingularIndefinitePronoun(word) =>
+        processWord(word)
+        List.empty
+      case NegativeThingSingularIndefinitePronoun(word) =>
+        processWord(word)
+        List.empty
+      case UniversalThingSingularIndefinitePronoun(word) =>
+        processWord(word)
+        List.empty
+      case ExistentialThingSingularIndefinitePronoun(word) =>
+        processWord(word)
+        List.empty
+      case FirstPersonSingularPersonalPronoun(word) =>
+        processWord(word)
+        List.empty
+      case SecondPersonSingularPersonalPronoun(word) =>
+        processWord(word)
+        List.empty
+      case ThirdPersonSingularPersonalPronoun(word, gender) =>
+        processWord(word)
+        processWord(gender.toString)
+        List.empty
+      case FirstPersonPluralPersonalPronoun(word) =>
+        processWord(word)
+        List.empty
+      case SecondPersonPluralPersonalPronoun(word) =>
+        processWord(word)
+        List.empty
+      case ThirdPersonPluralPersonalPronoun(word) =>
+        processWord(word)
+        List.empty
+      case FirstPersonSingularPossessivePronoun(word) =>
+        processWord(word)
+        List.empty
+      case SecondPersonSingularPossessivePronoun(word) =>
+        processWord(word)
+        List.empty
+      case ThirdPersonSingularPossessivePronoun(word, gender) =>
+        processWord(word)
+        processWord(gender.toString)
+        List.empty
+      case FirstPersonPluralPossessivePronoun(word) =>
+        processWord(word)
+        List.empty
+      case SecondPersonPluralPossessivePronoun(word) =>
+        processWord(word)
+        List.empty
+      case ThirdPersonPluralPossessivePronoun(word) =>
+        processWord(word)
+        List.empty
+      case FirstPersonSingularReflexivePronoun(word) =>
+        processWord(word)
+        List.empty
+      case SecondPersonSingularReflexivePronoun(word) =>
+        processWord(word)
+        List.empty
+      case ThirdPersonSingularReflexivePronoun(word, gender) =>
+        processWord(word)
+        processWord(gender.toString)
+        List.empty
+      case FirstPersonPluralReflexivePronoun(word) =>
+        processWord(word)
+        List.empty
+      case SecondPersonPluralReflexivePronoun(word) =>
+        processWord(word)
+        List.empty
+      case ThirdPersonPluralReflexivePronoun(word) =>
+        processWord(word)
+        List.empty
+      case AdjectiveNounPhrase(adjective, nounPhrase) =>
+        processWord(adjective.word)
+        List(nounPhrase)
+      case VerbAdverbPhrase(adverb, verbPhrase) =>
+        processWord(adverb.word)
+        List(verbPhrase)
+      case AdjectiveNounPhrase(adjective, nounPhrase) =>
+        processWord(adjective.word)
+        List(nounPhrase)
+    }
+
+    children.foreach(child => {
       val childNode = populate(child, nodes, edges)
       edges += new DagreEdge(newNode.id, childNode.id, newNode.id + "-" + childNode.id)
     })

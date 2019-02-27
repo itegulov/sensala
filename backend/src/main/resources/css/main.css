@@ -37,23 +37,23 @@ g.type-VP > rect {
     fill: #3366ff;
 }
 
-g.type-word > rect {
+g.word > rect {
     fill: #00ffd0;
 }
 
-g.type-commonnoun > rect {
+g.CommonNoun > rect {
     fill: #00bb00;
 }
 
-g.type-propernoun > rect {
+g.ProperNoun > rect {
     fill: #00bb00;
 }
 
-g.type-intransitive > rect {
+g.IntransitiveVerb > rect {
     fill: #3366ff;
 }
 
-g.type-transitive > rect {
+g.TransitiveVerb > rect {
     fill: #3366ff;
 }
 

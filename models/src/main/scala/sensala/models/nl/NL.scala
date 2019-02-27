@@ -139,15 +139,15 @@ sealed trait PluralPersonalPronoun extends PersonalPronoun
 
 final case class FirstPersonPluralPersonalPronoun(
   word: String
-) extends SingularPersonalPronoun
+) extends PluralPersonalPronoun
 
 final case class SecondPersonPluralPersonalPronoun(
   word: String
-) extends SingularPersonalPronoun
+) extends PluralPersonalPronoun
 
 final case class ThirdPersonPluralPersonalPronoun(
   word: String
-) extends SingularPersonalPronoun
+) extends PluralPersonalPronoun
 
 // Possessive Pronouns
 

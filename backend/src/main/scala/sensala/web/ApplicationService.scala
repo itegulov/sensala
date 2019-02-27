@@ -31,7 +31,6 @@ import sensala.property.PropertyExtractor
 import sensala.structure._
 import sensala.models.nl._
 import sensala.models._
-import sensala.models.GenericDerivation._
 
 import scala.util.Try
 
@@ -53,163 +52,6 @@ final case class ApplicationService[F[_]: Sync: Concurrent: Capture: Interpreter
       "type-word",
       Nil
     )
-
-  private def convertNL(nl: NL): SensalaNode = {
-    nl match {
-      case Discourse(sentences) =>
-        SensalaNode(
-          "Discourse",
-          "type-discourse",
-          sentences.map(convertNL)
-        )
-      case Sentence(np, vp) =>
-        SensalaNode(
-          "Sentence",
-          "type-sentence",
-          List(convertNL(np), convertNL(vp))
-        )
-      case CommonNoun(word) =>
-        SensalaNode(
-          "CommonNoun",
-          "type-commonnoun",
-          List(atomNode(word))
-        )
-      case ProperNoun(word, Some(typ), Some(gender)) =>
-        SensalaNode(
-          "ProperNoun",
-          "type-propernoun",
-          List(atomNode(s"$word $typ $gender"))
-        )
-      case ProperNoun(word, Some(typ), None) =>
-        SensalaNode(
-          "ProperNoun",
-          "type-propernoun",
-          List(atomNode(s"$word $typ"))
-        )
-      case ProperNoun(word, None, Some(gender)) =>
-        SensalaNode(
-          "ProperNoun",
-          "type-propernoun",
-          List(atomNode(s"$word $gender"))
-        )
-      case ProperNoun(word, None, None) =>
-        SensalaNode(
-          "ProperNoun",
-          "type-propernoun",
-          List(atomNode(s"$word"))
-        )
-      case pronoun: Pronoun =>
-        SensalaNode(
-          pronoun.getClass.getSimpleName,
-          "type-pronoun",
-          List(atomNode(pronoun.word))
-        )
-      case ForallQuantifier(np) =>
-        SensalaNode(
-          "ForallQuantifier",
-          "type-forall",
-          List(convertNL(np))
-        )
-      case ExistentialQuantifier(np) =>
-        SensalaNode(
-          "ExistentialQuantifier",
-          "type-exists",
-          List(convertNL(np))
-        )
-      case DefiniteNounPhrase(np) =>
-        SensalaNode(
-          "DefiniteNounPhrase",
-          "type-definitenounphrase",
-          List(convertNL(np))
-        )
-      case IntransitiveVerb(word) =>
-        SensalaNode(
-          "IntransitiveVerb",
-          "type-intransitive",
-          List(atomNode(word))
-        )
-      case TransitiveVerb(word, np) =>
-        SensalaNode(
-          "TransitiveVerb",
-          "type-transitive",
-          List(atomNode(word), convertNL(np))
-        )
-      case VerbAdjectivePhrase(verb, adjective) =>
-        SensalaNode(
-          "VerbAdjectivePhrase",
-          "type-verbadjphrase",
-          List(
-            atomNode(verb),
-            SensalaNode(
-              "Adjective",
-              "type-adjective",
-              List(atomNode(adjective.word))
-            )
-          )
-        )
-      case VerbAdverbPhrase(adverb, verbPhrase) =>
-        SensalaNode(
-          "VerbAdverbPhrase",
-          "type-verbadverbphrase",
-          List(atomNode(adverb.word), convertNL(verbPhrase))
-        )
-      case VerbInPhrase(propositionalPhrase, verbPhrase) =>
-        SensalaNode(
-          "VerbInPhrase",
-          "type-verbinphrase",
-          List(convertNL(propositionalPhrase), convertNL(verbPhrase))
-        )
-      case VerbSentencePhrase(word, sentence) =>
-        SensalaNode(
-          "VerbSentencePhrase",
-          "type-verbsentencephrase",
-          List(atomNode(word), convertNL(sentence))
-        )
-      case VerbPhraseAnaphora(phrase, voice) =>
-        SensalaNode(
-          "VerbPharseAnaphora",
-          "type-verbphraseanaphora",
-          List(atomNode(phrase), atomNode(voice.toString))
-        )
-      case WhNounPhrase(verbPhrase, nounPhrase) =>
-        SensalaNode(
-          "WhNounPhrase",
-          "type-whnounphrase",
-          List(convertNL(verbPhrase), convertNL(nounPhrase))
-        )
-      case NounPhrasePreposition(prepositionalPhrase, nounPhrase) =>
-        SensalaNode(
-          "NounPhrasePreposition",
-          "type-nounphrasepreposition",
-          List(convertNL(prepositionalPhrase), convertNL(nounPhrase))
-        )
-      case InPhrase(word, nounPhrase) =>
-        SensalaNode(
-          "InPhrase",
-          "type-inphrase",
-          List(atomNode(word), convertNL(nounPhrase))
-        )
-      case PossessionPhrase(nounPhrase) =>
-        SensalaNode(
-          "PossessionPhrase",
-          "type-possessionphrase",
-          List(convertNL(nounPhrase))
-        )
-      case AdjectiveNounPhrase(adjective, nounPhrase) =>
-        SensalaNode(
-          "AdjectiveNounPhrase",
-          "type-adjectivenounphrase",
-          List(
-            SensalaNode(
-              "Adjective",
-              "type-adjective",
-              List(atomNode(adjective.word))
-            ),
-            convertNL(nounPhrase)
-          )
-        )
-    }
-  }
 
   val application = HttpRoutes.of[F] {
     case GET -> Root =>
@@ -259,7 +101,7 @@ final case class ApplicationService[F[_]: Sync: Concurrent: Capture: Interpreter
                         )
                         val result2 =
                           Text(
-                            (SensalaParsed(convertNL(sentence)): SensalaInterpretMessage).asJson.toString
+                            (SensalaParsed(sentence): SensalaInterpretMessage).asJson.toString
                           )
 
                         implicit val raiseNLError: FunctorRaiseNLError[F] =
