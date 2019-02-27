@@ -3,11 +3,12 @@ package sensala.web.client
 import org.scalajs.dom._
 import org.scalajs.dom.html.{Div, Heading}
 import org.singlespaced.d3js.d3
-import play.api.libs.json._
+import io.circe.syntax._
+import io.circe.parser._
 import sensala.web.client.MainJS.moveOnZoom
 import sensala.web.client.dagre.Dagre
 import sensala.web.shared._
-import sensala.web.shared.SensalaInterpretMessage._
+import sensala.web.shared.GenericDerivation._
 
 import scala.collection.mutable.ArrayBuffer
 import scala.scalajs.js.timers.setTimeout
@@ -84,26 +85,30 @@ case class ClientWebsocket(loader: Div, termHeading: Heading) {
   def connectWS(): Unit = {
     socket = new WebSocket(wsURL)
     socket.onmessage = { (e: MessageEvent) =>
-      val message = Json.parse(e.data.toString)
-      message.validate[SensalaInterpretMessage] match {
-        case JsSuccess(StanfordParsed(result), _) =>
-          renderText(result, "svg-canvas-stanford")
-        case JsSuccess(SensalaParsed(result), _) =>
-          renderText(result, "svg-canvas-sensala")
-        case JsSuccess(SensalaInterpreted(result), _) =>
-          termHeading.textContent = result
-          loader.style.display = "none"
-          termHeading.style.display = "block"
-          termHeading.style.color = "black"
-        case JsSuccess(SensalaError(error), _) =>
-          termHeading.textContent = error
-          loader.style.display = "none"
-          termHeading.style.display = "block"
-          termHeading.style.color = "red"
-        case JsSuccess(other, _) =>
-          println(s"Other message: $other")
-        case JsError(errors) =>
-          errors.foreach(println)
+      val message = parse(e.data.toString) match {
+        case Right(json) =>
+          json.as[SensalaInterpretMessage] match {
+            case Right(StanfordParsed(result)) =>
+              renderText(result, "svg-canvas-stanford")
+            case Right(SensalaParsed(result)) =>
+              renderText(result, "svg-canvas-sensala")
+            case Right(SensalaInterpreted(result)) =>
+              termHeading.textContent = result
+              loader.style.display = "none"
+              termHeading.style.display = "block"
+              termHeading.style.color = "black"
+            case Right(SensalaError(error)) =>
+              termHeading.textContent = error
+              loader.style.display = "none"
+              termHeading.style.display = "block"
+              termHeading.style.color = "red"
+            case Right(other) =>
+              println(s"Other message: $other")
+            case Left(error) =>
+              println(error)
+          }
+        case Left(failure) =>
+          println(failure)
       }
     }
     socket.onerror = { (e: Event) =>
@@ -122,5 +127,5 @@ case class ClientWebsocket(loader: Div, termHeading: Heading) {
   }
 
   def sendInterpretationRequest(discourse: String): Unit =
-    socket.send(Json.toJson(SensalaRunInterpretation(discourse)).toString())
+    socket.send((SensalaRunInterpretation(discourse): SensalaInterpretMessage).asJson.toString())
 }

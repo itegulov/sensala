@@ -135,8 +135,7 @@ object SensalaBuild {
       scalaJSUseMainModuleInitializer := true,
       libraryDependencies ++= commonDependencies ++ Seq(
         "org.scala-js" %%% "scalajs-dom"    % "0.9.6",
-        "org.singlespaced" %%% "scalajs-d3" % "0.3.4",
-        "com.typesafe.play" %%% "play-json" % "2.6.10"
+        "org.singlespaced" %%% "scalajs-d3" % "0.3.4"
       )
     )
     .enablePlugins(ScalaJSPlugin, ScalaJSWeb)
@@ -146,9 +145,7 @@ object SensalaBuild {
     (crossProject(JSPlatform, JVMPlatform).crossType(CrossType.Pure) in file("web-shared"))
       .settings(name := "sensala-web-shared")
       .settings(
-        libraryDependencies ++= Seq(
-          "org.julienrf" %%% "play-json-derived-codecs" % "5.0.0"
-        )
+        libraryDependencies ++= circeDependencies.value
       )
       .jsConfigure(_.enablePlugins(ScalaJSPlugin, ScalaJSWeb))
 

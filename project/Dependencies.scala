@@ -1,8 +1,10 @@
 import sbt._
+import org.portablescala.sbtplatformdeps.PlatformDepsPlugin.autoImport._
 
 object Dependencies {
   val catsVersion        = "1.6.0"
   val catsMtlVersion     = "0.4.0"
+  val circeVersion       = "0.11.1"
   val http4sVersion      = "0.19.0"
   val stanfordNlpVersion = "3.9.1"
 
@@ -55,6 +57,16 @@ object Dependencies {
   val kindProjector    = compilerPlugin("org.spire-math" %% "kind-projector"     % "0.9.8")
   val betterMonadicFor = compilerPlugin("com.olegpy"     %% "better-monadic-for" % "0.3.0-M4")
 
+  val circeDependencies =
+    Def.setting[Seq[ModuleID]](
+      Seq(
+        "io.circe" %%% "circe-core"           % circeVersion,
+        "io.circe" %%% "circe-generic"        % circeVersion,
+        "io.circe" %%% "circe-generic-extras" % circeVersion,
+        "io.circe" %%% "circe-literal"        % circeVersion,
+        "io.circe" %%% "circe-parser"         % circeVersion
+      )
+    )
   val http4sDependencies: Seq[ModuleID] =
     Seq(
       http4sDSL,
