@@ -1,8 +1,6 @@
 import sbt._
 import sbt.Keys._
 import sbtassembly.AssemblyKeys._
-import play.sbt._
-import play.sbt.PlayImport._
 import org.scalajs.sbtplugin.ScalaJSPlugin
 import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport._
 import org.portablescala.sbtplatformdeps.PlatformDepsPlugin.autoImport._
@@ -94,48 +92,9 @@ object SensalaBuild {
     )
     .dependsOn(core, parser)
 
-  lazy val webServer = Project(id = "web-server", base = file("web-server"))
+  lazy val backend = Project(id = "backend", base = file("backend"))
     .settings(commonSettings)
-    .settings(name := "sensala-web-server")
-    .settings(
-      scalaJSProjects := Seq(webClient),
-      pipelineStages in Assets := Seq(scalaJSPipeline),
-      pipelineStages := Seq(digest, gzip),
-      compile in Compile := (compile in Compile).dependsOn(scalaJSPipeline).value,
-      mainClass in assembly := Some("play.core.server.ProdServerStart"),
-      fullClasspath in assembly += Attributed.blank(PlayKeys.playPackageAssets.value),
-      assemblyMergeStrategy in assembly := {
-        case manifest if manifest.contains("MANIFEST.MF") =>
-          // We don't need manifest files since sbt-assembly will create
-          // one with the given settings
-          MergeStrategy.discard
-        case PathList("org", "scalatools", "testing", xs @ _*) =>
-          MergeStrategy.first
-        case referenceOverrides if referenceOverrides.contains("reference-overrides.conf") =>
-          // Keep the content for all reference-overrides.conf files
-          MergeStrategy.concat
-        case "application.conf" => MergeStrategy.concat
-        case "logback.xml"      => MergeStrategy.first
-        case x =>
-          val oldStrategy = (assemblyMergeStrategy in assembly).value
-          oldStrategy(x)
-      },
-      libraryDependencies ++= commonDependencies ++ Seq(
-        guice,
-        webjarBootstrap,
-        webjarJquery,
-        webjarPopper,
-        webjarD3js,
-        webjarDagreD3,
-        scalaJsScripts
-      )
-    )
-    .dependsOn(core, parser, webSharedJvm)
-    .enablePlugins(PlayScala)
-
-  lazy val webHttp4sServer = Project(id = "web-http4s-server", base = file("web-http4s-server"))
-    .settings(commonSettings)
-    .settings(name := "sensala-web-http4s-server")
+    .settings(name := "sensala-backend")
     .settings(
       scalaJSProjects := Seq(webClient),
       pipelineStages in Assets := Seq(scalaJSPipeline),
@@ -153,7 +112,6 @@ object SensalaBuild {
       // This settings makes reStart to rebuild if a scala.js file changes on the client
       watchSources ++= (watchSources in webClient).value,
       libraryDependencies ++= commonDependencies ++ http4sDependencies ++ Seq(
-        guice,
         webjarBootstrap,
         webjarJquery,
         webjarPopper,
@@ -204,8 +162,7 @@ object SensalaBuild {
       commandLine,
       webSharedJvm,
       webSharedJs,
-      webServer,
-      webHttp4sServer,
+      backend,
       webClient
     )
     .dependsOn(core, parser % "compile->compile;test->test", commandLine)
