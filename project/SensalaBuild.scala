@@ -31,6 +31,7 @@ object SensalaBuild {
       "-language:postfixOps",
       "-language:implicitConversions",
       "-language:higherKinds",
+      "-language:experimental.macros",
       "-Xlint",
       "-Yno-adapted-args",
       "-Ywarn-dead-code",

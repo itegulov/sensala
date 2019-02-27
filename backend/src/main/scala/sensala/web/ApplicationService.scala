@@ -4,7 +4,6 @@ import cats.{Functor, Monad}
 import cats.implicits._
 import cats.effect._
 import cats.mtl.FunctorRaise
-import com.typesafe.scalalogging.Logger
 import edu.stanford.nlp.trees.Tree
 import io.circe.syntax._
 import io.circe.parser._
@@ -20,7 +19,7 @@ import sensala.interpreter.Interpreter
 import org.http4s.twirl._
 import org.http4s.websocket.WebSocketFrame
 import org.http4s.websocket.WebSocketFrame.Text
-import sensala.effect.Capture
+import sensala.effect.{Capture, Log}
 import sensala.error.NLError
 import sensala.error.NLError.FunctorRaiseNLError
 import sensala.interpreter.context.{Context, LocalContext}
@@ -34,9 +33,8 @@ import sensala.models._
 
 import scala.util.Try
 
-final case class ApplicationService[F[_]: Sync: Concurrent: Capture: Interpreter]()
+final case class ApplicationService[F[_]: Sync: Concurrent: Capture: Interpreter: Log]()
     extends Http4sDsl[F] {
-  private val log = Logger[this.type]
   object DiscourseQueryParamMatcher extends QueryParamDecoderMatcher[String]("discourse")
 
   private def convertTree(tree: Tree): SensalaNode =
@@ -45,6 +43,98 @@ final case class ApplicationService[F[_]: Sync: Concurrent: Capture: Interpreter
       if (tree.children.toList.isEmpty) "type-TK" else "type-" + tree.label.value,
       tree.children.toList.map(convertTree)
     )
+
+  def evalDiscourse(discourse: String): Stream[F, WebSocketFrame] = {
+    val sentences = EnglishDiscourseParser.buildPennTaggedTree(discourse)
+    Stream.force {
+      for {
+        _ <- Log[F].info(s"Result of Stanford parsing:\n$sentences")
+        result1 = Text(
+          (StanfordParsed(convertTree(sentences.head)): SensalaInterpretMessage).asJson.toString
+        )
+        parsed = Try(EnglishDiscourseParser.parse(discourse))
+          .getOrElse(Left("Invalid sentence (maybe a grammatical mistake?)"))
+        result <- parsed match {
+                   case Left(error) =>
+                     for {
+                       _ <- Log[F].error(s"Parsing failed:\n$error")
+                       result2 = Text(
+                         (SensalaError(s"Parsing failed: $error"): SensalaInterpretMessage).asJson.toString
+                       )
+                       result = Stream[F, WebSocketFrame](result1, result2)
+                     } yield result
+                   case Right(sentence) =>
+                     implicit val raiseNLError: FunctorRaiseNLError[F] =
+                       new FunctorRaise[F, NLError] {
+                         override val functor: Functor[F] = Functor[F]
+
+                         override def raise[A](e: NLError): F[A] =
+                           throw new RuntimeException(e.toString)
+                       }
+                     implicit val propertyExtractor: PropertyExtractor[F] =
+                       PropertyExtractor[F]()
+                     implicit val sensalaContext: Context[F] = Context.initial[F]
+                     implicit val sensalaLocalContext: LocalContext[F] =
+                       LocalContext.empty[F]
+                     for {
+                       _ <- Log[F].info(s"Result of sentence parsing:\n$sentence")
+                       result2 =
+                       Text(
+                         (SensalaParsed(sentence): SensalaInterpretMessage).asJson.toString
+                       )
+                       interpreter = Interpreter[F]()
+                       result = Stream[F, WebSocketFrame](result1, result2) ++ Stream.eval(
+                         for {
+                           lambdaTerm <- interpreter
+                             .interpret(sentence, Monad[F].pure(True))
+                           context      <- sensalaContext.state.get
+                           localContext <- sensalaLocalContext.state.get
+                           _ <- Log[F].info(
+                             s"""
+                                |Result of discourse interpretation:
+                                |  $lambdaTerm
+                                |  ${lambdaTerm.pretty}
+                                                      """.stripMargin
+                           )
+                           normalForm = NormalFormConverter.normalForm(lambdaTerm)
+                           _ <- Log[F].info(
+                             s"""
+                                |Result of applying β-reduction:
+                                |  $normalForm
+                                |  ${normalForm.pretty}
+                                                      """.stripMargin
+                           )
+                           prettyTerm = PrettyTransformer.transform(normalForm)
+                           _ <- Log[F].info(
+                             s"""
+                                |Result of applying pretty transform:
+                                |  ${prettyTerm.pretty}
+                                                      """.stripMargin
+                           )
+                           _ <- Log[F].info(
+                             s"""
+                                |Context after interpretation:
+                                |  ${context.entityProperties
+                               .map(_._2.pretty)
+                               .mkString("\n")}
+                                                      """.stripMargin
+                           )
+                           cnf = new TPTPClausifier()
+                             .apply(List((prettyTerm, AxiomClause)))
+                           _ <- Log[F].info(
+                             s"""
+                                |Result of clausification:
+                                |${cnf.clauses.mkString("\n")}
+                                                      """.stripMargin
+                           )
+                           result = (SensalaInterpreted(prettyTerm.pretty): SensalaInterpretMessage).asJson
+                         } yield Text(result.toString): WebSocketFrame
+                       )
+                     } yield result
+                 }
+      } yield result
+    }
+  }
 
   val application = HttpRoutes.of[F] {
     case GET -> Root =>
@@ -57,124 +147,35 @@ final case class ApplicationService[F[_]: Sync: Concurrent: Capture: Interpreter
               case Right(discourseJson) =>
                 discourseJson.as[SensalaInterpretMessage] match {
                   case Right(SensalaRunInterpretation(discourse)) =>
-                    val sentences = EnglishDiscourseParser.buildPennTaggedTree(discourse)
-                    log.info(
-                      s"""
-                         |Result of Stanford parsing:
-                         |  $sentences
-                  """.stripMargin
-                    )
-                    val result1 =
-                      Text(
-                        (StanfordParsed(convertTree(sentences.head)): SensalaInterpretMessage).asJson.toString
-                      )
-                    val parsed = Try(EnglishDiscourseParser.parse(discourse))
-                      .getOrElse(Left("Invalid sentence (maybe a grammatical mistake?)"))
-                    parsed match {
-                      case Left(error) =>
-                        log.error(
-                          s"""Parsing failed:
-                             |  $error
-                      """.stripMargin
-                        )
-                        val result2 =
+                    evalDiscourse(discourse)
+                  case Right(other) =>
+                    Stream.eval[F, WebSocketFrame] {
+                      Log[F].error(s"Unexpected message: $other") >>
+                        Monad[F].pure[WebSocketFrame](
                           Text(
-                            (SensalaError(s"Parsing failed: $error"): SensalaInterpretMessage).asJson.toString
+                            (SensalaError(s"Unexpected message: $other!"): SensalaInterpretMessage).asJson.noSpaces
                           )
-                        Stream[F, WebSocketFrame](
-                          result1,
-                          result2
-                        )
-                      case Right(sentence) =>
-                        log.info(
-                          s"""
-                             |Result of sentence parsing:
-                             |  $sentence
-                      """.stripMargin
-                        )
-                        val result2 =
-                          Text(
-                            (SensalaParsed(sentence): SensalaInterpretMessage).asJson.toString
-                          )
-
-                        implicit val raiseNLError: FunctorRaiseNLError[F] =
-                          new FunctorRaise[F, NLError] {
-                            override val functor: Functor[F] = Functor[F]
-
-                            override def raise[A](e: NLError): F[A] =
-                              throw new RuntimeException(e.toString)
-                          }
-                        implicit val propertyExtractor: PropertyExtractor[F] =
-                          PropertyExtractor[F]()
-                        implicit val sensalaContext: Context[F]           = Context.initial[F]
-                        implicit val sensalaLocalContext: LocalContext[F] = LocalContext.empty[F]
-                        val interpreter                                   = Interpreter[F]()
-                        Stream[F, WebSocketFrame](result1, result2) ++ Stream.eval(
-                          for {
-                            lambdaTerm   <- interpreter.interpret(sentence, Monad[F].pure(True))
-                            context      <- sensalaContext.state.get
-                            localContext <- sensalaLocalContext.state.get
-                            _ = log.info(
-                              s"""
-                                 |Result of discourse interpretation:
-                                 |  $lambdaTerm
-                                 |  ${lambdaTerm.pretty}
-                          """.stripMargin
-                            )
-                            normalForm = NormalFormConverter.normalForm(lambdaTerm)
-                            _ = log.info(
-                              s"""
-                                 |Result of applying β-reduction:
-                                 |  $normalForm
-                                 |  ${normalForm.pretty}
-                          """.stripMargin
-                            )
-                            prettyTerm = PrettyTransformer.transform(normalForm)
-                            _ = log.info(
-                              s"""
-                                 |Result of applying pretty transform:
-                                 |  ${prettyTerm.pretty}
-                          """.stripMargin
-                            )
-                            _ = log.info(
-                              s"""
-                                 |Context after interpretation:
-                                 |  ${context.entityProperties.map(_._2.pretty).mkString("\n")}
-                          """.stripMargin
-                            )
-                            cnf = new TPTPClausifier().apply(List((prettyTerm, AxiomClause)))
-                            _ = log.info(
-                              s"""
-                                 |Result of clausification:
-                                 |${cnf.clauses.mkString("\n")}
-                          """.stripMargin
-                            )
-                            result = (SensalaInterpreted(prettyTerm.pretty): SensalaInterpretMessage).asJson
-                          } yield Text(result.toString): WebSocketFrame
                         )
                     }
-                  case Right(other) =>
-                    log.error(s"Unexpected message: $other")
-                    Stream[F, WebSocketFrame](
-                      Text(
-                        (SensalaError(s"Unexpected message: $other!"): SensalaInterpretMessage).asJson.toString
-                      )
-                    )
                   case Left(error) =>
-                    log.error(s"Invalid SensalaInterpretMessage JSON: $error")
-                    Stream[F, WebSocketFrame](
+                    Stream.eval[F, WebSocketFrame] {
+                      Log[F].error(s"Invalid SensalaInterpretMessage JSON: $error") >>
+                        Monad[F].pure[WebSocketFrame](
+                          Text(
+                            (SensalaError(s"Invalid SensalaInterpretMessage JSON: $error"): SensalaInterpretMessage).asJson.noSpaces
+                          )
+                        )
+                    }
+                }
+              case Left(error) =>
+                Stream.eval[F, WebSocketFrame] {
+                  Log[F].error(s"Invalid JSON: $error") >>
+                    Monad[F].pure[WebSocketFrame](
                       Text(
-                        (SensalaError(s"Invalid SensalaInterpretMessage JSON: $error"): SensalaInterpretMessage).asJson.toString
+                        (SensalaError(s"Invalid JSON: $error"): SensalaInterpretMessage).asJson.noSpaces
                       )
                     )
                 }
-              case Left(error) =>
-                log.error(s"Invalid JSON: $error")
-                Stream[F, WebSocketFrame](
-                  Text(
-                    (SensalaError(s"Invalid JSON: $error"): SensalaInterpretMessage).asJson.toString
-                  )
-                )
             }
         }
 
