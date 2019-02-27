@@ -15,6 +15,7 @@ import sensala.error.NLError
 import sensala.interpreter.Interpreter
 import sensala.parser.english.EnglishDiscourseParser
 import sensala.interpreter.context.{Context, LocalContext}
+import sensala.property.PropertyExtractor
 
 object CLI {
   private val logger = Logger[this.type]
@@ -55,6 +56,7 @@ object CLI {
         override def raise[A](e: NLError): Task[A] =
           throw new RuntimeException(e.toString)
       }
+      implicit val propertyExtractor   = PropertyExtractor[Task]()
       implicit val sensalaContext      = Context.initial[Task]
       implicit val sensalaLocalContext = LocalContext.empty[Task]
       val interpreter                  = Interpreter[Task]()

@@ -26,6 +26,7 @@ import sensala.interpreter.context.{Context, LocalContext}
 import sensala.normalization.NormalFormConverter
 import sensala.parser.english.EnglishDiscourseParser
 import sensala.postprocessing.PrettyTransformer
+import sensala.property.PropertyExtractor
 import sensala.structure._
 import sensala.web.shared._
 import sensala.web.shared.GenericDerivation._
@@ -266,6 +267,8 @@ final case class ApplicationService[F[_]: Sync: Concurrent: Capture: Interpreter
                             override def raise[A](e: NLError): F[A] =
                               throw new RuntimeException(e.toString)
                           }
+                        implicit val propertyExtractor: PropertyExtractor[F] =
+                          PropertyExtractor[F]()
                         implicit val sensalaContext: Context[F]           = Context.initial[F]
                         implicit val sensalaLocalContext: LocalContext[F] = LocalContext.empty[F]
                         val interpreter                                   = Interpreter[F]()

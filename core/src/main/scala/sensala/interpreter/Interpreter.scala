@@ -7,9 +7,10 @@ import org.aossie.scavenger.expression.formula.{All, Ex}
 import sensala.error.{NLInvalidState, NLUnexpectedWord}
 import sensala.structure._
 import sensala.interpreter.context.{Context, LocalContext}
+import sensala.property.PropertyExtractor
 import sensala.structure.types.{entity, event}
 
-final case class Interpreter[F[_]: Monad: Context: LocalContext: FunctorRaiseNLError]() {
+final case class Interpreter[F[_]: Monad: PropertyExtractor: Context: LocalContext: FunctorRaiseNLError]() {
   def interpret(nl: NL, cont: F[E]): F[E] =
     nl match {
       case Sentence(nounPhrase, verbPhrase) =>
@@ -175,20 +176,23 @@ final case class Interpreter[F[_]: Monad: Context: LocalContext: FunctorRaiseNLE
       case quantifier @ ForallQuantifier(nounPhrase) =>
         for {
           x     <- Context[F].bindFreeVar
-          _     <- Context[F].addEntity(x, quantifier.properties)
+          properties <- PropertyExtractor[F].properties(quantifier)
+          _     <- Context[F].addEntity(x, properties)
           _     <- LocalContext[F].putEntity(x)
           nounL <- interpret(nounPhrase, cont.map(~_))
         } yield All(x, entity, ~nounL)
       case quantifier @ ExistentialQuantifier(nounPhrase) =>
         for {
           x     <- Context[F].bindFreeVar
-          _     <- Context[F].addEntity(x, quantifier.properties)
+          properties <- PropertyExtractor[F].properties(quantifier)
+          _     <- Context[F].addEntity(x, properties)
           _     <- LocalContext[F].putEntity(x)
           nounL <- interpret(nounPhrase, cont)
         } yield Ex(x, entity, nounL)
       case DefiniteNounPhrase(nounPhrase) =>
         for {
-          refOpt <- Context[F].findAnaphoricEntity(nounPhrase.definiteProperties)
+          definiteProperties <- PropertyExtractor[F].definiteProperties(nounPhrase)
+          refOpt <- Context[F].findAnaphoricEntity(definiteProperties)
           result <- refOpt match {
                      case Some(ref) =>
                        for {
@@ -198,7 +202,8 @@ final case class Interpreter[F[_]: Monad: Context: LocalContext: FunctorRaiseNLE
                      case None =>
                        for {
                          x     <- Context[F].bindFreeVar
-                         _     <- Context[F].addEntity(x, nounPhrase.properties)
+                         properties <- PropertyExtractor[F].properties(nounPhrase)
+                         _     <- Context[F].addEntity(x, properties)
                          _     <- LocalContext[F].putEntity(x)
                          nounL <- interpret(nounPhrase, cont)
                        } yield Ex(x, entity, nounL)
@@ -213,60 +218,69 @@ final case class Interpreter[F[_]: Monad: Context: LocalContext: FunctorRaiseNLE
       case pronoun: NegativePersonSingularIndefinitePronoun =>
         for {
           x     <- Context[F].bindFreeVar
-          _     <- Context[F].addEntity(x, pronoun.properties)
+          properties <- PropertyExtractor[F].properties(pronoun)
+          _     <- Context[F].addEntity(x, properties)
           _     <- LocalContext[F].putEntity(x)
           contL <- cont
         } yield ~Ex(x, entity, contL)
       case pronoun: UniversalPersonSingularIndefinitePronoun =>
         for {
           x     <- Context[F].bindFreeVar
-          _     <- Context[F].addEntity(x, pronoun.properties)
+          properties <- PropertyExtractor[F].properties(pronoun)
+          _     <- Context[F].addEntity(x, properties)
           _     <- LocalContext[F].putEntity(x)
           contL <- cont
         } yield All(x, entity, contL)
       case pronoun: ExistentialPersonSingularIndefinitePronoun =>
         for {
           x     <- Context[F].bindFreeVar
-          _     <- Context[F].addEntity(x, pronoun.properties)
+          properties <- PropertyExtractor[F].properties(pronoun)
+          _     <- Context[F].addEntity(x, properties)
           _     <- LocalContext[F].putEntity(x)
           contL <- cont
         } yield Ex(x, entity, contL)
       case pronoun: NegativeThingSingularIndefinitePronoun =>
         for {
           x     <- Context[F].bindFreeVar
-          _     <- Context[F].addEntity(x, pronoun.properties)
+          properties <- PropertyExtractor[F].properties(pronoun)
+          _     <- Context[F].addEntity(x, properties)
           _     <- LocalContext[F].putEntity(x)
           contL <- cont
         } yield ~Ex(x, entity, contL)
       case pronoun: UniversalThingSingularIndefinitePronoun =>
         for {
           x     <- Context[F].bindFreeVar
-          _     <- Context[F].addEntity(x, pronoun.properties)
+          properties <- PropertyExtractor[F].properties(pronoun)
+          _     <- Context[F].addEntity(x, properties)
           _     <- LocalContext[F].putEntity(x)
           contL <- cont
         } yield All(x, entity, contL)
       case pronoun: ExistentialThingSingularIndefinitePronoun =>
         for {
           x     <- Context[F].bindFreeVar
-          _     <- Context[F].addEntity(x, pronoun.properties)
+          properties <- PropertyExtractor[F].properties(pronoun)
+          _     <- Context[F].addEntity(x, properties)
           _     <- LocalContext[F].putEntity(x)
           contL <- cont
         } yield Ex(x, entity, contL)
       case pronoun: PersonalPronoun =>
         for {
-          ref   <- Context[F].findAnaphoricEntityUnsafe(pronoun.properties)
+          properties <- PropertyExtractor[F].properties(pronoun)
+          ref   <- Context[F].findAnaphoricEntityUnsafe(properties)
           _     <- LocalContext[F].putEntity(ref)
           contL <- cont
         } yield contL
       case pronoun: PossessivePronoun =>
         for {
-          ref   <- Context[F].findAnaphoricEntityUnsafe(pronoun.properties)
+          properties <- PropertyExtractor[F].properties(pronoun)
+          ref   <- Context[F].findAnaphoricEntityUnsafe(properties)
           _     <- LocalContext[F].putEntity(ref)
           contL <- cont
         } yield contL
       case pronoun: ReflexivePronoun =>
         for {
-          ref   <- Context[F].findAnaphoricEntityUnsafe(pronoun.properties)
+          properties <- PropertyExtractor[F].properties(pronoun)
+          ref   <- Context[F].findAnaphoricEntityUnsafe(properties)
           _     <- LocalContext[F].putEntity(ref)
           contL <- cont
         } yield contL

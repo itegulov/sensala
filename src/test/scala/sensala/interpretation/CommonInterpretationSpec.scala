@@ -16,6 +16,7 @@ import sensala.postprocessing.PrettyTransformer
 import sensala.structure.types._
 import sensala.structure._
 import sensala.interpreter.context.{Context, LocalContext}
+import sensala.property.PropertyExtractor
 
 class CommonInterpretationSpec extends SensalaSpec {
   implicit val raiseNLError = new FunctorRaise[Task, NLError] {
@@ -24,6 +25,7 @@ class CommonInterpretationSpec extends SensalaSpec {
     override def raise[A](e: NLError): Task[A] =
       throw new RuntimeException(e.toString)
   }
+  implicit val propertyExtractor   = PropertyExtractor[Task]()
 
   def interpret(text: String): E =
     EnglishDiscourseParser.parse(text) match {

@@ -1,8 +1,5 @@
 package sensala.structure
 
-import org.aossie.scavenger.expression.Sym
-import sensala.property.{Property, WordNetPropertyExtractor}
-
 sealed trait NL
 
 final case class Discourse(sentences: List[Sentence]) extends NL
@@ -18,10 +15,7 @@ final case class WhNounPhrase(
   verbPhrase: VerbPhrase,
   nounPhrase: NounPhrase
 ) extends WhPhrase
-    with NounPhrase {
-  override def properties                         = nounPhrase.properties
-  override def definiteProperties: List[Property] = nounPhrase.definiteProperties
-}
+    with NounPhrase
 
 /*
  * Verb Phrases
@@ -52,10 +46,7 @@ final case class PossessionPhrase(nounPhrase: NounPhrase) extends PrepositionalP
  * Noun Phrases
  */
 
-sealed trait NounPhrase extends NL {
-  def properties: List[Property]
-  def definiteProperties: List[Property]
-}
+sealed trait NounPhrase extends NL
 
 // Basic Noun Phrases
 
@@ -65,64 +56,25 @@ final case class ProperNoun(
   word: String,
   typ: Option[NamedEntityType],
   gender: Option[NamedEntityGender]
-) extends NounPhraseBasic {
-  private def typProperty: List[Property] = typ match {
-    case Some(Location)     => List(Property(x => location(x)))
-    case Some(Person)       => List(Property(x => person(x)))
-    case Some(Organization) => List(Property(x => organization(x)))
-    case Some(Money)        => List(Property(x => money(x)))
-    case Some(Percent)      => List(Property(x => percent(x)))
-    case Some(Date)         => List(Property(x => date(x)))
-    case Some(Time)         => List(Property(x => time(x)))
-    case None               => List()
-  }
-
-  private def genderProperty: List[Property] = gender match {
-    case Some(Male)   => List(Property(x => male(x)))
-    case Some(Female) => List(Property(x => female(x)))
-    case None         => List()
-  }
-
-  override def properties: List[Property]         = typProperty ++ genderProperty
-  override def definiteProperties: List[Property] = properties
-}
+) extends NounPhraseBasic
 
 final case class CommonNoun(
   word: String
-) extends NounPhraseBasic {
-  override def properties: List[Property]         = WordNetPropertyExtractor.extractProperties(word)
-  override def definiteProperties: List[Property] = List(Property(x => Sym(word)(x)))
-}
+) extends NounPhraseBasic
 
 // Preposition Noun Phrases
 
 final case class NounPhrasePreposition(
   prepositionalPhrase: PrepositionalPhrase,
   nounPhrase: NounPhrase
-) extends NounPhrase {
-  // TODO: Add preposition property
-  override def properties: List[Property]         = nounPhrase.properties
-  override def definiteProperties: List[Property] = nounPhrase.definiteProperties
-}
+) extends NounPhrase
 
 // Quantifier Noun Phrases
 
-sealed trait NounPhraseQuantifier extends NounPhrase
-
-final case class ForallQuantifier(nounPhrase: NounPhrase) extends NounPhraseQuantifier {
-  override def properties: List[Property]         = nounPhrase.properties
-  override def definiteProperties: List[Property] = nounPhrase.definiteProperties
-}
-
-final case class ExistentialQuantifier(nounPhrase: NounPhrase) extends NounPhraseQuantifier {
-  override def properties: List[Property]         = nounPhrase.properties
-  override def definiteProperties: List[Property] = nounPhrase.definiteProperties
-}
-
-final case class DefiniteNounPhrase(nounPhrase: NounPhrase) extends NounPhraseQuantifier {
-  override def properties: List[Property]         = nounPhrase.properties
-  override def definiteProperties: List[Property] = nounPhrase.definiteProperties
-}
+sealed trait NounPhraseQuantifier                              extends NounPhrase
+final case class ForallQuantifier(nounPhrase: NounPhrase)      extends NounPhraseQuantifier
+final case class ExistentialQuantifier(nounPhrase: NounPhrase) extends NounPhraseQuantifier
+final case class DefiniteNounPhrase(nounPhrase: NounPhrase)    extends NounPhraseQuantifier
 
 /*
  * Pronouns
@@ -134,10 +86,7 @@ sealed trait Pronoun extends NounPhrase {
 
 // Demonstrative Pronouns
 
-final case class DemonstrativePronoun(word: String) extends Pronoun {
-  override def properties: List[Property]         = List.empty
-  override def definiteProperties: List[Property] = List.empty
-}
+final case class DemonstrativePronoun(word: String) extends Pronoun
 
 // Indefinite Pronouns
 
@@ -145,11 +94,7 @@ sealed trait IndefinitePronoun extends Pronoun
 
 sealed trait SingularIndefinitePronoun extends IndefinitePronoun
 
-sealed trait PersonSingularIndefinitePronoun extends SingularIndefinitePronoun {
-  override def properties: List[Property] = List(Property(x => person(x)))
-
-  override def definiteProperties: List[Property] = properties
-}
+sealed trait PersonSingularIndefinitePronoun extends SingularIndefinitePronoun
 final case class NegativePersonSingularIndefinitePronoun(
   word: String
 ) extends PersonSingularIndefinitePronoun
@@ -160,11 +105,7 @@ final case class ExistentialPersonSingularIndefinitePronoun(
   word: String
 ) extends PersonSingularIndefinitePronoun
 
-sealed trait ThingSingularIndefinitePronoun extends SingularIndefinitePronoun {
-  override def properties: List[Property] = List()
-
-  override def definiteProperties: List[Property] = properties
-}
+sealed trait ThingSingularIndefinitePronoun extends SingularIndefinitePronoun
 final case class NegativeThingSingularIndefinitePronoun(
   word: String
 ) extends ThingSingularIndefinitePronoun
@@ -183,61 +124,30 @@ sealed trait SingularPersonalPronoun extends PersonalPronoun
 
 final case class FirstPersonSingularPersonalPronoun(
   word: String
-) extends SingularPersonalPronoun {
-  override def properties: List[Property] = List(Property(x => speaker(x)))
-
-  override def definiteProperties: List[Property] = properties
-}
+) extends SingularPersonalPronoun
 
 final case class SecondPersonSingularPersonalPronoun(
   word: String
-) extends SingularPersonalPronoun {
-  override def properties: List[Property] = List(Property(x => interlocutor(x)))
-
-  override def definiteProperties: List[Property] = properties
-}
+) extends SingularPersonalPronoun
 
 final case class ThirdPersonSingularPersonalPronoun(
   word: String,
   gender: PronounGender
-) extends SingularPersonalPronoun {
-  override def properties: List[Property] = List(
-    gender match {
-      // For now we are using generic masculine pronoun (e.g. gender-neutral semantics of the pronoun "he")
-      case Masculine => Property(x => person(x))
-      case Feminine  => Property(x => female(x))
-      case Neuter    => Property(x => animal(x))
-    }
-  )
-
-  override def definiteProperties: List[Property] = properties
-}
+) extends SingularPersonalPronoun
 
 sealed trait PluralPersonalPronoun extends PersonalPronoun
 
 final case class FirstPersonPluralPersonalPronoun(
   word: String
-) extends SingularPersonalPronoun {
-  override def properties: List[Property] = List(Property(x => speaker(x)))
-
-  override def definiteProperties: List[Property] = properties
-}
+) extends SingularPersonalPronoun
 
 final case class SecondPersonPluralPersonalPronoun(
   word: String
-) extends SingularPersonalPronoun {
-  override def properties: List[Property] = List(Property(x => interlocutor(x)))
-
-  override def definiteProperties: List[Property] = properties
-}
+) extends SingularPersonalPronoun
 
 final case class ThirdPersonPluralPersonalPronoun(
   word: String
-) extends SingularPersonalPronoun {
-  override def properties: List[Property] = List()
-
-  override def definiteProperties: List[Property] = properties
-}
+) extends SingularPersonalPronoun
 
 // Possessive Pronouns
 
@@ -247,61 +157,30 @@ sealed trait SingularPossessivePronoun extends PossessivePronoun
 
 final case class FirstPersonSingularPossessivePronoun(
   word: String
-) extends SingularPossessivePronoun {
-  override def properties: List[Property] = List(Property(x => speaker(x)))
-
-  override def definiteProperties: List[Property] = properties
-}
+) extends SingularPossessivePronoun
 
 final case class SecondPersonSingularPossessivePronoun(
   word: String
-) extends SingularPossessivePronoun {
-  override def properties: List[Property] = List(Property(x => interlocutor(x)))
-
-  override def definiteProperties: List[Property] = properties
-}
+) extends SingularPossessivePronoun
 
 final case class ThirdPersonSingularPossessivePronoun(
   word: String,
   gender: PronounGender
-) extends SingularPossessivePronoun {
-  override def properties: List[Property] = List(
-    gender match {
-      // For now we are using generic masculine pronoun (e.g. gender-neutral semantics of the pronoun "he")
-      case Masculine => Property(x => person(x))
-      case Feminine  => Property(x => female(x))
-      case Neuter    => Property(x => animal(x))
-    }
-  )
-
-  override def definiteProperties: List[Property] = properties
-}
+) extends SingularPossessivePronoun
 
 sealed trait PluralPossessivePronoun extends PossessivePronoun
 
 final case class FirstPersonPluralPossessivePronoun(
   word: String
-) extends SingularPossessivePronoun {
-  override def properties: List[Property] = List(Property(x => speaker(x)))
-
-  override def definiteProperties: List[Property] = properties
-}
+) extends PluralPossessivePronoun
 
 final case class SecondPersonPluralPossessivePronoun(
   word: String
-) extends SingularPossessivePronoun {
-  override def properties: List[Property] = List(Property(x => interlocutor(x)))
-
-  override def definiteProperties: List[Property] = properties
-}
+) extends PluralPossessivePronoun
 
 final case class ThirdPersonPluralPossessivePronoun(
   word: String
-) extends SingularPossessivePronoun {
-  override def properties: List[Property] = List()
-
-  override def definiteProperties: List[Property] = properties
-}
+) extends PluralPossessivePronoun
 
 // Reflexive Pronouns
 
@@ -311,61 +190,30 @@ sealed trait SingularReflexivePronoun extends ReflexivePronoun
 
 final case class FirstPersonSingularReflexivePronoun(
   word: String
-) extends SingularReflexivePronoun {
-  override def properties: List[Property] = List(Property(x => speaker(x)))
-
-  override def definiteProperties: List[Property] = properties
-}
+) extends SingularReflexivePronoun
 
 final case class SecondPersonSingularReflexivePronoun(
   word: String
-) extends SingularReflexivePronoun {
-  override def properties: List[Property] = List(Property(x => interlocutor(x)))
-
-  override def definiteProperties: List[Property] = properties
-}
+) extends SingularReflexivePronoun
 
 final case class ThirdPersonSingularReflexivePronoun(
   word: String,
   gender: PronounGender
-) extends SingularReflexivePronoun {
-  override def properties: List[Property] = List(
-    gender match {
-      // For now we are using generic masculine pronoun (e.g. gender-neutral semantics of the pronoun "he")
-      case Masculine => Property(x => person(x))
-      case Feminine  => Property(x => female(x))
-      case Neuter    => Property(x => animal(x))
-    }
-  )
-
-  override def definiteProperties: List[Property] = properties
-}
+) extends SingularReflexivePronoun
 
 sealed trait PluralReflexivePronoun extends ReflexivePronoun
 
 final case class FirstPersonPluralReflexivePronoun(
   word: String
-) extends SingularReflexivePronoun {
-  override def properties: List[Property] = List(Property(x => speaker(x)))
-
-  override def definiteProperties: List[Property] = properties
-}
+) extends PluralReflexivePronoun
 
 final case class SecondPersonPluralReflexivePronoun(
   word: String
-) extends SingularReflexivePronoun {
-  override def properties: List[Property] = List(Property(x => interlocutor(x)))
-
-  override def definiteProperties: List[Property] = properties
-}
+) extends PluralReflexivePronoun
 
 final case class ThirdPersonPluralReflexivePronoun(
   word: String
-) extends SingularReflexivePronoun {
-  override def properties: List[Property] = List()
-
-  override def definiteProperties: List[Property] = properties
-}
+) extends PluralReflexivePronoun
 
 /*
  * Adverb Phrases
@@ -392,7 +240,4 @@ final case class AdjectiveNounPhrase(
   adjective: Adjective,
   nounPhrase: NounPhrase
 ) extends AdjectivePhrase
-    with NounPhrase {
-  override def properties: List[Property]         = nounPhrase.properties
-  override def definiteProperties: List[Property] = nounPhrase.definiteProperties
-}
+    with NounPhrase
