@@ -1,4 +1,4 @@
-package sensala.effect
+package sensala.shared.effect
 
 import cats.Monad
 import cats.effect.IO

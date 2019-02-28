@@ -9,23 +9,25 @@ import org.aossie.scavenger.expression.formula.{All, Ex, True}
 import org.scalactic.Equality
 import sensala.SensalaSpec
 import sensala.error.NLError
-import sensala.interpreter.Interpreter
 import sensala.normalization.NormalFormConverter
 import sensala.parser.english.EnglishDiscourseParser
 import sensala.postprocessing.PrettyTransformer
 import sensala.types._
 import sensala.structure._
 import sensala.interpreter.context.{Context, LocalContext}
-import sensala.property.PropertyExtractor
+import sensala.property.{PropertyExtractor, WordNetPropertyExtractor}
+import sensala.shared.effect.Log
 
 class CommonInterpretationSpec extends SensalaSpec {
+  implicit val log = Log.log[Task]
   implicit val raiseNLError = new FunctorRaise[Task, NLError] {
     override val functor: Functor[Task] = Functor[Task]
 
     override def raise[A](e: NLError): Task[A] =
       throw new RuntimeException(e.toString)
   }
-  implicit val propertyExtractor = PropertyExtractor[Task]()
+  implicit val wordNetPropertyExtractor = WordNetPropertyExtractor.create[Task]().runSyncUnsafe()
+  implicit val propertyExtractor        = PropertyExtractor[Task]()
 
   def interpret(text: String): E =
     EnglishDiscourseParser.parse(text) match {

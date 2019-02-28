@@ -9,7 +9,7 @@ import org.aossie.scavenger.expression.formula.{All, And}
 import org.aossie.scavenger.preprocessing.TPTPClausifier
 import org.aossie.scavenger.prover.{EPCR, Unsatisfiable}
 import org.aossie.scavenger.structure.immutable.{AxiomClause, NegConjectureClause}
-import sensala.effect.{AtomicMonadState, Capture}
+import sensala.shared.effect.{AtomicMonadState, Capture}
 import sensala.error.NLError.FunctorRaiseNLError
 import sensala.error.NLUnknownAnaphoricReferent
 import sensala.property.Property

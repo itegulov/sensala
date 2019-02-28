@@ -5,7 +5,7 @@ import cats.mtl.MonadState
 import cats.implicits._
 import monix.execution.atomic.AtomicAny
 import org.aossie.scavenger.expression.Var
-import sensala.effect.{AtomicMonadState, Capture}
+import sensala.shared.effect.{AtomicMonadState, Capture}
 import sensala.error.NLError.FunctorRaiseNLError
 import sensala.error.NLInvalidState
 

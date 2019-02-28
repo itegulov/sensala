@@ -1,8 +1,8 @@
-package sensala.effect
+package sensala.shared.effect
 
+import cats.Applicative
 import cats.effect.Sync
 import cats.implicits._
-import cats.Applicative
 
 import scala.reflect.macros.blackbox
 
@@ -24,7 +24,7 @@ class LogSourceMacros(val c: blackbox.Context) {
   def mkLogSource: c.Expr[LogSource] = {
     val tree =
       q"""
-      sensala.effect.LogSource(${c.reifyEnclosingRuntimeClass}.asInstanceOf[Class[_]])
+      sensala.shared.effect.LogSource(${c.reifyEnclosingRuntimeClass}.asInstanceOf[Class[_]])
        """
 
     c.Expr[LogSource](tree)

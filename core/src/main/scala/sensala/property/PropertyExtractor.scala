@@ -6,7 +6,7 @@ import org.aossie.scavenger.expression.Sym
 import sensala.models.nl._
 import sensala.structure._
 
-final case class PropertyExtractor[F[_]: Sync]() {
+final case class PropertyExtractor[F[_]: Sync: WordNetPropertyExtractor]() {
   private def typProperty(typ: Option[NamedEntityType]): List[Property] =
     typ match {
       case Some(Location)     => List(Property(x => location(x)))
@@ -33,9 +33,7 @@ final case class PropertyExtractor[F[_]: Sync]() {
       case ProperNoun(_, typ, gender) =>
         (typProperty(typ) ++ genderProperty(gender)).pure[F]
       case CommonNoun(word) =>
-        Sync[F].delay {
-          WordNetPropertyExtractor.extractProperties(word)
-        }
+        WordNetPropertyExtractor[F].extractProperties(word)
       case NounPhrasePreposition(_, nounPhrase) =>
         properties(nounPhrase)
       case ForallQuantifier(nounPhrase) =>
