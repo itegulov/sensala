@@ -14,7 +14,7 @@ object LogSource {
   def apply(c: Class[_]): LogSource = new LogSource {
     val clazz: Class[_] = c
   }
-  
+
   implicit def matLogSource: LogSource = macro LogSourceMacros.mkLogSource
 }
 
@@ -75,4 +75,3 @@ sealed abstract class LogInstances {
       Sync[F].delay(Logger(ev.clazz).error(msg, cause))
   }
 }
-

@@ -78,55 +78,53 @@ final case class ApplicationService[F[_]: Sync: Concurrent: Capture: Interpreter
                        LocalContext.empty[F]
                      for {
                        _ <- Log[F].info(s"Result of sentence parsing:\n$sentence")
-                       result2 =
-                       Text(
+                       result2 = Text(
                          (SensalaParsed(sentence): SensalaInterpretMessage).asJson.toString
                        )
                        interpreter = Interpreter[F]()
                        result = Stream[F, WebSocketFrame](result1, result2) ++ Stream.eval(
                          for {
                            lambdaTerm <- interpreter
-                             .interpret(sentence, Monad[F].pure(True))
+                                          .interpret(sentence, Monad[F].pure(True))
                            context      <- sensalaContext.state.get
                            localContext <- sensalaLocalContext.state.get
                            _ <- Log[F].info(
-                             s"""
-                                |Result of discourse interpretation:
-                                |  $lambdaTerm
-                                |  ${lambdaTerm.pretty}
-                                                      """.stripMargin
-                           )
+                                 s"""
+                                    |Result of discourse interpretation:
+                                    |  $lambdaTerm
+                                    |  ${lambdaTerm.pretty}
+                                 """.stripMargin
+                               )
                            normalForm = NormalFormConverter.normalForm(lambdaTerm)
                            _ <- Log[F].info(
-                             s"""
-                                |Result of applying β-reduction:
-                                |  $normalForm
-                                |  ${normalForm.pretty}
-                                                      """.stripMargin
-                           )
+                                 s"""
+                                    |Result of applying β-reduction:
+                                    |  $normalForm
+                                    |  ${normalForm.pretty}
+                                 """.stripMargin
+                               )
                            prettyTerm = PrettyTransformer.transform(normalForm)
                            _ <- Log[F].info(
-                             s"""
-                                |Result of applying pretty transform:
-                                |  ${prettyTerm.pretty}
-                                                      """.stripMargin
-                           )
+                                 s"""
+                                    |Result of applying pretty transform:
+                                    |  ${prettyTerm.pretty}
+                                 """.stripMargin
+                               )
+                           entitiyProperties <- context.entityProperties.map(_._2.pretty)
                            _ <- Log[F].info(
-                             s"""
-                                |Context after interpretation:
-                                |  ${context.entityProperties
-                               .map(_._2.pretty)
-                               .mkString("\n")}
-                                                      """.stripMargin
-                           )
+                                 s"""
+                                    |Context after interpretation:
+                                    |  ${entitiyProperties.mkString("\n")}
+                                 """.stripMargin
+                               )
                            cnf = new TPTPClausifier()
                              .apply(List((prettyTerm, AxiomClause)))
                            _ <- Log[F].info(
-                             s"""
-                                |Result of clausification:
-                                |${cnf.clauses.mkString("\n")}
-                                                      """.stripMargin
-                           )
+                                 s"""
+                                    |Result of clausification:
+                                    |${cnf.clauses.mkString("\n")}
+                                 """.stripMargin
+                               )
                            result = (SensalaInterpreted(prettyTerm.pretty): SensalaInterpretMessage).asJson
                          } yield Text(result.toString): WebSocketFrame
                        )
