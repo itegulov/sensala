@@ -1,9 +1,18 @@
-package sensala.parser
+package sensala
 
-import sensala.SensalaSpec
+import org.scalatest._
+import org.scalatest.concurrent.ScalaFutures
 import sensala.models.nl._
 
-class CommonParserSpec extends SensalaSpec {
+class SensalaSpec
+    extends FlatSpec
+    with Matchers
+    with Inspectors
+    with Inside
+    with OptionValues
+    with EitherValues
+    with TryValues
+    with ScalaFutures {
   val John = ExistentialQuantifier(ProperNoun("John", Some(Person), Some(Male)))
   val Bob  = ExistentialQuantifier(ProperNoun("Bob", Some(Person), Some(Male)))
   val Mary = ExistentialQuantifier(ProperNoun("Mary", Some(Person), Some(Female)))

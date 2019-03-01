@@ -1,49 +1,43 @@
 package sensala.interpreter
 
 import cats.Functor
+import cats.effect.IO
 import cats.mtl.FunctorRaise
-import monix.eval.Task
-import monix.execution.Scheduler.Implicits.global
 import org.aossie.scavenger.expression.{E, Sym, Var}
 import org.aossie.scavenger.expression.formula.{All, Ex, True}
 import org.scalactic.Equality
 import sensala.SensalaSpec
 import sensala.error.NLError
 import sensala.normalization.NormalFormConverter
-import sensala.parser.english.EnglishDiscourseParser
 import sensala.postprocessing.PrettyTransformer
 import sensala.types._
 import sensala.structure._
 import sensala.interpreter.context.{Context, LocalContext}
+import sensala.models.nl.NL
 import sensala.property.{PropertyExtractor, WordNetPropertyExtractor}
 import sensala.shared.effect.Log
 
 class CommonInterpretationSpec extends SensalaSpec {
-  implicit val log = Log.log[Task]
-  implicit val raiseNLError = new FunctorRaise[Task, NLError] {
-    override val functor: Functor[Task] = Functor[Task]
+  implicit val log = Log.log[IO]
+  implicit val raiseNLError = new FunctorRaise[IO, NLError] {
+    override val functor: Functor[IO] = Functor[IO]
 
-    override def raise[A](e: NLError): Task[A] =
+    override def raise[A](e: NLError): IO[A] =
       throw new RuntimeException(e.toString)
   }
-  implicit val wordNetPropertyExtractor = WordNetPropertyExtractor.create[Task]().runSyncUnsafe()
-  implicit val propertyExtractor        = PropertyExtractor[Task]()
+  implicit val wordNetPropertyExtractor = WordNetPropertyExtractor.create[IO]().unsafeRunSync()
+  implicit val propertyExtractor        = PropertyExtractor[IO]()
 
-  def interpret(text: String): E =
-    EnglishDiscourseParser.parse(text) match {
-      case Left(error) =>
-        sys.error(error)
-      case Right(sentence) =>
-        println(s"Sentence: $sentence")
-        implicit val sensalaContext: Context[Task]           = Context.initial[Task]
-        implicit val sensalaLocalContext: LocalContext[Task] = LocalContext.empty[Task]
-        val interpreter                                      = Interpreter[Task]()
-        (for {
-          lambda     <- interpreter.interpret(sentence, Task.pure(True))
-          normalized = NormalFormConverter.normalForm(lambda)
-          prettified = PrettyTransformer.transform(normalized)
-        } yield prettified).runSyncUnsafe()
-    }
+  def interpret(discourse: NL): E = {
+    implicit val sensalaContext: Context[IO]           = Context.initial[IO]
+    implicit val sensalaLocalContext: LocalContext[IO] = LocalContext.empty[IO]
+    val interpreter                                    = Interpreter[IO]()
+    (for {
+      lambda     <- interpreter.interpret(discourse, IO.pure(True))
+      normalized = NormalFormConverter.normalForm(lambda)
+      prettified = PrettyTransformer.transform(normalized)
+    } yield prettified).unsafeRunSync()
+  }
 
   // Scalatest treats === as an alpha equality
   implicit val lambdaEq: Equality[E] =

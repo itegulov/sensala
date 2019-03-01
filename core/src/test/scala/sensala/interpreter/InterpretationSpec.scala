@@ -1,18 +1,34 @@
 package sensala.interpreter
 
+import sensala.models.nl._
 import sensala.structure._
 
 class InterpretationSpec extends CommonInterpretationSpec {
   it should "interpret simple sentences" in {
-    interpret("John loves Mary").shouldEqual(
+    // John loves Mary
+    interpret(
+      Sentence(John, TransitiveVerb("loves", Mary))
+    ).shouldEqual(
       ex(x, John(x) /\ ex(y, Mary(y) /\ exEv(e, loves(e) /\ agent(e, x) /\ patient(e, y))))
     )
-    interpret("John walks").shouldEqual(ex(x, John(x) /\ exEv(e, walks(e) /\ agent(e, x))))
+    // John walks
+    interpret(
+      Sentence(John, IntransitiveVerb("walks"))
+    ).shouldEqual(ex(x, John(x) /\ exEv(e, walks(e) /\ agent(e, x))))
   }
 
   it should "interpret quantified sentences" in {
-    interpret("A farmer walks").shouldEqual(ex(x, farmer(x) /\ exEv(e, walks(e) /\ agent(e, x))))
-    interpret("An anthropologist discovered a skeleton").shouldEqual(
+    // A farmer walks
+    interpret(
+      Sentence(ExistentialQuantifier(CommonNoun("farmer")), IntransitiveVerb("walks"))
+    ).shouldEqual(ex(x, farmer(x) /\ exEv(e, walks(e) /\ agent(e, x))))
+    // An anthropologist discovered a skeleton
+    interpret(
+      Sentence(
+        ExistentialQuantifier(CommonNoun("anthropologist")),
+        TransitiveVerb("discovered", ExistentialQuantifier(CommonNoun("skeleton")))
+      )
+    ).shouldEqual(
       ex(
         x,
         anthropologist(x) /\ ex(
@@ -21,16 +37,39 @@ class InterpretationSpec extends CommonInterpretationSpec {
         )
       )
     )
-    interpret("John owns a donkey").shouldEqual(
+    // John owns a donkey
+    interpret(
+      Sentence(
+        John,
+        TransitiveVerb("owns", ExistentialQuantifier(CommonNoun("donkey")))
+      )
+    ).shouldEqual(
       ex(x, John(x) /\ ex(y, donkey(y) /\ exEv(e, owns(e) /\ agent(e, x) /\ patient(e, y))))
     )
-    interpret("Every farmer owns a donkey").shouldEqual(
+    // Every farmer owns a donkey
+    interpret(
+      Sentence(
+        ForallQuantifier(CommonNoun("farmer")),
+        TransitiveVerb("owns", ExistentialQuantifier(CommonNoun("donkey")))
+      )
+    ).shouldEqual(
       forall(x, farmer(x) ->: ex(y, donkey(y) /\ exEv(e, owns(e) /\ agent(e, x) /\ patient(e, y))))
     )
   }
 
   it should "interpret donkey anaphora" in {
-    interpret("Every farmer who owns a donkey beats it").shouldEqual(
+    // Every farmer who owns a donkey beats it
+    interpret(
+      Sentence(
+        ForallQuantifier(
+          WhNounPhrase(
+            TransitiveVerb("owns", ExistentialQuantifier(CommonNoun("donkey"))),
+            CommonNoun("farmer")
+          )
+        ),
+        TransitiveVerb("beats", itPronoun)
+      )
+    ).shouldEqual(
       forall(
         x,
         farmer(x) ->: forall(
@@ -45,7 +84,18 @@ class InterpretationSpec extends CommonInterpretationSpec {
         )
       )
     )
-    interpret("A farmer who owns a donkey beats it").shouldEqual(
+    // A farmer who owns a donkey beats it
+    interpret(
+      Sentence(
+        ExistentialQuantifier(
+          WhNounPhrase(
+            TransitiveVerb("owns", ExistentialQuantifier(CommonNoun("donkey"))),
+            CommonNoun("farmer")
+          )
+        ),
+        TransitiveVerb("beats", itPronoun)
+      )
+    ).shouldEqual(
       ex(
         x,
         farmer(x) /\ ex(
@@ -63,7 +113,18 @@ class InterpretationSpec extends CommonInterpretationSpec {
   }
 
   it should "interpret sentences with adjectives" in {
-    interpret("Every wealthy farmer owns a fat donkey").shouldEqual(
+    // Every wealthy farmer owns a fat donkey
+    interpret(
+      Sentence(
+        ForallQuantifier(AdjectiveNounPhrase(Adjective("wealthy"), CommonNoun("farmer"))),
+        TransitiveVerb(
+          "owns",
+          ExistentialQuantifier(
+            AdjectiveNounPhrase(Adjective("fat"), CommonNoun("donkey"))
+          )
+        )
+      )
+    ).shouldEqual(
       forall(
         x,
         farmer(x) ->: wealthy(x) ->: ex(
@@ -72,7 +133,24 @@ class InterpretationSpec extends CommonInterpretationSpec {
         )
       )
     )
-    interpret("Every wealthy farmer who owns a fat donkey beats it").shouldEqual(
+    // Every wealthy farmer who owns a fat donkey beats it
+    interpret(
+      Sentence(
+        ForallQuantifier(
+          WhNounPhrase(
+            TransitiveVerb(
+              "owns",
+              AdjectiveNounPhrase(
+                Adjective("fat"),
+                ExistentialQuantifier(CommonNoun("donkey"))
+              )
+            ),
+            AdjectiveNounPhrase(Adjective("wealthy"), CommonNoun("farmer"))
+          )
+        ),
+        TransitiveVerb("beats", itPronoun)
+      )
+    ).shouldEqual(
       forall(
         x,
         farmer(x) ->: wealthy(x) ->: forall(
@@ -90,11 +168,26 @@ class InterpretationSpec extends CommonInterpretationSpec {
   }
 
   it should "interpret adjective verb sentences" in {
-    interpret("John is smart").shouldEqual(ex(x, John(x) /\ exEv(e, description(e) /\ smart(e, x))))
+    // John is smart
+    interpret(
+      Sentence(John, VerbAdjectivePhrase("is", Adjective("smart")))
+    ).shouldEqual(ex(x, John(x) /\ exEv(e, description(e) /\ smart(e, x))))
   }
 
   it should "interpret other anaphora sentences" in {
-    interpret("Every lawyer believes he is smart").shouldEqual(
+    // Every lawyer believes he is smart
+    interpret(
+      Sentence(
+        ForallQuantifier(CommonNoun("lawyer")),
+        VerbSentencePhrase(
+          "believes",
+          Sentence(
+            he,
+            VerbAdjectivePhrase("is", Adjective("smart"))
+          )
+        )
+      )
+    ).shouldEqual(
       forall(
         x,
         lawyer(x) ->: exEv(
@@ -109,7 +202,24 @@ class InterpretationSpec extends CommonInterpretationSpec {
         )
       )
     )
-    interpret("John left. He said he was ill.").shouldEqual(
+    // John left. He said he was ill.
+    interpret(
+      Discourse(
+        List(
+          Sentence(John, IntransitiveVerb("left")),
+          Sentence(
+            he,
+            VerbSentencePhrase(
+              "said",
+              Sentence(
+                he,
+                VerbAdjectivePhrase("was", Adjective("ill"))
+              )
+            )
+          )
+        )
+      )
+    ).shouldEqual(
       ex(
         x,
         John(x) /\ exEv(
@@ -130,13 +240,28 @@ class InterpretationSpec extends CommonInterpretationSpec {
   }
 
   it should "interpret sentences with adverb for verbs" in {
-    interpret("John runs quickly").shouldEqual(
+    // John runs quickly
+    interpret(
+      Sentence(
+        John,
+        VerbAdverbPhrase(Adverb("quickly"), IntransitiveVerb("runs"))
+      )
+    ).shouldEqual(
       ex(x, John(x) /\ exEv(e, runs(e) /\ agent(e, x) /\ quickly(e)))
     )
   }
 
   it should "interpret sentences with propositions" in {
-    interpret("John left a wallet on a table").shouldEqual(
+    // John left a wallet on a table
+    interpret(
+      Sentence(
+        John,
+        VerbInPhrase(
+          InPhrase("on", ExistentialQuantifier(CommonNoun("table"))),
+          TransitiveVerb("left", ExistentialQuantifier(CommonNoun("wallet")))
+        )
+      )
+    ).shouldEqual(
       ex(
         x,
         John(x) /\ ex(

@@ -62,7 +62,7 @@ object SensalaBuild {
         scavenger
       )
     )
-    .dependsOn(models.jvm, shared, parser % "compile->compile;test->test")
+    .dependsOn(models.jvm, shared % "compile->compile;test->test")
 
   lazy val parser = Project(id = "parser", base = file("parser"))
     .settings(commonSettings)
@@ -77,7 +77,7 @@ object SensalaBuild {
         javaxActivation
       )
     )
-    .dependsOn(models.jvm, shared)
+    .dependsOn(models.jvm, shared % "compile->compile;test->test")
 
   lazy val shared = Project(id = "shared", base = file("shared"))
     .settings(commonSettings)
@@ -92,6 +92,7 @@ object SensalaBuild {
         monix
       )
     )
+    .dependsOn(models.jvm)
 
   lazy val commandLine = Project(id = "cli", base = file("cli"))
     .settings(commonSettings)
