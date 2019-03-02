@@ -4,7 +4,7 @@ before_script:
   # Log the sbt version
   - sbt sbtVersion
 
-build:
-  stage: build
+test:
+  stage: test
   script:
-    - SBT_OPTS="-Xss512M" sbt clean compile test:compile scalafmtCheck test:scalafmtCheck scalafmtSbtCheck
+    - SBT_OPTS="-Xss512M" sbt clean compile test:compile scalafmtCheck test:scalafmtCheck scalafmtSbtCheck core/test
