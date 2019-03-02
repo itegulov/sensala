@@ -2,22 +2,21 @@ package sensala.property
 
 import cats.effect.Sync
 import cats.implicits._
-import net.didion.jwnl.JWNL
-import net.didion.jwnl.data._
-import net.didion.jwnl.data.list._
-import net.didion.jwnl.dictionary.Dictionary
+import net.sf.extjwnl.data.list._
+import net.sf.extjwnl.dictionary.Dictionary
+import net.sf.extjwnl.data._
 import org.aossie.scavenger.expression.Sym
 import sensala.shared.effect.Log
 import sensala.structure._
 
 import scala.collection.convert.ImplicitConversionsToScala._
+import scala.collection.convert.ImplicitConversionsToJava._
 
 final case class WordNetPropertyExtractor[F[_]: Sync: Log] private (
-  private val dictionary: Dictionary,
-  private val pointerUtils: PointerUtils
+  private val dictionary: Dictionary
 ) {
-  private def getTargets(synset: Synset, typ: PointerType): Array[PointerTarget] =
-    synset.getPointers.filter(_.getType == typ).map(_.getTarget)
+  private def getTargets(synset: Synset, typ: PointerType): List[PointerTarget] =
+    synset.getPointers.filter(_.getType == typ).map(_.getTarget).toList
 
   private def makePointerTargetTreeList(
     synset: Synset,
@@ -29,9 +28,9 @@ final case class WordNetPropertyExtractor[F[_]: Sync: Log] private (
   ): PointerTargetTreeNodeList = {
     val list = new PointerTargetTreeNodeList
     for (typ <- searchTypes) {
-      val targets = new PointerTargetNodeList(getTargets(synset, typ))
+      val targets = new PointerTargetNodeList(getTargets(synset, typ), typ)
       if (targets.size > 0) {
-        for (itr <- targets.toList.map(_.asInstanceOf[PointerTargetNode])) {
+        for (itr <- targets.toList) {
           val node = new PointerTargetTreeNode(
             itr.getPointerTarget,
             if (labelType == null) typ else labelType,
@@ -91,9 +90,9 @@ final case class WordNetPropertyExtractor[F[_]: Sync: Log] private (
             treeEither <- getHypernymTree(sense).attempt
             tree       = treeEither.map(tree => tree.toList.toList)
             result <- tree.getOrElse(List.empty).flatTraverse[F, Property] { pathAny =>
-                       val path = pathAny.asInstanceOf[PointerTargetNodeList]
+                       val path = pathAny
                        path.toList.flatTraverse[F, Property] { nodeAny =>
-                         val node       = nodeAny.asInstanceOf[PointerTargetNode]
+                         val node       = nodeAny
                          val properties = node.getSynset.getWords.map(_.getLemma).toList
                          Log[F].debug(properties.mkString(", ")) >>
                            properties.map(lemma => Property(x => Sym(lemma)(x))).pure[F]
@@ -109,8 +108,6 @@ object WordNetPropertyExtractor {
 
   def create[F[_]: Sync: Log](): F[WordNetPropertyExtractor[F]] =
     for {
-      _            <- Sync[F].delay { JWNL.initialize(getClass.getResourceAsStream("/jwnl-properties.xml")) }
-      dictonary    = Dictionary.getInstance()
-      pointerUtils = PointerUtils.getInstance()
-    } yield WordNetPropertyExtractor(dictonary, pointerUtils)
+      dictonary <- Sync[F].delay { Dictionary.getDefaultResourceInstance }
+    } yield WordNetPropertyExtractor(dictonary)
 }

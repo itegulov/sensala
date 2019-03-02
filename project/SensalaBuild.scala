@@ -56,7 +56,8 @@ object SensalaBuild {
         catsEffect,
         catsMtl,
         monix,
-        jwnl,
+        extjwnl,
+        extjwnlDataWn31,
         catsLawsTest,
         catsLawsTestkitTest,
         scavenger
