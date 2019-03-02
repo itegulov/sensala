@@ -29,8 +29,8 @@ object Dependencies {
   val scalacheckNoTest    = "org.scalacheck"             %% "scalacheck"                % "1.13.5"
   val scalacheckShapeless = "com.github.alexarchambault" %% "scalacheck-shapeless_1.13" % "1.1.8" % Test
 
-  val extjwnl         = "net.sf.extjwnl"  % "extjwnl"           % "2.0.1"
-  val extjwnlDataWn31 = "net.sf.extjwnl"  % "extjwnl-data-wn31" % "1.2"
+  val extjwnl         = "net.sf.extjwnl" % "extjwnl"           % "2.0.1"
+  val extjwnlDataWn31 = "net.sf.extjwnl" % "extjwnl-data-wn31" % "1.2"
 
   val jaxbImpl        = "com.sun.xml.bind" % "jaxb-impl"  % "2.2.11"
   val jaxbCore        = "com.sun.xml.bind" % "jaxb-core"  % "2.2.11"
