@@ -1,11 +1,12 @@
 package sensala.interpreter.context
 
 import cats.Monad
+import cats.effect.Sync
 import cats.mtl.MonadState
 import cats.implicits._
 import monix.execution.atomic.AtomicAny
 import org.aossie.scavenger.expression.Var
-import sensala.shared.effect.{AtomicMonadState, Capture}
+import sensala.shared.effect.AtomicMonadState
 import sensala.error.NLError.FunctorRaiseNLError
 import sensala.error.NLInvalidState
 
@@ -50,7 +51,7 @@ final case class LocalContext[F[_]: Monad: FunctorRaiseNLError] private[context]
 object LocalContext {
   def apply[F[_]](implicit ev: LocalContext[F]): LocalContext[F] = ev
 
-  def empty[F[_]: Monad: Capture: FunctorRaiseNLError]: LocalContext[F] =
+  def empty[F[_]: Sync: FunctorRaiseNLError]: LocalContext[F] =
     LocalContext(
       new AtomicMonadState(
         AtomicAny(LocalContextState(None, None))

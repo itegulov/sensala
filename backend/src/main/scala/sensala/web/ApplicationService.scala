@@ -19,7 +19,7 @@ import sensala.interpreter.Interpreter
 import org.http4s.twirl._
 import org.http4s.websocket.WebSocketFrame
 import org.http4s.websocket.WebSocketFrame.Text
-import sensala.shared.effect.{Capture, Log}
+import sensala.shared.effect.Log
 import sensala.error.NLError
 import sensala.error.NLError.FunctorRaiseNLError
 import sensala.interpreter.context.{Context, LocalContext}
@@ -33,7 +33,7 @@ import sensala.models._
 
 import scala.util.Try
 
-final case class ApplicationService[F[_]: Sync: Concurrent: Capture: Interpreter: Log]()
+final case class ApplicationService[F[_]: Sync: Concurrent: Interpreter: Log]()
     extends Http4sDsl[F] {
   object DiscourseQueryParamMatcher extends QueryParamDecoderMatcher[String]("discourse")
 

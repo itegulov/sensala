@@ -1,6 +1,7 @@
 package sensala.interpreter.context
 
 import cats.Monad
+import cats.effect.Sync
 import cats.mtl.MonadState
 import cats.implicits._
 import monix.execution.atomic.AtomicAny
@@ -9,7 +10,7 @@ import org.aossie.scavenger.expression.formula.{All, And}
 import org.aossie.scavenger.preprocessing.TPTPClausifier
 import org.aossie.scavenger.prover.{EPCR, Unsatisfiable}
 import org.aossie.scavenger.structure.immutable.{AxiomClause, NegConjectureClause}
-import sensala.shared.effect.{AtomicMonadState, Capture}
+import sensala.shared.effect.AtomicMonadState
 import sensala.error.NLError.FunctorRaiseNLError
 import sensala.error.NLUnknownAnaphoricReferent
 import sensala.property.Property
@@ -179,7 +180,7 @@ final case class Context[F[_]: Monad: FunctorRaiseNLError] private[context] (
 object Context {
   def apply[F[_]](implicit ev: Context[F]): Context[F] = ev
 
-  def initial[F[_]: Monad: Capture: FunctorRaiseNLError]: Context[F] = {
+  def initial[F[_]: Sync: FunctorRaiseNLError]: Context[F] = {
     val speakerEntity      = Var("speaker")
     val interlocutorEntity = Var("interlocutor")
     val state = ContextState(
