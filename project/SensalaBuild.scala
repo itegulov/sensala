@@ -129,6 +129,15 @@ object SensalaBuild {
       (managedResources in Compile) += (artifactPath in (frontend, Compile, packageJSDependencies)).value,
       // This settings makes reStart to rebuild if a scala.js file changes on the client
       watchSources ++= (watchSources in frontend).value,
+      assemblyMergeStrategy in assembly := {
+        case "logback.xml" =>
+          MergeStrategy.first
+        case PathList("org", "scalatools", "testing", xs @ _*) =>
+          MergeStrategy.first
+        case x =>
+          val oldStrategy = (assemblyMergeStrategy in assembly).value
+          oldStrategy(x)
+      },
       libraryDependencies ++= commonDependencies ++ http4sDependencies ++ Seq(
         webjarBootstrap,
         webjarJquery,
