@@ -274,4 +274,21 @@ class InterpretationSpec extends CommonInterpretationSpec {
       )
     )
   }
+
+  it should "interpret sentences with comparatives" in {
+    interpret(
+      Sentence(
+        John,
+        VerbComparativePhrase(
+          "smarter",
+          Bob
+        )
+      )
+    ).shouldEqual(
+      ex(
+        x,
+        John(x) /\ ex(y, Bob(y) /\ COMP(smarter, x, y))
+      )
+    )
+  }
 }

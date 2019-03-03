@@ -435,6 +435,31 @@ object EnglishDiscourseParser extends DiscourseParser {
           case (_, None) =>
             Left("Illegal sentence: no subject")
         }
+      case "RBR" =>
+        val children    = graph.childPairs(root).map(pairToTuple).toList
+        val childrenMap = children.toMap
+        val subjOpt     = childrenMap.get(NSubj)
+        val copOpt      = childrenMap.get(Cop)
+        val thanClauseOpt = children.find {
+          case (rel, _) if NomMod.isAncestor(rel) && rel.getSpecific == "than" =>
+            true
+          case _ =>
+            false
+        }.map(_._2)
+        (subjOpt, copOpt, thanClauseOpt) match {
+          case (Some(subj), Some(cop), Some(thanClause)) =>
+            val stemCop = Morphology.stemStatic(cop.word, cop.tag)
+            if (stemCop.word.toLowerCase == "be") {
+              for {
+                subjPhrase <- parseNounPhrase(subj)
+                thanPhrase <- parseNounPhrase(thanClause)
+              } yield Sentence(subjPhrase, VerbComparativePhrase(root.word, thanPhrase))
+            } else {
+              Left(s"Invalid copular verb: ${cop.word}")
+            }
+          case _ =>
+            Left("Illegal comparative sentence")
+        }
     }
 
   private def transformVerbPhraseAnaphora(sentence: Sentence): Sentence =

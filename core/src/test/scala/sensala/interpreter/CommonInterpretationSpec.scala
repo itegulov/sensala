@@ -100,4 +100,7 @@ class CommonInterpretationSpec extends SensalaSpec {
   val stubborn        = Sym("stubborn")
   val hell            = Sym("hell")
   val as              = Sym("as")
+  val smarter         = Sym("smarter")
+
+  val COMP = Sym("COMP")
 }

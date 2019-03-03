@@ -150,4 +150,18 @@ class EnglishDiscourseParserSpec extends SensalaSpec {
       )
     )
   }
+
+  it should "parse comparatives" in {
+    parse("John is smarter than Bob").right.value shouldBe Discourse(
+      List(
+        Sentence(
+          John,
+          VerbComparativePhrase(
+            "smarter",
+            Bob
+          )
+        )
+      )
+    )
+  }
 }

@@ -143,6 +143,17 @@ final case class Interpreter[F[_]: Monad: PropertyExtractor: Context: LocalConte
                         } yield w(e) /\ agent(e, x) /\ patient(e, eSucc) /\ contL
                       )
         } yield Ex(e, event, sentenceL)
+      case VerbComparativePhrase(comparative, obj) =>
+        for {
+          x <- LocalContext[F].getEntity
+          w = Sym(comparative)
+          objL <- interpret(
+                   obj,
+                   for {
+                     y <- LocalContext[F].getEntity
+                   } yield Sym("COMP")(w, x, y)
+                 )
+        } yield objL
       case InPhrase(verbWord, nounPhrase) =>
         Monad[F].pure[E](Sym(verbWord))
       case possessionPhrase: PossessionPhrase =>
