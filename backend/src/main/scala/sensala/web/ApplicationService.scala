@@ -121,6 +121,8 @@ final case class ApplicationService[F[_]: Sync: Concurrent: Interpreter: Log]()
   val application = HttpRoutes.of[F] {
     case GET -> Root =>
       Ok(sensala.html.index())
+    case GET -> Root / "demo" =>
+      Ok(sensala.html.demo())
     case POST -> Root / "eval" :? DiscourseQueryParamMatcher(discourse) =>
       for {
         message <- evalDiscourseSimple(discourse)

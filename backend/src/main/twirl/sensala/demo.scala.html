@@ -1,0 +1,88 @@
+@()
+
+<!doctype html>
+
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        
+        <link rel="stylesheet" type="text/css" href="assets/bootstrap/4.3.1/css/bootstrap.min.css">
+        <link rel="stylesheet" type="text/css" href="assets/css/main.css">
+        
+        <title>Sensala Demo</title>
+    </head>
+    <body>
+        <div class="container-fluid mt-3">
+            <div class="row justify-content-center text-center mb-3">
+                <div class="col-md-6">
+                    <h1>Sensala</h1>
+                </div>
+            </div>
+            
+            <div class="form-group row justify-content-md-center">
+                <div class="col-md-6">
+                    <input type="text" class="form-control" name="discourse" id="discourse" autocomplete="off" placeholder="Discourse to interpret">
+                </div>
+            </div>
+            <div class="form-group row justify-content-md-center">
+                <button type="submit" class="btn btn-primary" id="interpret">Interpret!</button>
+            </div>
+
+            <div class="row justify-content-center text-center mt-1" id="attach">
+                <svg id="svg-canvas-stanford" class="main-svg col-md-6"></svg>
+                <svg id="svg-canvas-sensala" class="main-svg col-md-6"></svg>
+            </div>
+
+            <div class="row justify-content-center text-center mt-5">
+                <div class="col-md-12">
+                    <div id="loader" class="loader"></div>
+                </div>
+            </div>
+
+            <div class="row justify-content-center text-center mt-5">
+                <div class="col-md-12">
+                    <h2 id="term">
+
+                    </h2>
+                </div>
+            </div>
+        </div>
+        
+        <script type="text/javascript" src="assets/jquery/3.3.1-2/jquery.min.js"></script>
+        <script type="text/javascript" src="assets/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+        <script type="text/javascript" src="assets/popper.js/1.14.3/popper.min.js"></script>
+        <script type="text/javascript" src="assets/d3js/5.5.0/d3.min.js"></script>
+        <script type="text/javascript" src="assets/dagre-d3/0.6.3/dist/dagre-d3.min.js"></script>
+
+        <script>
+                function moveOnZoom(svg, svgGroup, g) {
+                    var zoom = d3.behavior.zoom().on('zoom', function () {
+                        svgGroup.attr('transform', 'translate(' + d3.event.translate + ')' +
+                                'scale(' + d3.event.scale + ')');
+                    });
+                    svg.call(zoom);
+                    var graphWidth = g.graph().width + 80;
+                    var graphHeight = g.graph().height + 0;
+                    var width = parseInt(svg.style("width").replace(/px/, ""));
+                    var height = parseInt(svg.style("height").replace(/px/, ""));
+
+                    var zoomScale = Math.max(Math.min(width / graphWidth, height / graphHeight));
+
+                    var translate = [(width / 2) - ((graphWidth * zoomScale) / 2), 0];
+                    zoom.translate(translate);
+                    zoom.scale(zoomScale);
+                    zoom.event(svgGroup);
+                }
+                SVGElement.prototype.getTransformToElement = SVGElement.prototype.getTransformToElement || function (elem) {
+                    return elem.getScreenCTM().inverse().multiply(this.getScreenCTM());
+                };
+        </script>
+
+        @scalajs.html.scripts(
+            projectName = "sensala-frontend",
+            name => s"/assets/$name",
+            name => getClass.getResource(s"/$name") != null
+        )
+    </body>
+</html>
