@@ -499,4 +499,9 @@ object EnglishDiscourseParser extends DiscourseParser {
                  .sequence
     } yield Discourse(result)
   }
+
+  def main(args: Array[String]): Unit =
+    println(
+      parse("If John is lazy then Mary is beautiful")
+    )
 }

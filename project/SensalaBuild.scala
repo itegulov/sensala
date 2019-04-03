@@ -162,7 +162,8 @@ object SensalaBuild {
       scalaJSUseMainModuleInitializer := true,
       libraryDependencies ++= commonDependencies ++ Seq(
         "org.scala-js" %%% "scalajs-dom"    % "0.9.6",
-        "org.singlespaced" %%% "scalajs-d3" % "0.3.4"
+        "org.singlespaced" %%% "scalajs-d3" % "0.3.4",
+        "fr.hmil" %%% "roshttp"             % "2.0.1"
       )
     )
     .enablePlugins(ScalaJSPlugin, ScalaJSWeb)
