@@ -19,4 +19,5 @@ object EnglishSensalaGrammaticalRelations {
   val Cop        = UniversalEnglishGrammaticalRelations.COPULA
   val Case       = UniversalEnglishGrammaticalRelations.CASE_MARKER
   val AuxPass    = UniversalEnglishGrammaticalRelations.AUX_PASSIVE_MODIFIER
+  val NumMod     = UniversalEnglishGrammaticalRelations.NUMERIC_MODIFIER
 }

@@ -73,6 +73,11 @@ final case class PluralCommonNoun(
   word: String
 ) extends NounPhraseBasic
 
+final case class PluralNumericCommonNoun(
+  word: String,
+  number: Int
+) extends NounPhraseBasic
+
 // Preposition Noun Phrases
 
 final case class NounPhrasePreposition(

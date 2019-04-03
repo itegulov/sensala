@@ -163,6 +163,10 @@ object MainJS {
       case PluralCommonNoun(word) =>
         processWord(word)
         List.empty
+      case PluralNumericCommonNoun(word, number) =>
+        processWord(word)
+        processWord(number.toString)
+        List.empty
       case NounPhrasePreposition(prepositionalPhrase, nounPhrase) =>
         List(prepositionalPhrase, nounPhrase)
       case ForallQuantifier(nounPhrase) =>

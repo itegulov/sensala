@@ -217,6 +217,12 @@ final case class Interpreter[F[_]: Monad: PropertyExtractor: Context: LocalConte
           w     = Sym(word)
           contL <- cont
         } yield w(x) /\ plural(x) /\ contL
+      case PluralNumericCommonNoun(word, number) =>
+        for {
+          x     <- LocalContext[F].getEntity
+          w     = Sym(word)
+          contL <- cont
+        } yield w(x) /\ plural(x) /\ amount(x, Sym(number.toString)) /\ contL
       case NounPhrasePreposition(prepositionalPhrase, nounPhrase) =>
         interpret(
           nounPhrase,

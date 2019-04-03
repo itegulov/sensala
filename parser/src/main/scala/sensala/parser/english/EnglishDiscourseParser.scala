@@ -15,6 +15,7 @@ import sensala.parser.english.EnglishSensalaGrammaticalRelations._
 import sensala.models.nl._
 
 import scala.collection.convert.ImplicitConversionsToScala._
+import scala.util.{Failure, Success, Try}
 
 object EnglishDiscourseParser extends DiscourseParser {
   private val logger = Logger[this.type]
@@ -77,6 +78,29 @@ object EnglishDiscourseParser extends DiscourseParser {
         Left(s"Unknown determiner: ${x.word}")
       case _ =>
         Left(s"Multiple determiners: ${determiners.map(_.word).mkString(" ")}")
+    }
+  }
+
+  private def parseNumeralModifiers(
+    nounPhrase: IndexedWord
+  )(implicit graph: SemanticGraph): Either[String, NounPhrase] = {
+    require(nounPhrase.tag == "NNS")
+    val children = graph.childPairs(nounPhrase).toList.map(pairToTuple)
+    val numModifiers = children.collect {
+      case (rel, word) if rel == NumMod => word
+    }
+    numModifiers match {
+      case Nil =>
+        Right(PluralCommonNoun(nounPhrase.word))
+      case numModifier :: Nil =>
+        Try(numModifier.word.toInt) match {
+          case Success(value) =>
+            Right(PluralNumericCommonNoun(nounPhrase.word, value))
+          case Failure(exception) =>
+            Left(s"${numModifier.word} is not a number")
+        }
+      case _ =>
+        Left("Multiple numeric modifiers are unsupported")
     }
   }
 
@@ -349,27 +373,30 @@ object EnglishDiscourseParser extends DiscourseParser {
         parsePluralCommonNoun(nounTree) match {
           case Right(Existential) =>
             for {
+              numericPlural <- parseNumeralModifiers(nounTree)
               adjectiveNounPhrase <- parseAdjectiveNounPhrase(
                                       nounTree,
-                                      PluralCommonNoun(nonpluralWord.word)
+                                      numericPlural
                                     )
               whNounPhrase   <- parseWhNounPhrase(nounTree, adjectiveNounPhrase)
               prepNounPhrase <- parsePrepositionalNounPhrase(nounTree, whNounPhrase)
             } yield ExistentialQuantifier(prepNounPhrase)
           case Right(Forall) =>
             for {
+              numericPlural <- parseNumeralModifiers(nounTree)
               adjectiveNounPhrase <- parseAdjectiveNounPhrase(
                                       nounTree,
-                                      PluralCommonNoun(nonpluralWord.word)
+                                      numericPlural
                                     )
               whNounPhrase   <- parseWhNounPhrase(nounTree, adjectiveNounPhrase)
               prepNounPhrase <- parsePrepositionalNounPhrase(nounTree, whNounPhrase)
             } yield ForallQuantifier(prepNounPhrase)
           case Right(The) =>
             for {
+              numericPlural <- parseNumeralModifiers(nounTree)
               adjectiveNounPhrase <- parseAdjectiveNounPhrase(
                                       nounTree,
-                                      PluralCommonNoun(nonpluralWord.word)
+                                      numericPlural
                                     )
               whNounPhrase   <- parseWhNounPhrase(nounTree, adjectiveNounPhrase)
               prepNounPhrase <- parsePrepositionalNounPhrase(nounTree, whNounPhrase)

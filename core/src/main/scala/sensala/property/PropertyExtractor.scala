@@ -38,6 +38,10 @@ final case class PropertyExtractor[F[_]: Sync: WordNetPropertyExtractor]() {
         WordNetPropertyExtractor[F].extractProperties(word).map {
           Property(x => plural(x)) :: _
         }
+      case PluralNumericCommonNoun(word, number) =>
+        WordNetPropertyExtractor[F].extractProperties(word).map {
+          Property(x => plural(x)) :: Property(x => amount(x, Sym(number.toString))) :: _
+        }
       case NounPhrasePreposition(_, nounPhrase) =>
         properties(nounPhrase)
       case ForallQuantifier(nounPhrase) =>
