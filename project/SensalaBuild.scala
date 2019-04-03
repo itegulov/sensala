@@ -139,6 +139,7 @@ object SensalaBuild {
           oldStrategy(x)
       },
       libraryDependencies ++= commonDependencies ++ http4sDependencies ++ Seq(
+        scopt,
         webjarBootstrap,
         webjarJquery,
         webjarPopper,
