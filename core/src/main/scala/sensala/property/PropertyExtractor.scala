@@ -70,9 +70,9 @@ final case class PropertyExtractor[F[_]: Sync: WordNetPropertyExtractor]() {
       case SecondPersonPluralPersonalPronoun(_) =>
         List(Property(x => interlocutor(x))).pure[F]
       case ThirdPersonPluralPersonalPronoun(_) =>
-        List.empty[Property].pure[F]
+        List(Property(x => plural(x))).pure[F]
       case _: PluralPersonalPronoun =>
-        List.empty[Property].pure[F]
+        List(Property(x => plural(x))).pure[F]
       case FirstPersonSingularPossessivePronoun(_) =>
         List(Property(x => speaker(x))).pure[F]
       case SecondPersonSingularPossessivePronoun(_) =>
@@ -87,11 +87,11 @@ final case class PropertyExtractor[F[_]: Sync: WordNetPropertyExtractor]() {
           }
         ).pure[F]
       case FirstPersonPluralPossessivePronoun(_) =>
-        List(Property(x => speaker(x))).pure[F]
+        List(Property(x => speaker(x)), Property(x => plural(x))).pure[F]
       case SecondPersonPluralPossessivePronoun(_) =>
-        List(Property(x => interlocutor(x))).pure[F]
+        List(Property(x => interlocutor(x)), Property(x => plural(x))).pure[F]
       case ThirdPersonPluralPossessivePronoun(_) =>
-        List.empty[Property].pure[F]
+        List(Property(x => plural(x))).pure[F]
       case FirstPersonSingularReflexivePronoun(_) =>
         List(Property(x => speaker(x))).pure[F]
       case SecondPersonSingularReflexivePronoun(_) =>
@@ -106,11 +106,11 @@ final case class PropertyExtractor[F[_]: Sync: WordNetPropertyExtractor]() {
           }
         ).pure[F]
       case FirstPersonPluralReflexivePronoun(_) =>
-        List(Property(x => speaker(x))).pure[F]
+        List(Property(x => speaker(x)), Property(x => plural(x))).pure[F]
       case SecondPersonPluralReflexivePronoun(_) =>
-        List(Property(x => interlocutor(x))).pure[F]
+        List(Property(x => interlocutor(x)), Property(x => plural(x))).pure[F]
       case ThirdPersonPluralReflexivePronoun(_) =>
-        List.empty[Property].pure[F]
+        List(Property(x => plural(x))).pure[F]
       case AdjectiveNounPhrase(_, nounPhrase) =>
         properties(nounPhrase)
     }
