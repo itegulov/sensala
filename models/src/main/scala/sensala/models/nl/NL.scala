@@ -29,6 +29,12 @@ final case class VerbInPhrase(preposition: PrepositionalPhrase, vp: VerbPhrase) 
 final case class VerbPhraseAnaphora(phrase: String, voice: VerbVoice)           extends VerbPhrase
 final case class VerbSentencePhrase(word: String, sentence: Sentence)           extends VerbPhrase
 final case class VerbComparativePhrase(comparative: String, obj: NounPhrase)    extends VerbPhrase
+final case class VerbAdverbialClausePhrase(
+  mark: String,
+  adverbialClause: Sentence,
+  adverbialModifiers: List[Adverb],
+  verbPhrase: VerbPhrase
+) extends VerbPhrase
 
 /*
  * Prepositional Phrases

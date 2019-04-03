@@ -6,6 +6,7 @@ object EnglishSensalaGrammaticalRelations {
   val Det        = UniversalEnglishGrammaticalRelations.DETERMINER
   val AdjMod     = UniversalEnglishGrammaticalRelations.ADJECTIVAL_MODIFIER
   val AdvMod     = UniversalEnglishGrammaticalRelations.ADVERBIAL_MODIFIER
+  val AdvclMod   = UniversalEnglishGrammaticalRelations.ADV_CLAUSE_MODIFIER
   val Ref        = UniversalEnglishGrammaticalRelations.REFERENT
   val RelClMod   = UniversalEnglishGrammaticalRelations.RELATIVE_CLAUSE_MODIFIER
   val NomMod     = UniversalEnglishGrammaticalRelations.NOMINAL_MODIFIER

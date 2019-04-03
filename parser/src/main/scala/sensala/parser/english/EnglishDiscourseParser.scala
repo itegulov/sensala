@@ -115,15 +115,28 @@ object EnglishDiscourseParser extends DiscourseParser {
     } yield whClauses.foldRight(nounPhrase)(WhNounPhrase.apply)
   }
 
-  private def parseAdverbVerbPhrase(
+  private def parseAdverbialClauseVerbPhrase(
     verbTree: IndexedWord,
     verbPhrase: VerbPhrase
   )(implicit graph: SemanticGraph): Either[String, VerbPhrase] = {
+    val adverbialClauses = graph.childPairs(verbTree).toList.map(pairToTuple).collect {
+      case (rel, word) if AdvclMod.isAncestor(rel) => (rel.getSpecific, word)
+    }
     val adverbs = graph.childPairs(verbTree).toList.map(pairToTuple).collect {
       case (rel, word) if rel == AdvMod => word
     }
-    val adverbMods = adverbs.map(indexedWord => Adverb(indexedWord.word))
-    Right(adverbMods.foldRight(verbPhrase)(VerbAdverbPhrase.apply))
+    adverbialClauses match {
+      case Nil =>
+        val adverbMods = adverbs.map(indexedWord => Adverb(indexedWord.word))
+        Right(adverbMods.foldRight(verbPhrase)(VerbAdverbPhrase.apply))
+      case (mark, adverbialClause) :: Nil =>
+        val adverbMods = adverbs.map(indexedWord => Adverb(indexedWord.word))
+        for {
+          clause <- parseSentence(adverbialClause)
+        } yield VerbAdverbialClausePhrase(mark, clause, adverbMods, verbPhrase)
+      case _ =>
+        Left("Multiple adverbial clauses are unsupported")
+    }
   }
 
   private def parsePrepositionalVerbPhrase(
@@ -163,7 +176,7 @@ object EnglishDiscourseParser extends DiscourseParser {
           case (Some(obj), None) =>
             for {
               objPhrase <- parseNounPhrase(obj)
-              adverbVerbPhrase <- parseAdverbVerbPhrase(
+              adverbVerbPhrase <- parseAdverbialClauseVerbPhrase(
                                    verbTree,
                                    TransitiveVerb(verbTree.word, objPhrase)
                                  )
@@ -172,7 +185,7 @@ object EnglishDiscourseParser extends DiscourseParser {
           case (None, Some(clausalComponent)) =>
             for {
               clausalSentence <- parseSentence(clausalComponent)
-              adverbVerbPhrase <- parseAdverbVerbPhrase(
+              adverbVerbPhrase <- parseAdverbialClauseVerbPhrase(
                                    verbTree,
                                    VerbSentencePhrase(verbTree.word, clausalSentence)
                                  )
@@ -180,7 +193,10 @@ object EnglishDiscourseParser extends DiscourseParser {
             } yield prepositionalVerbPhrase
           case (None, None) =>
             for {
-              adverbVerbPhrase        <- parseAdverbVerbPhrase(verbTree, IntransitiveVerb(verbTree.word))
+              adverbVerbPhrase <- parseAdverbialClauseVerbPhrase(
+                                   verbTree,
+                                   IntransitiveVerb(verbTree.word)
+                                 )
               prepositionalVerbPhrase <- parsePrepositionalVerbPhrase(verbTree, adverbVerbPhrase)
             } yield prepositionalVerbPhrase
         }
@@ -444,7 +460,7 @@ object EnglishDiscourseParser extends DiscourseParser {
               for {
                 subjPhrase              <- parseNounPhrase(subj)
                 verbPhrase              = VerbAdjectivePhrase(cop.word, Adjective(root.word))
-                adverbVerbPhrase        <- parseAdverbVerbPhrase(root, verbPhrase)
+                adverbVerbPhrase        <- parseAdverbialClauseVerbPhrase(root, verbPhrase)
                 prepositionalVerbPhrase <- parsePrepositionalVerbPhrase(root, adverbVerbPhrase)
               } yield Sentence(subjPhrase, prepositionalVerbPhrase)
             } else {
@@ -557,9 +573,4 @@ object EnglishDiscourseParser extends DiscourseParser {
                  .sequence
     } yield Discourse(result)
   }
-
-  def main(args: Array[String]): Unit =
-    println(
-      parse("Butterflies are beautiful")
-    )
 }

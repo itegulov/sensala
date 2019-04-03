@@ -13,6 +13,8 @@ import sensala.property.PropertyExtractor
 import sensala.models.nl._
 
 final case class Interpreter[F[_]: Monad: PropertyExtractor: Context: LocalContext: FunctorRaiseNLError]() {
+  private val thenAdverb = Adverb("then")
+
   def interpret(nl: NL, cont: F[E]): F[E] =
     nl match {
       case Sentence(nounPhrase, verbPhrase) =>
@@ -150,10 +152,49 @@ final case class Interpreter[F[_]: Monad: PropertyExtractor: Context: LocalConte
           objL <- interpret(
                    obj,
                    for {
-                     y <- LocalContext[F].getEntity
-                   } yield Sym("COMP")(w, x, y)
+                     y     <- LocalContext[F].getEntity
+                     contL <- cont
+                   } yield Sym("COMP")(w, x, y) /\ contL
                  )
         } yield objL
+      case VerbAdverbialClausePhrase(mark, adverbialClause, adverbialModifiers, verbPhrase) =>
+        if (mark == "if" && adverbialModifiers.contains(thenAdverb)) {
+          val leftAdverbialModifiers = adverbialModifiers.filterNot(_ == thenAdverb)
+          for {
+            clauseL <- interpret(
+                        adverbialClause,
+                        interpret(
+                          verbPhrase,
+                          for {
+                            e <- LocalContext[F].getEvent
+                          } yield
+                            leftAdverbialModifiers.foldLeft(Truth)(
+                              (acc, adverb) => acc /\ Sym(adverb.word)(e)
+                            )
+                        ).map(~_)
+                      ).map(~_)
+            contL <- cont
+          } yield clauseL /\ contL
+        } else {
+          for {
+            clauseL <- interpret(
+                        adverbialClause,
+                        for {
+                          e1 <- LocalContext[F].getEvent
+                          result <- interpret(
+                                     verbPhrase,
+                                     for {
+                                       e2    <- LocalContext[F].getEvent
+                                       contL <- cont
+                                     } yield
+                                       adverbialModifiers.foldLeft(Truth)(
+                                         (acc, adverb) => acc /\ Sym(adverb.word)(e2)
+                                       ) /\ Sym(mark)(e1, e2) /\ contL
+                                   )
+                        } yield result
+                      )
+          } yield clauseL
+        }
       case InPhrase(verbWord, nounPhrase) =>
         Monad[F].pure[E](Sym(verbWord))
       case possessionPhrase: PossessionPhrase =>

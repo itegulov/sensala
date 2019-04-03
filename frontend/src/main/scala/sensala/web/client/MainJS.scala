@@ -143,6 +143,10 @@ object MainJS {
       case VerbComparativePhrase(comparative, obj) =>
         processWord(comparative)
         List(obj)
+      case VerbAdverbialClausePhrase(mark, clause, mods, vp) =>
+        processWord(mark)
+        mods.foreach(mod => processWord(mod.word))
+        List(clause, vp)
       case InPhrase(verbWord, nounPhrase) =>
         processWord(verbWord)
         List(nounPhrase)
