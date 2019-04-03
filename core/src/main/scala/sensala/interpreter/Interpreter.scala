@@ -71,7 +71,7 @@ final case class Interpreter[F[_]: Monad: PropertyExtractor: Context: LocalConte
         } yield objL
       case VerbAdjectivePhrase(verb, adjective) =>
         verb match {
-          case "is" | "was" =>
+          case "am" | "are" | "is" | "was" =>
             for {
               x     <- LocalContext[F].getEntity
               e     <- Context[F].bindFreeVar
@@ -170,6 +170,12 @@ final case class Interpreter[F[_]: Monad: PropertyExtractor: Context: LocalConte
           w     = Sym(word)
           contL <- cont
         } yield w(x) /\ contL
+      case PluralCommonNoun(word) =>
+        for {
+          x     <- LocalContext[F].getEntity
+          w     = Sym(word)
+          contL <- cont
+        } yield w(x) /\ plural(x) /\ contL
       case NounPhrasePreposition(prepositionalPhrase, nounPhrase) =>
         interpret(
           nounPhrase,

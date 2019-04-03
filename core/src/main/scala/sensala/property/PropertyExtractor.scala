@@ -34,6 +34,10 @@ final case class PropertyExtractor[F[_]: Sync: WordNetPropertyExtractor]() {
         (typProperty(typ) ++ genderProperty(gender)).pure[F]
       case CommonNoun(word) =>
         WordNetPropertyExtractor[F].extractProperties(word)
+      case PluralCommonNoun(word) =>
+        WordNetPropertyExtractor[F].extractProperties(word).map {
+          Property(x => plural(x)) :: _
+        }
       case NounPhrasePreposition(_, nounPhrase) =>
         properties(nounPhrase)
       case ForallQuantifier(nounPhrase) =>
@@ -119,6 +123,8 @@ final case class PropertyExtractor[F[_]: Sync: WordNetPropertyExtractor]() {
         properties(np)
       case CommonNoun(word) =>
         List(Property(x => Sym(word)(x))).pure[F]
+      case PluralCommonNoun(word) =>
+        List(Property(x => Sym(word)(x)), Property(x => plural(x))).pure[F]
       case NounPhrasePreposition(_, nounPhrase) =>
         definiteProperties(nounPhrase)
       case ForallQuantifier(nounPhrase) =>

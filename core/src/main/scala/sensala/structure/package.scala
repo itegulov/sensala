@@ -27,6 +27,8 @@ package object structure {
   val speaker      = Sym("sensala_speaker")
   val interlocutor = Sym("sensala_interlocutor")
 
+  val plural = Sym("plural")
+
   // FIXME: Make True a case object in Scavenger
   val Truth: E = True
 

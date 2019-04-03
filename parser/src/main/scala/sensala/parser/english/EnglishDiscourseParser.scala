@@ -55,6 +55,31 @@ object EnglishDiscourseParser extends DiscourseParser {
     }
   }
 
+  private def parsePluralCommonNoun(
+    nounPhrase: IndexedWord
+  )(implicit graph: SemanticGraph): Either[String, CommonNounDeterminer] = {
+    require(nounPhrase.tag == "NNS")
+    val children = graph.childPairs(nounPhrase).toList.map(pairToTuple)
+    val determiners = children.collect {
+      case (rel, word) if rel == Det => word
+    }
+    determiners match {
+      case Nil =>
+        // FIXME: Currently treating all common nouns without determiners as indefinite
+        Right(Existential)
+      case x :: Nil if x.word.toLowerCase == "some" =>
+        Right(Existential)
+      case x :: Nil if x.word.toLowerCase == "all" =>
+        Right(Forall)
+      case x :: Nil if x.word.toLowerCase == "the" =>
+        Right(The)
+      case x :: Nil =>
+        Left(s"Unknown determiner: ${x.word}")
+      case _ =>
+        Left(s"Multiple determiners: ${determiners.map(_.word).mkString(" ")}")
+    }
+  }
+
   private def parseAdjectiveNounPhrase(
     nounTree: IndexedWord,
     nounPhrase: NounPhrase
@@ -303,6 +328,39 @@ object EnglishDiscourseParser extends DiscourseParser {
                 Left(error)
             }
         }
+      case "NNS" =>
+        val nonpluralWord = Morphology.stemStatic(nounTree.word, nounTree.tag)
+        parsePluralCommonNoun(nounTree) match {
+          case Right(Existential) =>
+            for {
+              adjectiveNounPhrase <- parseAdjectiveNounPhrase(
+                                      nounTree,
+                                      PluralCommonNoun(nonpluralWord.word)
+                                    )
+              whNounPhrase   <- parseWhNounPhrase(nounTree, adjectiveNounPhrase)
+              prepNounPhrase <- parsePrepositionalNounPhrase(nounTree, whNounPhrase)
+            } yield ExistentialQuantifier(prepNounPhrase)
+          case Right(Forall) =>
+            for {
+              adjectiveNounPhrase <- parseAdjectiveNounPhrase(
+                                      nounTree,
+                                      PluralCommonNoun(nonpluralWord.word)
+                                    )
+              whNounPhrase   <- parseWhNounPhrase(nounTree, adjectiveNounPhrase)
+              prepNounPhrase <- parsePrepositionalNounPhrase(nounTree, whNounPhrase)
+            } yield ForallQuantifier(prepNounPhrase)
+          case Right(The) =>
+            for {
+              adjectiveNounPhrase <- parseAdjectiveNounPhrase(
+                                      nounTree,
+                                      PluralCommonNoun(nonpluralWord.word)
+                                    )
+              whNounPhrase   <- parseWhNounPhrase(nounTree, adjectiveNounPhrase)
+              prepNounPhrase <- parsePrepositionalNounPhrase(nounTree, whNounPhrase)
+            } yield DefiniteNounPhrase(prepNounPhrase)
+          case Left(error) =>
+            Left(error)
+        }
       case "NNP" =>
         val ner = Option(nounTree.ner()).flatMap(parseNer)
         val gender =
@@ -502,6 +560,6 @@ object EnglishDiscourseParser extends DiscourseParser {
 
   def main(args: Array[String]): Unit =
     println(
-      parse("If John is lazy then Mary is beautiful")
+      parse("Butterflies are beautiful")
     )
 }

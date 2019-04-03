@@ -140,6 +140,9 @@ object MainJS {
       case VerbAdverbPhrase(adverb, verbPhrase) =>
         processWord(adverb.word)
         List(verbPhrase)
+      case VerbComparativePhrase(comparative, obj) =>
+        processWord(comparative)
+        List(obj)
       case InPhrase(verbWord, nounPhrase) =>
         processWord(verbWord)
         List(nounPhrase)
@@ -151,6 +154,9 @@ object MainJS {
         processWord(s"$word $typ $gender")
         List.empty
       case CommonNoun(word) =>
+        processWord(word)
+        List.empty
+      case PluralCommonNoun(word) =>
         processWord(word)
         List.empty
       case NounPhrasePreposition(prepositionalPhrase, nounPhrase) =>
