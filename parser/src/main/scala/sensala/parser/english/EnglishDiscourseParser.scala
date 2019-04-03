@@ -89,13 +89,14 @@ object EnglishDiscourseParser extends DiscourseParser {
     val numModifiers = children.collect {
       case (rel, word) if rel == NumMod => word
     }
+    val nonpluralWord = Morphology.stemStatic(nounPhrase.word, nounPhrase.tag)
     numModifiers match {
       case Nil =>
-        Right(PluralCommonNoun(nounPhrase.word))
+        Right(PluralCommonNoun(nonpluralWord.word))
       case numModifier :: Nil =>
         Try(numModifier.word.toInt) match {
           case Success(value) =>
-            Right(PluralNumericCommonNoun(nounPhrase.word, value))
+            Right(PluralNumericCommonNoun(nonpluralWord.word, value))
           case Failure(exception) =>
             Left(s"${numModifier.word} is not a number")
         }
@@ -369,7 +370,6 @@ object EnglishDiscourseParser extends DiscourseParser {
             }
         }
       case "NNS" =>
-        val nonpluralWord = Morphology.stemStatic(nounTree.word, nounTree.tag)
         parsePluralCommonNoun(nounTree) match {
           case Right(Existential) =>
             for {
