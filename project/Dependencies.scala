@@ -31,6 +31,8 @@ object Dependencies {
 
   val extjwnl         = "net.sf.extjwnl" % "extjwnl"           % "2.0.1"
   val extjwnlDataWn31 = "net.sf.extjwnl" % "extjwnl-data-wn31" % "1.2"
+  
+  val jverbnet = "edu.mit" % "jverbnet" % "1.2.0.1"
 
   val jaxbImpl        = "com.sun.xml.bind" % "jaxb-impl"  % "2.2.11"
   val jaxbCore        = "com.sun.xml.bind" % "jaxb-core"  % "2.2.11"

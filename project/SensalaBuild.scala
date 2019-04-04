@@ -58,6 +58,7 @@ object SensalaBuild {
         monix,
         extjwnl,
         extjwnlDataWn31,
+        jverbnet,
         catsLawsTest,
         catsLawsTestkitTest,
         scavenger
