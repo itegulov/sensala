@@ -99,7 +99,12 @@ object EnglishDiscourseParser extends DiscourseParser {
           case Success(value) =>
             Right(PluralNumericCommonNoun(nonpluralWord.word, value))
           case Failure(exception) =>
-            Left(s"${numModifier.word} is not a number")
+            Try(NumberNormalizer.wordToNumber(numModifier.word)) match {
+              case Success(value) =>
+                Right(PluralNumericCommonNoun(nonpluralWord.word, value.intValue))
+              case Failure(e) =>
+                Left(s"${numModifier.word} is not a number: ${e.getMessage}")
+            }
         }
       case _ =>
         Left("Multiple numeric modifiers are unsupported")
@@ -612,7 +617,4 @@ object EnglishDiscourseParser extends DiscourseParser {
                  .sequence
     } yield Discourse(result)
   }
-
-  def main(args: Array[String]): Unit =
-    println(parse("The eight entered"))
 }
