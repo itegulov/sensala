@@ -167,6 +167,9 @@ object MainJS {
         processWord(word)
         processWord(number.toString)
         List.empty
+      case NumericNoun(number) =>
+        processWord(number.toString)
+        List.empty
       case NounPhrasePreposition(prepositionalPhrase, nounPhrase) =>
         List(prepositionalPhrase, nounPhrase)
       case ForallQuantifier(nounPhrase) =>

@@ -2,6 +2,7 @@ package sensala.parser.english
 
 import cats.implicits._
 import com.typesafe.scalalogging.Logger
+import edu.stanford.nlp.ie.NumberNormalizer
 import edu.stanford.nlp.ling.CoreAnnotations.SentencesAnnotation
 import edu.stanford.nlp.ling.{CoreAnnotations, IndexedWord}
 import edu.stanford.nlp.pipeline.Annotation
@@ -437,6 +438,17 @@ object EnglishDiscourseParser extends DiscourseParser {
           whNounPhrase   <- parseWhNounPhrase(nounTree, adjectiveNounPhrase)
           prepNounPhrase <- parsePrepositionalNounPhrase(nounTree, whNounPhrase)
         } yield prepNounPhrase
+      case "CD" =>
+        for {
+          adjectiveNounPhrase <- parseAdjectiveNounPhrase(
+                                  nounTree,
+                                  NumericNoun(
+                                    NumberNormalizer.wordToNumber(nounTree.word).intValue()
+                                  )
+                                )
+          whNounPhrase   <- parseWhNounPhrase(nounTree, adjectiveNounPhrase)
+          prepNounPhrase <- parsePrepositionalNounPhrase(nounTree, whNounPhrase)
+        } yield prepNounPhrase
       case _ => Left(s"Unknown noun phrase: (${nounTree.tag}) ${nounTree.word}")
     }
 
@@ -600,4 +612,7 @@ object EnglishDiscourseParser extends DiscourseParser {
                  .sequence
     } yield Discourse(result)
   }
+
+  def main(args: Array[String]): Unit =
+    println(parse("The eight entered"))
 }

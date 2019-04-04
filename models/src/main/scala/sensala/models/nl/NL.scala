@@ -78,6 +78,10 @@ final case class PluralNumericCommonNoun(
   number: Int
 ) extends NounPhraseBasic
 
+final case class NumericNoun(
+  number: Int
+) extends NounPhraseBasic
+
 // Preposition Noun Phrases
 
 final case class NounPhrasePreposition(
