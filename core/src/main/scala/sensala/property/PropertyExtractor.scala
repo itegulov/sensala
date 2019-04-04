@@ -131,6 +131,14 @@ final case class PropertyExtractor[F[_]: Sync: WordNetPropertyExtractor]() {
         List(Property(x => Sym(word)(x))).pure[F]
       case PluralCommonNoun(word) =>
         List(Property(x => Sym(word)(x)), Property(x => plural(x))).pure[F]
+      case PluralNumericCommonNoun(word, number) =>
+        List(
+          Property(x => Sym(word)(x)),
+          Property(x => plural(x)),
+          Property(x => amount(x, Sym(number.toString)))
+        ).pure[F]
+      case NumericNoun(number) =>
+        List(Property(x => plural(x)), Property(x => amount(x, Sym(number.toString)))).pure[F]
       case NounPhrasePreposition(_, nounPhrase) =>
         definiteProperties(nounPhrase)
       case ForallQuantifier(nounPhrase) =>
