@@ -8,7 +8,6 @@
     left: 45%;
     -webkit-animation: spin 2s linear infinite;
     animation: spin 2s linear infinite;
-    display: none;
 }
 
 @-webkit-keyframes spin {
@@ -41,6 +40,14 @@ g.word > rect {
     fill: #00ffd0;
 }
 
+g.ExistentialQuantifier > rect {
+    fill: #bb7000;
+}
+
+g.ForallQuantifier > rect {
+    fill: #bb4fa0;
+}
+
 g.CommonNoun > rect {
     fill: #00bb00;
 }
@@ -55,6 +62,18 @@ g.IntransitiveVerb > rect {
 
 g.TransitiveVerb > rect {
     fill: #3366ff;
+}
+
+g.Person > rect {
+    fill: #999999;
+}
+
+g.Male > rect {
+    fill: #429998;
+}
+
+g.Female > rect {
+    fill: #429998;
 }
 
 text {

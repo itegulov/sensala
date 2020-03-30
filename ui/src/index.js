@@ -8,12 +8,10 @@ import Demo from './components/demo/demo';
 
 ReactDOM.render(
     <Router>
-        <Container>
-            <Switch>
-                <Route exact path="/" component={Homepage}/>
-                <Route exact path="/demo" component={Demo}/>
-            </Switch>
-        </Container>
+        <Switch>
+            <Route exact path="/" component={Homepage}/>
+            <Route exact path="/demo" component={Demo}/>
+        </Switch>
     </Router>,
     document.querySelector('#root')
 );
