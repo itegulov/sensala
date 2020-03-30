@@ -1,21 +1,12 @@
 import sbt._
 import sbt.Keys._
 import sbtassembly.AssemblyKeys._
-import org.scalajs.sbtplugin.ScalaJSPlugin
-import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport._
-import org.portablescala.sbtplatformdeps.PlatformDepsPlugin.autoImport._
-import sbtcrossproject.CrossPlugin.autoImport.{CrossType, crossProject, _}
-import scalajscrossproject.ScalaJSCrossPlugin.autoImport._
-import webscalajs.WebScalaJS.autoImport._
 import com.typesafe.sbt.gzip.Import._
 import com.typesafe.sbt.web.Import._
 import com.typesafe.sbt.digest.Import._
 import sbtassembly._
 import org.scalafmt.sbt.ScalafmtPlugin.autoImport._
-import webscalajs.ScalaJSWeb
 import Dependencies._
-import com.typesafe.sbt.web.SbtWeb
-import play.twirl.sbt.SbtTwirl
 
 object SensalaBuild {
   lazy val commonSettings = Seq(
@@ -64,7 +55,7 @@ object SensalaBuild {
         scavenger
       )
     )
-    .dependsOn(models.jvm, shared % "compile->compile;test->test")
+    .dependsOn(models, shared % "compile->compile;test->test")
 
   lazy val parser = Project(id = "parser", base = file("parser"))
     .settings(commonSettings)
@@ -79,7 +70,7 @@ object SensalaBuild {
         javaxActivation
       )
     )
-    .dependsOn(models.jvm, shared % "compile->compile;test->test")
+    .dependsOn(models, shared % "compile->compile;test->test")
 
   lazy val shared = Project(id = "shared", base = file("shared"))
     .settings(commonSettings)
@@ -94,7 +85,7 @@ object SensalaBuild {
         monix
       )
     )
-    .dependsOn(models.jvm)
+    .dependsOn(models)
 
   lazy val commandLine = Project(id = "cli", base = file("cli"))
     .settings(commonSettings)
@@ -115,21 +106,8 @@ object SensalaBuild {
     .settings(commonSettings)
     .settings(name := "sensala-backend")
     .settings(
-      scalaJSProjects := Seq(frontend),
-      pipelineStages in Assets := Seq(scalaJSPipeline),
       pipelineStages := Seq(digest, gzip),
-      compile in Compile := (compile in Compile).dependsOn(scalaJSPipeline).value,
       mainClass in assembly := Some("sensala.web.Server"),
-      // Allows to read the generated JS on client
-      resources in Compile += (fastOptJS in (frontend, Compile)).value.data,
-      // Lets the backend to read the .map file for js
-      resources in Compile += (fastOptJS in (frontend, Compile)).value
-        .map((x: sbt.File) => new File(x.getAbsolutePath + ".map"))
-        .data,
-      // Lets the server read the jsdeps file
-      (managedResources in Compile) += (artifactPath in (frontend, Compile, packageJSDependencies)).value,
-      // This settings makes reStart to rebuild if a scala.js file changes on the client
-      watchSources ++= (watchSources in frontend).value,
       assemblyMergeStrategy in assembly := {
         case "logback.xml" =>
           MergeStrategy.first
@@ -140,44 +118,16 @@ object SensalaBuild {
           oldStrategy(x)
       },
       libraryDependencies ++= commonDependencies ++ http4sDependencies ++ Seq(
-        scopt,
-        webjarBootstrap,
-        webjarJquery,
-        webjarPopper,
-        webjarD3js,
-        webjarDagreD3,
-        scalaJsScripts
+        scopt
       )
     )
-    .dependsOn(core, parser, models.jvm)
-    .enablePlugins(SbtTwirl, SbtWeb)
+    .dependsOn(core, parser, models)
 
-  lazy val frontend = Project(id = "frontend", base = file("frontend"))
-    .settings(commonSettings)
-    .settings(name := "sensala-frontend")
-    .settings(
-      // Build a js dependencies file
-      skip in packageJSDependencies := false,
-      jsEnv := new org.scalajs.jsenv.nodejs.NodeJSEnv(), // Put the jsdeps file on a place reachable for the server
-      crossTarget in (Compile, packageJSDependencies) := (resourceManaged in Compile).value,
-      scalacOptions += "-P:scalajs:sjsDefinedByDefault",
-      scalaJSUseMainModuleInitializer := true,
-      libraryDependencies ++= commonDependencies ++ Seq(
-        "org.scala-js" %%% "scalajs-dom"    % "0.9.6",
-        "org.singlespaced" %%% "scalajs-d3" % "0.3.4",
-        "fr.hmil" %%% "roshttp"             % "2.0.1"
-      )
-    )
-    .enablePlugins(ScalaJSPlugin, ScalaJSWeb)
-    .dependsOn(models.js)
-
-  lazy val models =
-    (crossProject(JSPlatform, JVMPlatform).crossType(CrossType.Pure) in file("models"))
+  lazy val models = Project(id = "models", base = file("models"))
       .settings(name := "sensala-models")
       .settings(
         libraryDependencies ++= circeDependencies.value
       )
-      .jsConfigure(_.enablePlugins(ScalaJSPlugin, ScalaJSWeb))
 
   lazy val root = Project(id = "sensala", base = file("."))
     .aggregate(
@@ -185,10 +135,8 @@ object SensalaBuild {
       parser,
       shared,
       commandLine,
-      models.js,
-      models.jvm,
-      backend,
-      frontend
+      models,
+      backend
     )
     .dependsOn(commandLine)
     .settings(commonSettings)

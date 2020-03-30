@@ -1,5 +1,4 @@
 import sbt._
-import org.portablescala.sbtplatformdeps.PlatformDepsPlugin.autoImport._
 
 object Dependencies {
   val catsVersion        = "1.6.0"
@@ -49,25 +48,17 @@ object Dependencies {
 
   val scavenger = "org.aossie" %% "scavenger" % "0.2.1-SNAPSHOT"
 
-  val scalaJsScripts = "com.vmunier" %% "scalajs-scripts" % "1.1.2"
-
-  val webjarBootstrap = "org.webjars"     % "bootstrap" % "4.3.1"
-  val webjarJquery    = "org.webjars"     % "jquery"    % "3.3.1-2"
-  val webjarPopper    = "org.webjars.npm" % "popper.js" % "1.14.6"
-  val webjarD3js      = "org.webjars"     % "d3js"      % "5.5.0"
-  val webjarDagreD3   = "org.webjars.npm" % "dagre-d3"  % "0.6.3"
-
   val kindProjector    = compilerPlugin("org.spire-math" %% "kind-projector"     % "0.9.8")
   val betterMonadicFor = compilerPlugin("com.olegpy"     %% "better-monadic-for" % "0.3.0-M4")
 
   val circeDependencies =
     Def.setting[Seq[ModuleID]](
       Seq(
-        "io.circe" %%% "circe-core"           % circeVersion,
-        "io.circe" %%% "circe-generic"        % circeVersion,
-        "io.circe" %%% "circe-generic-extras" % circeVersion,
-        "io.circe" %%% "circe-literal"        % circeVersion,
-        "io.circe" %%% "circe-parser"         % circeVersion
+        "io.circe" %% "circe-core"           % circeVersion,
+        "io.circe" %% "circe-generic"        % circeVersion,
+        "io.circe" %% "circe-generic-extras" % circeVersion,
+        "io.circe" %% "circe-literal"        % circeVersion,
+        "io.circe" %% "circe-parser"         % circeVersion
       )
     )
   val http4sDependencies: Seq[ModuleID] =

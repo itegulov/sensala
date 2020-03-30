@@ -7,6 +7,7 @@ import cats.mtl.FunctorRaise
 import org.http4s.server.Router
 import org.http4s.server.blaze._
 import org.http4s.implicits._
+import org.http4s.server.middleware._
 import scopt.OParser
 import sensala.shared.effect.Log
 import sensala.error.NLError
@@ -14,6 +15,8 @@ import sensala.error.NLError.FunctorRaiseNLError
 import sensala.interpreter.Interpreter
 import sensala.interpreter.context.{Context, LocalContext}
 import sensala.property.{PropertyExtractor, WordNetPropertyExtractor}
+
+import scala.concurrent.duration._
 
 object Server extends IOApp {
   final case class Config(
@@ -54,9 +57,17 @@ object Server extends IOApp {
             "/assets" -> staticFileService.staticFiles,
             "/assets" -> webjarService.webjars,
             "/"       -> applicationService.application
-          ).orNotFound
+          )
+          val methodConfig = CORSConfig(
+            anyOrigin = true,
+            anyMethod = false,
+            allowedMethods = Some(Set("GET", "POST", "PUT")),
+            allowCredentials = true,
+            maxAge = 1.day.toSeconds
+          )
+          val corsApp       = CORS(httpApp, methodConfig).orNotFound
           val serverBuilder =
-            BlazeServerBuilder[IO].bindHttp(config.port, config.host).withHttpApp(httpApp)
+            BlazeServerBuilder[IO].bindHttp(config.port, config.host).withHttpApp(corsApp)
           serverBuilder.serve.compile.drain.as(ExitCode.Success)
         }
       case None =>
