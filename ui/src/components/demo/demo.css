@@ -1,0 +1,75 @@
+.loader {
+    position: absolute;
+    border: 16px solid #f3f3f3; /* Light grey */
+    border-top: 16px solid #3498db; /* Blue */
+    border-radius: 50%;
+    width: 10vw;
+    height: 10vw;
+    left: 45%;
+    -webkit-animation: spin 2s linear infinite;
+    animation: spin 2s linear infinite;
+    display: none;
+}
+
+@-webkit-keyframes spin {
+    0% { -webkit-transform: rotate(0deg); }
+    100% { -webkit-transform: rotate(360deg); }
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.main-svg {
+    height: 50vh;
+}
+
+g.type-TK > rect {
+    fill: #00ffd0;
+}
+
+g.type-NP > rect {
+    fill: #00bb00;
+}
+
+g.type-VP > rect {
+    fill: #3366ff;
+}
+
+g.word > rect {
+    fill: #00ffd0;
+}
+
+g.CommonNoun > rect {
+    fill: #00bb00;
+}
+
+g.ProperNoun > rect {
+    fill: #00bb00;
+}
+
+g.IntransitiveVerb > rect {
+    fill: #3366ff;
+}
+
+g.TransitiveVerb > rect {
+    fill: #3366ff;
+}
+
+text {
+    font-weight: 300;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serf;
+    font-size: 14px;
+}
+
+.node rect {
+    stroke: #999;
+    fill: #fff;
+    stroke-width: 1.5px;
+}
+
+.edgePath path {
+    stroke: #333;
+    stroke-width: 1.5px;
+}
