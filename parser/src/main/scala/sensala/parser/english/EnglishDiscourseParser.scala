@@ -540,8 +540,10 @@ object EnglishDiscourseParser extends DiscourseParser {
                 case Some(soWord) =>
                   for {
                     objPhrase <- parseNounPhrase(root)
-                  } yield
-                    Sentence(objPhrase, VerbPhraseAnaphora(soWord.word + " " + cop.word, Passive))
+                  } yield Sentence(
+                    objPhrase,
+                    VerbPhraseAnaphora(soWord.word + " " + cop.word, Passive)
+                  )
                 case None =>
                   Left("Invalid verb phrase anaphora")
               }

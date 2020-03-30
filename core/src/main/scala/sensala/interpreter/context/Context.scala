@@ -186,7 +186,7 @@ object Context {
     val state = ContextState(
       Map(
         speakerEntity      -> speaker(speakerEntity),
-        interlocutorEntity -> interlocutor(interlocutorEntity),
+        interlocutorEntity -> interlocutor(interlocutorEntity)
       ),
       Map.empty,
       Set(speakerEntity, interlocutorEntity)

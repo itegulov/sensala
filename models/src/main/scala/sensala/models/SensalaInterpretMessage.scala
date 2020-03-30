@@ -38,6 +38,6 @@ object SensalaInterpretMessage {
       Decoder[SensalaParsed].widen,
       Decoder[SensalaInterpreted].widen,
       Decoder[KeepAliveMsg].widen,
-      Decoder[SensalaError].widen,
+      Decoder[SensalaError].widen
     ).reduceLeft(_ or _)
 }

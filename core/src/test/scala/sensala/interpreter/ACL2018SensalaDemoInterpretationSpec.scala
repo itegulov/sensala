@@ -151,15 +151,15 @@ class ACL2018SensalaDemoInterpretationSpec extends CommonInterpretationSpec {
             e,
             (owns(e) /\ agent(e, x) /\ patient(e, y)) ->:
               exEv(
-              e,
-              exEv(
-                eSucc,
-                description(eSucc) /\ rich(eSucc, x) /\ (thinks(e) /\ agent(e, x) /\ patient(
-                  e,
-                  eSucc
-                ))
+                e,
+                exEv(
+                  eSucc,
+                  description(eSucc) /\ rich(eSucc, x) /\ (thinks(e) /\ agent(e, x) /\ patient(
+                    e,
+                    eSucc
+                  ))
+                )
               )
-            )
           )
         )
       )

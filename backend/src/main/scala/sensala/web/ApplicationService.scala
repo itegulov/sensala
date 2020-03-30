@@ -111,8 +111,11 @@ final case class ApplicationService[F[_]: Sync: Concurrent: Interpreter: Log]()
                                   |${cnf.clauses.mkString("\n")}
                                  """.stripMargin
                              )
-                       } yield
-                         List(stanfordParsed, sensalaParsed, SensalaInterpreted(prettyTerm.pretty))
+                       } yield List(
+                         stanfordParsed,
+                         sensalaParsed,
+                         SensalaInterpreted(prettyTerm.pretty)
+                       )
                    }
                }
     } yield result

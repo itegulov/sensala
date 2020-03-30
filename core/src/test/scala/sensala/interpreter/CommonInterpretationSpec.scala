@@ -45,7 +45,7 @@ class CommonInterpretationSpec extends SensalaSpec {
       b match {
         case bl: E => a =+= bl
         case _     => false
-    }
+      }
 
   def ex(x: Var, e: E): E      = Ex(x, entity, e)
   def exEv(x: Var, e: E): E    = Ex(x, event, e)

@@ -65,7 +65,7 @@ object Server extends IOApp {
             allowCredentials = true,
             maxAge = 1.day.toSeconds
           )
-          val corsApp       = CORS(httpApp, methodConfig).orNotFound
+          val corsApp = CORS(httpApp, methodConfig).orNotFound
           val serverBuilder =
             BlazeServerBuilder[IO].bindHttp(config.port, config.host).withHttpApp(corsApp)
           serverBuilder.serve.compile.drain.as(ExitCode.Success)

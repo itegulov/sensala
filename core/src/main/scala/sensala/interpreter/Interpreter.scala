@@ -167,10 +167,9 @@ final case class Interpreter[F[_]: Monad: PropertyExtractor: Context: LocalConte
                           verbPhrase,
                           for {
                             e <- LocalContext[F].getEvent
-                          } yield
-                            leftAdverbialModifiers.foldLeft(Truth)(
-                              (acc, adverb) => acc /\ Sym(adverb.word)(e)
-                            )
+                          } yield leftAdverbialModifiers.foldLeft(Truth)(
+                            (acc, adverb) => acc /\ Sym(adverb.word)(e)
+                          )
                         ).map(~_)
                       ).map(~_)
             contL <- cont
@@ -186,10 +185,9 @@ final case class Interpreter[F[_]: Monad: PropertyExtractor: Context: LocalConte
                                      for {
                                        e2    <- LocalContext[F].getEvent
                                        contL <- cont
-                                     } yield
-                                       adverbialModifiers.foldLeft(Truth)(
-                                         (acc, adverb) => acc /\ Sym(adverb.word)(e2)
-                                       ) /\ Sym(mark)(e1, e2) /\ contL
+                                     } yield adverbialModifiers.foldLeft(Truth)(
+                                       (acc, adverb) => acc /\ Sym(adverb.word)(e2)
+                                     ) /\ Sym(mark)(e1, e2) /\ contL
                                    )
                         } yield result
                       )
