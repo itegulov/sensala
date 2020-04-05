@@ -18,6 +18,16 @@ final case class WhNounPhrase(
     with NounPhrase
 
 /*
+ * Relative Clauses
+ */
+final case class RelativeClausePhrase(
+  word: String,
+  verbPhrase: VerbPhrase,
+  nounPhrase: NounPhrase
+) extends WhPhrase
+    with NounPhrase
+
+/*
  * Verb Phrases
  */
 

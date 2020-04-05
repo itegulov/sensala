@@ -47,6 +47,20 @@ final case class Interpreter[F[_]: Monad: PropertyExtractor: Context: LocalConte
                   )
           } yield vpL
         )
+      case RelativeClausePhrase(_, verbPhrase, nounPhrase) =>
+        interpret(
+          nounPhrase,
+          for {
+            x <- LocalContext[F].getEntity
+            vpL <- interpret(
+                    verbPhrase,
+                    for {
+                      _     <- LocalContext[F].putEntity(x)
+                      contL <- cont
+                    } yield contL
+                  )
+          } yield vpL
+        )
       case IntransitiveVerb(word) =>
         for {
           x     <- LocalContext[F].getEntity

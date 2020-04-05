@@ -30,6 +30,8 @@ final case class PropertyExtractor[F[_]: Sync: WordNetPropertyExtractor]() {
     np match {
       case WhNounPhrase(_, nounPhrase) =>
         properties(nounPhrase)
+      case RelativeClausePhrase(_, _, nounPhrase) =>
+        properties(nounPhrase)
       case ProperNoun(_, typ, gender) =>
         (typProperty(typ) ++ genderProperty(gender)).pure[F]
       case CommonNoun(word) =>
@@ -124,6 +126,8 @@ final case class PropertyExtractor[F[_]: Sync: WordNetPropertyExtractor]() {
   def definiteProperties(np: NounPhrase): F[List[Property]] =
     np match {
       case WhNounPhrase(_, nounPhrase) =>
+        definiteProperties(nounPhrase)
+      case RelativeClausePhrase(_, _, nounPhrase) =>
         definiteProperties(nounPhrase)
       case ProperNoun(_, typ, gender) =>
         properties(np)

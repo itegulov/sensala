@@ -137,13 +137,12 @@ object EnglishDiscourseParser extends DiscourseParser {
       case (rel, word) if rel == RelClMod => word
     }
     // FIXME: References and relative clauses can be ordered differently
-    val clauses = refs.zip(relativeClauses)
-    for {
-      whClauses <- clauses.collect {
-                    case (ref, relClause) if ref.word.toLowerCase == "who" =>
-                      parseVerbPhrase(relClause)
-                  }.sequence[EitherS, VerbPhrase]
-    } yield whClauses.foldRight(nounPhrase)(WhNounPhrase.apply)
+    refs.zip(relativeClauses).foldM(nounPhrase) {
+      case (prevNp, (ref, relClause)) if ref.word.toLowerCase == "who" =>
+        parseVerbPhrase(relClause).map(WhNounPhrase(_, prevNp))
+      case (prevNp, (ref, relClause)) if ref.word.toLowerCase == "that" =>
+        parseVerbPhrase(relClause).map(RelativeClausePhrase("that", _, prevNp))
+    }
   }
 
   private def parseAdverbialClauseVerbPhrase(
