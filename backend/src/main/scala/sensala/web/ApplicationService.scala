@@ -6,16 +6,12 @@ import cats.effect._
 import cats.mtl.FunctorRaise
 import edu.stanford.nlp.trees.Tree
 import io.circe.syntax._
-import io.circe.parser._
-import fs2._
-import fs2.concurrent.Queue
 import org.aossie.scavenger.expression.formula.True
 import org.aossie.scavenger.preprocessing.TPTPClausifier
 import org.aossie.scavenger.structure.immutable.AxiomClause
 import org.http4s.HttpRoutes
 import org.http4s.dsl.Http4sDsl
 import sensala.interpreter.Interpreter
-import org.http4s.twirl._
 import sensala.shared.effect.Log
 import sensala.error.NLError
 import sensala.error.NLError.FunctorRaiseNLError
