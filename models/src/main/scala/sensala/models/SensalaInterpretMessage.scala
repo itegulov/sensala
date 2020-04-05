@@ -30,14 +30,4 @@ object SensalaInterpretMessage {
     case keepAlive @ KeepAliveMsg()          => keepAlive.asJson
     case error @ SensalaError(_)             => error.asJson
   }
-
-  implicit val decoder: Decoder[SensalaInterpretMessage] =
-    List[Decoder[SensalaInterpretMessage]](
-      Decoder[SensalaRunInterpretation].widen,
-      Decoder[StanfordParsed].widen,
-      Decoder[SensalaParsed].widen,
-      Decoder[SensalaInterpreted].widen,
-      Decoder[KeepAliveMsg].widen,
-      Decoder[SensalaError].widen
-    ).reduceLeft(_ or _)
 }
