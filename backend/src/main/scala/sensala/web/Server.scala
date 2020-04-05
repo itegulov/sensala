@@ -1,9 +1,9 @@
 package sensala.web
 
-import cats.Functor
+import cats.{Applicative, Functor}
 import cats.effect._
 import cats.implicits._
-import cats.mtl.FunctorRaise
+import cats.mtl.{DefaultApplicativeHandle, FunctorRaise}
 import org.http4s.server.Router
 import org.http4s.server.blaze._
 import org.http4s.implicits._
@@ -14,6 +14,8 @@ import sensala.error.NLError
 import sensala.error.NLError.FunctorRaiseNLError
 import sensala.interpreter.Interpreter
 import sensala.interpreter.context.{Context, LocalContext}
+import sensala.parser.english.{EnglishDiscourseParser, ParserError, PronounParser}
+import sensala.parser.english.ParserError.HandleParserError
 import sensala.property.{PropertyExtractor, WordNetPropertyExtractor}
 
 import scala.concurrent.duration._
@@ -45,8 +47,24 @@ object Server extends IOApp {
           override def raise[A](e: NLError): IO[A] =
             throw new RuntimeException(e.toString)
         }
+        implicit val handleParserError: HandleParserError[IO] =
+          new DefaultApplicativeHandle[IO, ParserError] {
+            override val applicative: Applicative[IO] = Applicative[IO]
+
+            override val functor: Functor[IO] = Functor[IO]
+
+            override def handleWith[A](fa: IO[A])(f: ParserError => IO[A]): IO[A] =
+              fa.handleErrorWith {
+                case e: ParserError => f(e)
+              }
+
+            override def raise[A](e: ParserError): IO[A] = IO.raiseError(e)
+          }
         implicit val sensalaContext: Context[IO]           = Context.initial
         implicit val sensalaLocalContext: LocalContext[IO] = LocalContext.empty
+        implicit val pronounParser: PronounParser[IO]      = new PronounParser[IO]()
+        implicit val englishDiscourseParser: EnglishDiscourseParser[IO] =
+          new EnglishDiscourseParser[IO]()
         WordNetPropertyExtractor.create[IO]().flatMap { implicit wordNetPropertyExtractor =>
           implicit val propertyExtractor: PropertyExtractor[IO] = PropertyExtractor()
           implicit val interpreter: Interpreter[IO]             = Interpreter()

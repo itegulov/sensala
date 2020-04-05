@@ -4,7 +4,9 @@ import sensala.SensalaSpec
 import sensala.parser.english.EnglishDiscourseParser._
 import sensala.models.nl._
 
-class EnglishDiscourseParserSpec extends SensalaSpec {
+class EnglishDiscourseParserSpec extends ParserSpec {
+  import parser.parse
+
   it should "parse simple sentences" in {
     parse("John walks").right.value shouldBe Discourse(
       List(

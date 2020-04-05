@@ -23,10 +23,11 @@ import sensala.postprocessing.PrettyTransformer
 import sensala.property.{PropertyExtractor, WordNetPropertyExtractor}
 import sensala.structure._
 import sensala.models._
+import sensala.parser.english.ParserError.HandleParserError
 
 import scala.util.Try
 
-final case class ApplicationService[F[_]: Sync: Concurrent: Interpreter: Log]()
+final case class ApplicationService[F[_]: EnglishDiscourseParser: Sync: Concurrent: Interpreter: Log: HandleParserError]()
     extends Http4sDsl[F] {
   object DiscourseQueryParamMatcher extends QueryParamDecoderMatcher[String]("discourse")
 
@@ -37,13 +38,12 @@ final case class ApplicationService[F[_]: Sync: Concurrent: Interpreter: Log]()
       tree.children.toList.map(convertTree)
     )
 
-  def evalDiscourseSimple(discourse: String): F[List[SensalaInterpretMessage]] = {
-    val sentences = EnglishDiscourseParser.buildPennTaggedTree(discourse)
+  def evalDiscourseSimple(discourse: String): F[List[SensalaInterpretMessage]] =
     for {
+      sentences      <- EnglishDiscourseParser[F].buildPennTaggedTree(discourse)
       _              <- Log[F].info(s"Result of Stanford parsing:\n$sentences")
       stanfordParsed = StanfordParsed(convertTree(sentences.head))
-      parsed = Try(EnglishDiscourseParser.parse(discourse))
-        .getOrElse(Left("Invalid sentence"))
+      parsed         <- HandleParserError[F].attempt(EnglishDiscourseParser[F].parse(discourse))
       result <- parsed match {
                  case Left(error) =>
                    for {
@@ -115,7 +115,6 @@ final case class ApplicationService[F[_]: Sync: Concurrent: Interpreter: Log]()
                    }
                }
     } yield result
-  }
 
   val application = HttpRoutes.of[F] {
     case POST -> Root / "eval" :? DiscourseQueryParamMatcher(discourse) =>

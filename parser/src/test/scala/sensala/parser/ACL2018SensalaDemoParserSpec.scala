@@ -1,10 +1,9 @@
 package sensala.parser
 
-import sensala.SensalaSpec
-import sensala.parser.english.EnglishDiscourseParser._
 import sensala.models.nl._
 
-class ACL2018SensalaDemoParserSpec extends SensalaSpec {
+class ACL2018SensalaDemoParserSpec extends ParserSpec {
+  import parser.parse
 
   it should "parse examples from ACL 2018 system demonstration paper" in {
     parse("John loves Mary").right.value shouldBe Discourse(

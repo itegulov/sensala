@@ -1,9 +1,10 @@
 package sensala
 
-import cats.Functor
+import cats.{Applicative, Functor}
 import cats.effect.{ExitCode, IO, IOApp}
-import cats.mtl.FunctorRaise
+import cats.mtl.{ApplicativeHandle, DefaultApplicativeHandle, FunctorRaise}
 import cats.implicits._
+import cats.mtl.implicits._
 import sensala.normalization.NormalFormConverter
 import sensala.postprocessing.PrettyTransformer
 import sensala.structure._
@@ -14,8 +15,9 @@ import sensala.shared.effect.Log
 import sensala.error.NLError
 import sensala.error.NLError.FunctorRaiseNLError
 import sensala.interpreter.Interpreter
-import sensala.parser.english.EnglishDiscourseParser
+import sensala.parser.english.{EnglishDiscourseParser, ParserError, PronounParser}
 import sensala.interpreter.context.{Context, LocalContext}
+import sensala.parser.english.ParserError.HandleParserError
 import sensala.property.{PropertyExtractor, WordNetPropertyExtractor}
 
 object CLI extends IOApp {
@@ -56,12 +58,28 @@ object CLI extends IOApp {
       override def raise[A](e: NLError): IO[A] =
         throw new RuntimeException(e.toString)
     }
+    implicit val handleParserError: HandleParserError[IO] =
+      new DefaultApplicativeHandle[IO, ParserError] {
+        override val applicative: Applicative[IO] = Applicative[IO]
+
+        override val functor: Functor[IO] = Functor[IO]
+
+        override def handleWith[A](fa: IO[A])(f: ParserError => IO[A]): IO[A] =
+          fa.handleErrorWith {
+            case e: ParserError => f(e)
+          }
+
+        override def raise[A](e: ParserError): IO[A] = IO.raiseError(e)
+      }
     WordNetPropertyExtractor.create[IO]().flatMap { implicit wordNetPropertyExtractor =>
       implicit val propertyExtractor: PropertyExtractor[IO] = PropertyExtractor()
       implicit val sensalaContext: Context[IO]              = Context.initial
       implicit val sensalaLocalContext: LocalContext[IO]    = LocalContext.empty
-      val interpreter                                       = Interpreter[IO]()
-      EnglishDiscourseParser.parse(c.discourse) match {
+      implicit val pronounParser: PronounParser[IO]         = new PronounParser[IO]()
+      implicit val englishDiscourseParser: EnglishDiscourseParser[IO] =
+        new EnglishDiscourseParser[IO]()
+      val interpreter = Interpreter[IO]()
+      EnglishDiscourseParser[IO].parse(c.discourse) match {
         case Left(error) =>
           Log[IO].error(
             s"""Parsing failed:
