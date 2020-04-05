@@ -4,11 +4,6 @@
 
 Sensala is a dynamic semantics framework for natural language processing. 
 
-### WordNet
-
-To use Sensala, download a [WordNet-3.0](https://wordnet.princeton.edu/download/current-version)
-distribution and unzip it to the `WordNet-3.0` folder.
-
 ### Usage Instructions
 
 You must have [SBT](http://www.scala-sbt.org/release/docs/Getting-Started/Setup.html) (version >= 1.0.1) installed. SBT automatically downloads all compilers and libraries on which Sensala depends.
