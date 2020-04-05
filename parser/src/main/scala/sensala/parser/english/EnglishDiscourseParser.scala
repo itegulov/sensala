@@ -46,7 +46,7 @@ object EnglishDiscourseParser extends DiscourseParser {
       case x :: Nil
           if x.word.toLowerCase == "a" || x.word.toLowerCase == "an" || x.word.toLowerCase == "some" =>
         Right(Existential)
-      case x :: Nil if x.word.toLowerCase == "every" =>
+      case x :: Nil if Set("every", "each").contains(x.word.toLowerCase) =>
         Right(Forall)
       case x :: Nil if x.word.toLowerCase == "the" =>
         Right(The)
