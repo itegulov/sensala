@@ -97,7 +97,7 @@ final case class PropertyExtractor[F[_]: Sync: WordNetPropertyExtractor]() {
       case SecondPersonPluralPossessivePronoun(_) =>
         List(Property(x => interlocutor(x)), Property(x => plural(x))).pure[F]
       case ThirdPersonPluralPossessivePronoun(_) =>
-        List(Property(x => plural(x))).pure[F]
+        List(Property(x => plural(x) \/ person(x))).pure[F]
       case FirstPersonSingularReflexivePronoun(_) =>
         List(Property(x => speaker(x))).pure[F]
       case SecondPersonSingularReflexivePronoun(_) =>
