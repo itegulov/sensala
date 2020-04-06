@@ -18,6 +18,7 @@ import sensala.interpreter.Interpreter
 import sensala.parser.english.{EnglishDiscourseParser, ParserError, PronounParser}
 import sensala.interpreter.context.{Context, LocalContext}
 import sensala.parser.english.ParserError.HandleParserError
+import sensala.parser.english.ParserError.HandleParserError.handleParserErrorIO
 import sensala.property.{PropertyExtractor, WordNetPropertyExtractor}
 
 object CLI extends IOApp {
@@ -58,19 +59,6 @@ object CLI extends IOApp {
       override def raise[A](e: NLError): IO[A] =
         throw new RuntimeException(e.toString)
     }
-    implicit val handleParserError: HandleParserError[IO] =
-      new DefaultApplicativeHandle[IO, ParserError] {
-        override val applicative: Applicative[IO] = Applicative[IO]
-
-        override val functor: Functor[IO] = Functor[IO]
-
-        override def handleWith[A](fa: IO[A])(f: ParserError => IO[A]): IO[A] =
-          fa.handleErrorWith {
-            case e: ParserError => f(e)
-          }
-
-        override def raise[A](e: ParserError): IO[A] = IO.raiseError(e)
-      }
     WordNetPropertyExtractor.create[IO]().flatMap { implicit wordNetPropertyExtractor =>
       implicit val propertyExtractor: PropertyExtractor[IO] = PropertyExtractor()
       implicit val sensalaContext: Context[IO]              = Context.initial
