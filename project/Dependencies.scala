@@ -3,7 +3,7 @@ import sbt._
 object Dependencies {
   val catsVersion        = "1.6.0"
   val catsMtlVersion     = "0.4.0"
-  val circeVersion       = "0.11.1"
+  val circeVersion       = "0.13.0"
   val http4sVersion      = "0.19.0"
   val stanfordNlpVersion = "3.9.1"
 
