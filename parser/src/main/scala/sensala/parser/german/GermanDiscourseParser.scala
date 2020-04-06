@@ -10,19 +10,16 @@ import edu.stanford.nlp.semgraph.{SemanticGraph, SemanticGraphCoreAnnotations}
 import edu.stanford.nlp.trees.Tree
 import edu.stanford.nlp.trees.TreeCoreAnnotations.TreeAnnotation
 import edu.stanford.nlp.util.CoreMap
-import sensala.parser.DiscourseParser
 import sensala.parser.german.GermanSensalaGrammaticalRelations._
+import sensala.parser.ParserUtil._
 import sensala.models.nl._
 
 import scala.collection.convert.ImplicitConversionsToScala._
 
-object GermanDiscourseParser extends DiscourseParser {
+object GermanDiscourseParser {
   private val logger = Logger[this.type]
 
   type EitherS[T] = Either[String, T]
-
-  private def pairToTuple[U, V](p: edu.stanford.nlp.util.Pair[U, V]): (U, V) =
-    (p.first, p.second)
 
   sealed trait CommonNounDeterminer
   case object Existential extends CommonNounDeterminer

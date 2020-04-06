@@ -2,7 +2,10 @@ package sensala.parser
 
 import sensala.models.nl._
 
-trait DiscourseParser {
+object ParserUtil {
+  def pairToTuple[U, V](p: edu.stanford.nlp.util.Pair[U, V]): (U, V) =
+    (p.first, p.second)
+
   def parseNer(nerString: String): Option[NamedEntityType] = nerString match {
     case "LOCATION"     => Some(Person)
     case "PERSON"       => Some(Person)

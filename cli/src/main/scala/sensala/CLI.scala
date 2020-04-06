@@ -1,10 +1,13 @@
 package sensala
 
-import cats.{Applicative, Functor}
+import cats.{Applicative, Functor, Monad}
 import cats.effect.{ExitCode, IO, IOApp}
 import cats.mtl.{ApplicativeHandle, DefaultApplicativeHandle, FunctorRaise}
 import cats.implicits._
 import cats.mtl.implicits._
+import distage.Injector
+import izumi.distage.model.definition.ModuleDef
+import izumi.distage.model.plan.GCMode
 import sensala.normalization.NormalFormConverter
 import sensala.postprocessing.PrettyTransformer
 import sensala.structure._
@@ -15,7 +18,7 @@ import sensala.shared.effect.Log
 import sensala.error.NLError
 import sensala.error.NLError.FunctorRaiseNLError
 import sensala.interpreter.Interpreter
-import sensala.parser.english.{EnglishDiscourseParser, ParserError, PronounParser}
+import sensala.parser.english._
 import sensala.interpreter.context.{Context, LocalContext}
 import sensala.parser.english.ParserError.HandleParserError
 import sensala.parser.english.ParserError.HandleParserError.handleParserErrorIO
@@ -63,11 +66,22 @@ object CLI extends IOApp {
       implicit val propertyExtractor: PropertyExtractor[IO] = PropertyExtractor()
       implicit val sensalaContext: Context[IO]              = Context.initial
       implicit val sensalaLocalContext: LocalContext[IO]    = LocalContext.empty
-      implicit val pronounParser: PronounParser[IO]         = new PronounParser[IO]()
-      implicit val englishDiscourseParser: EnglishDiscourseParser[IO] =
-        new EnglishDiscourseParser[IO]()
+      val module = new ModuleDef {
+        make[PronounParser[IO]]
+        make[NounPhraseParser[IO]]
+        make[VerbPhraseParser[IO]]
+        make[EnglishDiscourseParser[IO]]
+        addImplicit[Monad[IO]]
+        addImplicit[HandleParserError[IO]]
+      }
+
+      val plan     = Injector().plan(module, GCMode.NoGC)
+      val resource = Injector().produce(plan)
+      implicit val parser = resource.use { objects =>
+        objects.get[EnglishDiscourseParser[IO]]
+      }
       val interpreter = Interpreter[IO]()
-      EnglishDiscourseParser[IO].parse(c.discourse) match {
+      HandleParserError[IO].attempt(EnglishDiscourseParser[IO].parse(c.discourse)).flatMap {
         case Left(error) =>
           Log[IO].error(
             s"""Parsing failed:

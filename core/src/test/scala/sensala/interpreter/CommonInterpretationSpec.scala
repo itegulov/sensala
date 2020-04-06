@@ -6,6 +6,7 @@ import cats.mtl.FunctorRaise
 import org.aossie.scavenger.expression.{E, Sym, Var}
 import org.aossie.scavenger.expression.formula.{All, Ex, True}
 import org.scalactic.Equality
+import org.scalatest.flatspec.AnyFlatSpec
 import sensala.SensalaSpec
 import sensala.error.NLError
 import sensala.normalization.NormalFormConverter
@@ -17,7 +18,7 @@ import sensala.models.nl.NL
 import sensala.property.{PropertyExtractor, WordNetPropertyExtractor}
 import sensala.shared.effect.Log
 
-class CommonInterpretationSpec extends SensalaSpec {
+class CommonInterpretationSpec extends AnyFlatSpec with SensalaSpec {
   implicit val log = Log.log[IO]
   implicit val raiseNLError = new FunctorRaise[IO, NLError] {
     override val functor: Functor[IO] = Functor[IO]

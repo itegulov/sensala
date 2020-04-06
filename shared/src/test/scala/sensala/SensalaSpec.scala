@@ -2,10 +2,12 @@ package sensala
 
 import org.scalatest._
 import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 import sensala.models.nl._
 
-class SensalaSpec
-    extends FlatSpec
+trait SensalaSpec
+    extends AnyFlatSpec
     with Matchers
     with Inspectors
     with Inside
@@ -34,4 +36,7 @@ class SensalaSpec
   val his = ThirdPersonSingularPossessivePronoun("his", Masculine)
 
   val herself = ThirdPersonSingularReflexivePronoun("herself", Feminine)
+
+  def sentence(nounPhrase: NounPhrase, verbPhrase: VerbPhrase): Discourse =
+    Discourse(List(Sentence(nounPhrase, verbPhrase)))
 }

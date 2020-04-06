@@ -1,9 +1,12 @@
 package sensala.web
 
-import cats.{Applicative, Functor}
+import cats.{Functor, Monad}
 import cats.effect._
 import cats.implicits._
-import cats.mtl.{DefaultApplicativeHandle, FunctorRaise}
+import cats.mtl.FunctorRaise
+import distage.Injector
+import izumi.distage.model.definition.ModuleDef
+import izumi.distage.model.plan.GCMode
 import org.http4s.server.Router
 import org.http4s.server.blaze._
 import org.http4s.implicits._
@@ -14,7 +17,7 @@ import sensala.error.NLError
 import sensala.error.NLError.FunctorRaiseNLError
 import sensala.interpreter.Interpreter
 import sensala.interpreter.context.{Context, LocalContext}
-import sensala.parser.english.{EnglishDiscourseParser, ParserError, PronounParser}
+import sensala.parser.english._
 import sensala.parser.english.ParserError.HandleParserError
 import sensala.parser.english.ParserError.HandleParserError.handleParserErrorIO
 import sensala.property.{PropertyExtractor, WordNetPropertyExtractor}
@@ -50,9 +53,20 @@ object Server extends IOApp {
         }
         implicit val sensalaContext: Context[IO]           = Context.initial
         implicit val sensalaLocalContext: LocalContext[IO] = LocalContext.empty
-        implicit val pronounParser: PronounParser[IO]      = new PronounParser[IO]()
-        implicit val englishDiscourseParser: EnglishDiscourseParser[IO] =
-          new EnglishDiscourseParser[IO]()
+        val module = new ModuleDef {
+          make[PronounParser[IO]]
+          make[NounPhraseParser[IO]]
+          make[VerbPhraseParser[IO]]
+          make[EnglishDiscourseParser[IO]]
+          addImplicit[Monad[IO]]
+          addImplicit[HandleParserError[IO]]
+        }
+
+        val plan     = Injector().plan(module, GCMode.NoGC)
+        val resource = Injector().produce(plan)
+        implicit val parser = resource.use { objects =>
+          objects.get[EnglishDiscourseParser[IO]]
+        }
         WordNetPropertyExtractor.create[IO]().flatMap { implicit wordNetPropertyExtractor =>
           implicit val propertyExtractor: PropertyExtractor[IO] = PropertyExtractor()
           implicit val interpreter: Interpreter[IO]             = Interpreter()

@@ -4,6 +4,7 @@ object Dependencies {
   val catsVersion        = "1.6.0"
   val catsMtlVersion     = "0.4.0"
   val circeVersion       = "0.13.0"
+  val distageVersion     = "0.10.3-M2"
   val http4sVersion      = "0.19.0"
   val stanfordNlpVersion = "3.9.1"
 
@@ -13,6 +14,12 @@ object Dependencies {
   val catsEffect          = "org.typelevel" %% "cats-effect"   % "1.2.0"
   val catsMtl             = "org.typelevel" %% "cats-mtl-core" % catsMtlVersion
   val catsMtlLawsTest     = "org.typelevel" %% "cats-mtl-laws" % catsMtlVersion % Test
+
+  val distageCore    = "io.7mind.izumi" %% "distage-core"              % distageVersion
+  val distageConfig  = "io.7mind.izumi" %% "distage-extension-config"  % distageVersion
+  val distageRoles   = "io.7mind.izumi" %% "distage-framework"         % distageVersion
+  val distageDocker  = "io.7mind.izumi" %% "distage-framework-docker"  % distageVersion
+  val distageTestkit = "io.7mind.izumi" %% "distage-testkit-scalatest" % distageVersion
 
   val http4sBlazeClient = "org.http4s" %% "http4s-blaze-client" % http4sVersion
   val http4sBlazeServer = "org.http4s" %% "http4s-blaze-server" % http4sVersion
@@ -47,10 +54,20 @@ object Dependencies {
   val logbackClassic = "ch.qos.logback"             % "logback-classic" % "1.2.3"
 
   val scavenger = "org.aossie" %% "scavenger" % "0.2.1-SNAPSHOT"
+  
+  val sourcecode = "com.lihaoyi" %% "sourcecode" % "0.1.9"
 
   val kindProjector    = compilerPlugin("org.spire-math" %% "kind-projector"     % "0.9.8")
   val betterMonadicFor = compilerPlugin("com.olegpy"     %% "better-monadic-for" % "0.3.0-M4")
 
+  val digestDependencies =
+    Seq(
+      distageCore,
+      distageConfig,
+      distageDocker,
+      distageRoles,
+      distageTestkit
+    )
   val circeDependencies =
     Def.setting[Seq[ModuleID]](
       Seq(
@@ -77,5 +94,9 @@ object Dependencies {
   val compilerPlugins: Seq[ModuleID] =
     Seq(kindProjector, betterMonadicFor)
   val commonDependencies: Seq[ModuleID] =
-    loggingDependencies ++ testingDependencies ++ compilerPlugins
+    loggingDependencies ++
+      testingDependencies ++
+      compilerPlugins ++
+      digestDependencies :+
+      sourcecode
 }
