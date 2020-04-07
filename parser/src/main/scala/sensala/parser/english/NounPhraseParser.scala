@@ -171,12 +171,14 @@ class NounPhraseParser[F[_]: Monad: HandleParserError: PronounParser: VerbPhrase
                          )
                      }
         } yield NounPhrasePreposition(InPhrase(caseWord.word, prepositionNounPhrase), prevNp)
-      case (prevNp, (rel, preposition)) if rel == NomModPoss =>
+      case (prevNp, (rel, preposition)) if rel == NomModPoss || rel == NomModOf =>
         for {
           prepositionNounPhrase <- parseNounPhrase(preposition)
         } yield NounPhrasePreposition(PossessionPhrase(prepositionNounPhrase), prevNp)
-      case _ =>
-        HandleParserError[F].raise[NounPhrase](InvalidDiscourse("Illegal nominal modifier"))
+      case (_, (rel, preposition)) =>
+        HandleParserError[F].raise[NounPhrase](
+          InvalidDiscourse(s"Illegal nominal modifier: $preposition with relation $rel")
+        )
     }
   }
 
