@@ -1,6 +1,7 @@
-package sensala.parser
+package sensala.parser.english
 
 import sensala.models.nl._
+import sensala.parser.ParserSpec
 import sensala.shared.effect.scalatestcontrib._
 
 class ACL2018SensalaDemoParserSpec extends ParserSpec {

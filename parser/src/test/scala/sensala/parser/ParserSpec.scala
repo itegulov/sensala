@@ -15,7 +15,7 @@ trait ParserSpec extends SensalaSpec {
     make[PronounParser[IO]]
     make[NounPhraseParser[IO]]
     make[VerbPhraseParser[IO]]
-    make[EnglishDiscourseParser[IO]]
+    make[DiscourseParser[IO]]
     addImplicit[Monad[IO]]
     addImplicit[HandleParserError[IO]]
   }
@@ -23,6 +23,6 @@ trait ParserSpec extends SensalaSpec {
   val plan     = Injector().plan(testModule, GCMode.NoGC)
   val resource = Injector().produce(plan)
   val parser = resource.use { objects =>
-    objects.get[EnglishDiscourseParser[IO]]
+    objects.get[DiscourseParser[IO]]
   }
 }

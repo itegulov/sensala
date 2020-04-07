@@ -70,7 +70,7 @@ object CLI extends IOApp {
         make[PronounParser[IO]]
         make[NounPhraseParser[IO]]
         make[VerbPhraseParser[IO]]
-        make[EnglishDiscourseParser[IO]]
+        make[DiscourseParser[IO]]
         addImplicit[Monad[IO]]
         addImplicit[HandleParserError[IO]]
       }
@@ -78,10 +78,10 @@ object CLI extends IOApp {
       val plan     = Injector().plan(module, GCMode.NoGC)
       val resource = Injector().produce(plan)
       implicit val parser = resource.use { objects =>
-        objects.get[EnglishDiscourseParser[IO]]
+        objects.get[DiscourseParser[IO]]
       }
       val interpreter = Interpreter[IO]()
-      HandleParserError[IO].attempt(EnglishDiscourseParser[IO].parse(c.discourse)).flatMap {
+      HandleParserError[IO].attempt(DiscourseParser[IO].parse(c.discourse)).flatMap {
         case Left(error) =>
           Log[IO].error(
             s"""Parsing failed:

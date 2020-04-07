@@ -11,14 +11,14 @@ import edu.stanford.nlp.semgraph.{SemanticGraph, SemanticGraphCoreAnnotations}
 import edu.stanford.nlp.trees.Tree
 import edu.stanford.nlp.trees.TreeCoreAnnotations.TreeAnnotation
 import edu.stanford.nlp.util.CoreMap
-import sensala.parser.english.EnglishSensalaGrammaticalRelations._
+import sensala.parser.english.SensalaGrammaticalRelations._
 import sensala.models.nl._
 import sensala.parser.english.ParserError.HandleParserError
 import sensala.parser.ParserUtil._
 
 import scala.collection.convert.ImplicitConversionsToScala._
 
-class EnglishDiscourseParser[F[_]: Monad: HandleParserError: NounPhraseParser: VerbPhraseParser] {
+class DiscourseParser[F[_]: Monad: HandleParserError: NounPhraseParser: VerbPhraseParser] {
   private val logger = Logger[this.type]
 
   sealed trait CommonNounDeterminer
@@ -199,7 +199,7 @@ class EnglishDiscourseParser[F[_]: Monad: HandleParserError: NounPhraseParser: V
 
   private def annotateSentences(discourse: String): List[CoreMap] = {
     val document = new Annotation(discourse)
-    EnglishSensalaStanfordParser.annotate(document)
+    SensalaStanfordParser.annotate(document)
     document.get(classOf[SentencesAnnotation]).toList
   }
 
@@ -216,6 +216,6 @@ class EnglishDiscourseParser[F[_]: Monad: HandleParserError: NounPhraseParser: V
   }
 }
 
-object EnglishDiscourseParser {
-  def apply[F[_]](implicit ev: EnglishDiscourseParser[F]): EnglishDiscourseParser[F] = ev
+object DiscourseParser {
+  def apply[F[_]](implicit ev: DiscourseParser[F]): DiscourseParser[F] = ev
 }

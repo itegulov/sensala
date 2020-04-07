@@ -9,13 +9,13 @@ import cats.instances.list._
 import edu.stanford.nlp.ling.IndexedWord
 import edu.stanford.nlp.semgraph.SemanticGraph
 import sensala.models.nl._
-import sensala.parser.english.EnglishSensalaGrammaticalRelations._
+import sensala.parser.english.SensalaGrammaticalRelations._
 import sensala.parser.english.ParserError.HandleParserError
 import sensala.parser.ParserUtil._
 
 import scala.collection.convert.ImplicitConversionsToScala._
 
-class VerbPhraseParser[F[_]: Monad: HandleParserError: NounPhraseParser: EnglishDiscourseParser] {
+class VerbPhraseParser[F[_]: Monad: HandleParserError: NounPhraseParser: DiscourseParser] {
   def parseAdverbialClauseVerbPhrase(
     verbTree: IndexedWord,
     verbPhrase: VerbPhrase
@@ -33,7 +33,7 @@ class VerbPhraseParser[F[_]: Monad: HandleParserError: NounPhraseParser: English
       case (mark, adverbialClause) :: Nil =>
         val adverbMods = adverbs.map(indexedWord => Adverb(indexedWord.word))
         for {
-          clause <- EnglishDiscourseParser[F].parseSentence(adverbialClause)
+          clause <- DiscourseParser[F].parseSentence(adverbialClause)
         } yield VerbAdverbialClausePhrase(mark, clause, adverbMods, verbPhrase)
       case _ =>
         HandleParserError[F].raise(InvalidDiscourse("Multiple adverbial clauses are unsupported"))
@@ -97,7 +97,7 @@ class VerbPhraseParser[F[_]: Monad: HandleParserError: NounPhraseParser: English
             } yield prepositionalVerbPhrase
           case (None, Some(clausalComponent)) =>
             for {
-              clausalSentence <- EnglishDiscourseParser[F].parseSentence(clausalComponent)
+              clausalSentence <- DiscourseParser[F].parseSentence(clausalComponent)
               adverbVerbPhrase <- parseAdverbialClauseVerbPhrase(
                                    verbTree,
                                    VerbSentencePhrase(verbTree.word, clausalSentence)

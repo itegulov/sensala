@@ -12,7 +12,7 @@ import edu.stanford.nlp.ling.{CoreAnnotations, IndexedWord}
 import edu.stanford.nlp.process.Morphology
 import edu.stanford.nlp.semgraph.SemanticGraph
 import sensala.models.nl._
-import sensala.parser.english.EnglishSensalaGrammaticalRelations._
+import sensala.parser.english.SensalaGrammaticalRelations._
 import sensala.parser.english.ParserError.HandleParserError
 import sensala.parser.ParserUtil._
 

@@ -18,7 +18,7 @@ import sensala.error.NLError.FunctorRaiseNLError
 import sensala.interpreter.context.{Context, LocalContext}
 import sensala.models.SensalaNode
 import sensala.normalization.NormalFormConverter
-import sensala.parser.english.EnglishDiscourseParser
+import sensala.parser.english.DiscourseParser
 import sensala.postprocessing.PrettyTransformer
 import sensala.property.{PropertyExtractor, WordNetPropertyExtractor}
 import sensala.structure._
@@ -27,7 +27,7 @@ import sensala.parser.english.ParserError.HandleParserError
 
 import scala.util.Try
 
-final case class ApplicationService[F[_]: EnglishDiscourseParser: Sync: Concurrent: Interpreter: Log: HandleParserError]()
+final case class ApplicationService[F[_]: DiscourseParser: Sync: Concurrent: Interpreter: Log: HandleParserError]()
     extends Http4sDsl[F] {
   object DiscourseQueryParamMatcher extends QueryParamDecoderMatcher[String]("discourse")
 
@@ -40,10 +40,10 @@ final case class ApplicationService[F[_]: EnglishDiscourseParser: Sync: Concurre
 
   def evalDiscourseSimple(discourse: String): F[List[SensalaInterpretMessage]] =
     for {
-      sentences      <- EnglishDiscourseParser[F].buildPennTaggedTree(discourse)
+      sentences      <- DiscourseParser[F].buildPennTaggedTree(discourse)
       _              <- Log[F].info(s"Result of Stanford parsing:\n$sentences")
       stanfordParsed = StanfordParsed(convertTree(sentences.head))
-      parsed         <- HandleParserError[F].attempt(EnglishDiscourseParser[F].parse(discourse))
+      parsed         <- HandleParserError[F].attempt(DiscourseParser[F].parse(discourse))
       result <- parsed match {
                  case Left(error) =>
                    for {

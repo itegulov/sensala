@@ -57,7 +57,7 @@ object Server extends IOApp {
           make[PronounParser[IO]]
           make[NounPhraseParser[IO]]
           make[VerbPhraseParser[IO]]
-          make[EnglishDiscourseParser[IO]]
+          make[DiscourseParser[IO]]
           addImplicit[Monad[IO]]
           addImplicit[HandleParserError[IO]]
         }
@@ -65,7 +65,7 @@ object Server extends IOApp {
         val plan     = Injector().plan(module, GCMode.NoGC)
         val resource = Injector().produce(plan)
         implicit val parser = resource.use { objects =>
-          objects.get[EnglishDiscourseParser[IO]]
+          objects.get[DiscourseParser[IO]]
         }
         WordNetPropertyExtractor.create[IO]().flatMap { implicit wordNetPropertyExtractor =>
           implicit val propertyExtractor: PropertyExtractor[IO] = PropertyExtractor()

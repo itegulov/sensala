@@ -2,7 +2,7 @@ package sensala.parser.english
 
 import edu.stanford.nlp.trees.UniversalEnglishGrammaticalRelations
 
-object EnglishSensalaGrammaticalRelations {
+object SensalaGrammaticalRelations {
   val Det        = UniversalEnglishGrammaticalRelations.DETERMINER
   val AdjMod     = UniversalEnglishGrammaticalRelations.ADJECTIVAL_MODIFIER
   val AdvMod     = UniversalEnglishGrammaticalRelations.ADVERBIAL_MODIFIER
