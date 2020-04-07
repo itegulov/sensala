@@ -71,12 +71,8 @@ object Server extends IOApp {
           implicit val propertyExtractor: PropertyExtractor[IO] = PropertyExtractor()
           implicit val interpreter: Interpreter[IO]             = Interpreter()
           val applicationService                                = ApplicationService[IO]()
-          val webjarService                                     = WebjarService[IO]()
-          val staticFileService                                 = StaticFileService[IO]()
           val httpApp = Router[IO](
-            "/assets" -> staticFileService.staticFiles,
-            "/assets" -> webjarService.webjars,
-            "/"       -> applicationService.application
+            "/" -> applicationService.application
           )
           val methodConfig = CORSConfig(
             anyOrigin = true,
