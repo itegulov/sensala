@@ -1,17 +1,18 @@
 import sbt._
 
 object Dependencies {
-  val catsVersion        = "1.6.0"
-  val catsMtlVersion     = "0.4.0"
+  val catsVersion        = "2.1.1"
+  val catsMtlVersion     = "0.7.1"
   val circeVersion       = "0.13.0"
   val distageVersion     = "0.10.3-M2"
-  val http4sVersion      = "0.19.0"
-  val stanfordNlpVersion = "3.9.1"
+  val http4sVersion      = "0.21.3"
+  val scalatestVersion   = "3.1.1"
+  val stanfordNlpVersion = "3.9.2"
 
   val catsCore            = "org.typelevel" %% "cats-core"     % catsVersion
   val catsLawsTest        = "org.typelevel" %% "cats-laws"     % catsVersion % Test
   val catsLawsTestkitTest = "org.typelevel" %% "cats-testkit"  % catsVersion % Test
-  val catsEffect          = "org.typelevel" %% "cats-effect"   % "1.2.0"
+  val catsEffect          = "org.typelevel" %% "cats-effect"   % catsVersion
   val catsMtl             = "org.typelevel" %% "cats-mtl-core" % catsMtlVersion
   val catsMtlLawsTest     = "org.typelevel" %% "cats-mtl-laws" % catsMtlVersion % Test
 
@@ -29,13 +30,11 @@ object Dependencies {
 
   val monix = "io.monix" %% "monix" % "3.0.0-RC2"
 
-  val scalatest           = "org.scalatest"              %% "scalatest"                 % "3.0.5" % Test
-  val scalactic           = "org.scalactic"              %% "scalactic"                 % "3.0.5" % Test
-  val scalacheck          = "org.scalacheck"             %% "scalacheck"                % "1.13.5" % Test
-  val scalacheckNoTest    = "org.scalacheck"             %% "scalacheck"                % "1.13.5"
-  val scalacheckShapeless = "com.github.alexarchambault" %% "scalacheck-shapeless_1.13" % "1.1.8" % Test
+  val scalatest           = "org.scalatest"              %% "scalatest"                 % scalatestVersion % Test
+  val scalactic           = "org.scalactic"              %% "scalactic"                 % scalatestVersion % Test
+  val scalacheck          = "org.scalacheck"             %% "scalacheck"                % "1.14.1" % Test
 
-  val extjwnl         = "net.sf.extjwnl" % "extjwnl"           % "2.0.1"
+  val extjwnl         = "net.sf.extjwnl" % "extjwnl"           % "2.0.2"
   val extjwnlDataWn31 = "net.sf.extjwnl" % "extjwnl-data-wn31" % "1.2"
   
   val jverbnet = "edu.mit" % "jverbnet" % "1.2.0.1"
@@ -44,9 +43,9 @@ object Dependencies {
   val jaxbCore        = "com.sun.xml.bind" % "jaxb-core"  % "2.2.11"
   val javaxActivation = "javax.activation" % "activation" % "1.1.1"
 
-  val stanfordNlp              = "edu.stanford.nlp" % "stanford-corenlp" % "3.9.1"
-  val stanfordNlpModelsEnglish = "edu.stanford.nlp" % "stanford-corenlp" % "3.9.1" classifier "models"
-  val stanfordNlpModelsGerman  = "edu.stanford.nlp" % "stanford-corenlp" % "3.9.1" classifier "models-german"
+  val stanfordNlp              = "edu.stanford.nlp" % "stanford-corenlp" % stanfordNlpVersion
+  val stanfordNlpModelsEnglish = "edu.stanford.nlp" % "stanford-corenlp" % stanfordNlpVersion classifier "models"
+  val stanfordNlpModelsGerman  = "edu.stanford.nlp" % "stanford-corenlp" % stanfordNlpVersion classifier "models-german"
 
   val scopt = "com.github.scopt" %% "scopt" % "4.0.0-RC2"
 
@@ -57,8 +56,8 @@ object Dependencies {
   
   val sourcecode = "com.lihaoyi" %% "sourcecode" % "0.1.9"
 
-  val kindProjector    = compilerPlugin("org.spire-math" %% "kind-projector"     % "0.9.8")
-  val betterMonadicFor = compilerPlugin("com.olegpy"     %% "better-monadic-for" % "0.3.0-M4")
+  val kindProjector    = compilerPlugin("org.typelevel" %% "kind-projector"     % "0.11.0" cross CrossVersion.full)
+  val betterMonadicFor = compilerPlugin("com.olegpy"    %% "better-monadic-for" % "0.3.1")
 
   val digestDependencies =
     Seq(
