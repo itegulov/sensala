@@ -4,7 +4,11 @@ import cats.{Applicative, Functor}
 import cats.effect.IO
 import cats.mtl.{ApplicativeHandle, DefaultApplicativeHandle}
 
-sealed trait ParserError extends Exception
+sealed trait ParserError extends Exception {
+  val message: String
+
+  override def toString: String = s"Unable to parse: $message"
+}
 
 final case class InvalidDiscourse(message: String) extends ParserError
 
