@@ -174,4 +174,24 @@ class EnglishDiscourseParserSpec extends ParserSpec {
         )
       )
   }
+
+  it should "parse relative clauses" in effectTest {
+    parser
+      .parse("John loves Mary that loves him")
+      .shouldBeF(
+        sentence(
+          John,
+          TransitiveVerb(
+            "loves",
+            ExistentialQuantifier(
+              RelativeClausePhrase(
+                "that",
+                TransitiveVerb("loves", him),
+                ProperNoun("Mary", Some(Person), Some(Female))
+              )
+            )
+          )
+        )
+      )
+  }
 }
