@@ -197,17 +197,19 @@ class EnglishDiscourseParser[F[_]: Monad: HandleParserError: NounPhraseParser: V
     parseSentence(root).map(transformVerbPhraseAnaphora)
   }
 
-  def buildPennTaggedTree(discourse: String): F[List[Tree]] = {
+  private def annotateSentences(discourse: String): List[CoreMap] = {
     val document = new Annotation(discourse)
     EnglishSensalaStanfordParser.annotate(document)
-    val sentences: List[CoreMap] = document.get(classOf[SentencesAnnotation]).toList
+    document.get(classOf[SentencesAnnotation]).toList
+  }
+
+  def buildPennTaggedTree(discourse: String): F[List[Tree]] = {
+    val sentences = annotateSentences(discourse)
     sentences.map(_.get(classOf[TreeAnnotation])).pure[F]
   }
 
   def parse(discourse: String): F[Discourse] = {
-    val document = new Annotation(discourse)
-    EnglishSensalaStanfordParser.annotate(document)
-    val sentences: List[CoreMap] = document.get(classOf[SentencesAnnotation]).toList
+    val sentences = annotateSentences(discourse)
     for {
       result <- sentences.map(parseSentence).sequence
     } yield Discourse(result)
