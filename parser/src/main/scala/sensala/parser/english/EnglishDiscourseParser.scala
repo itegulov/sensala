@@ -26,6 +26,45 @@ class EnglishDiscourseParser[F[_]: Monad: HandleParserError: NounPhraseParser: V
   case object Forall      extends CommonNounDeterminer
   case object The         extends CommonNounDeterminer
 
+  def parseActiveVoiceSentence(subj: IndexedWord, verbPhrase: VerbPhrase)(
+    implicit graph: SemanticGraph
+  ): F[Sentence] =
+    for {
+      subjPhrase <- NounPhraseParser[F].parseNounPhrase(subj)
+    } yield Sentence(subjPhrase, verbPhrase)
+
+  def parsePassiveVoiceSentence(
+    verbRoot: IndexedWord
+  )(implicit graph: SemanticGraph): F[Sentence] = {
+    val children    = graph.childPairs(verbRoot).map(pairToTuple).toList
+    val childrenMap = children.toMap
+    val agents = children.collect {
+      case (rel, word) if NomMod.isAncestor(rel) && rel.getSpecific == "agent" =>
+        word
+    }
+    val auxPassOpt = childrenMap.get(AuxPass)
+    (agents, auxPassOpt) match {
+      case (Nil, _) =>
+        HandleParserError[F].raise[Sentence](
+          InvalidDiscourse("Illegal sentence: no subject and no agent")
+        )
+      case (agentWord :: Nil, Some(verbWord))
+          if verbWord.word.toLowerCase == "am" || verbWord.word.toLowerCase == "is" || verbWord.word.toLowerCase == "are" =>
+        for {
+          agentPhrase <- NounPhraseParser[F].parseNounPhrase(agentWord)
+          verbPhrase  <- VerbPhraseParser[F].parseVerbPhrasePassive(verbRoot)
+        } yield Sentence(agentPhrase, verbPhrase)
+      case (_, None) =>
+        HandleParserError[F].raise[Sentence](
+          InvalidDiscourse("Illegal passive voice sentence: no auxiliary verb")
+        )
+      case (_, _) =>
+        HandleParserError[F].raise[Sentence](
+          InvalidDiscourse("Illegal sentence: multiple agents")
+        )
+    }
+  }
+
   def parseSentence(
     root: IndexedWord
   )(implicit graph: SemanticGraph): F[Sentence] =
@@ -40,35 +79,9 @@ class EnglishDiscourseParser[F[_]: Monad: HandleParserError: NounPhraseParser: V
                              )
           result <- (subjOpt, verbPhraseEither) match {
                      case (Some(subj), Right(verbPhrase)) =>
-                       for {
-                         subjPhrase <- NounPhraseParser[F].parseNounPhrase(subj)
-                       } yield Sentence(subjPhrase, verbPhrase)
+                       parseActiveVoiceSentence(subj, verbPhrase)
                      case (None, _) =>
-                       val agents = children.collect {
-                         case (rel, word) if NomMod.isAncestor(rel) && rel.getSpecific == "agent" =>
-                           word
-                       }
-                       val auxPassOpt = childrenMap.get(AuxPass)
-                       (agents, auxPassOpt) match {
-                         case (Nil, _) =>
-                           HandleParserError[F].raise[Sentence](
-                             InvalidDiscourse("Illegal sentence: no subject and no agent")
-                           )
-                         case (agentWord :: Nil, Some(verbWord))
-                             if verbWord.word.toLowerCase == "am" || verbWord.word.toLowerCase == "is" || verbWord.word.toLowerCase == "are" =>
-                           for {
-                             agentPhrase <- NounPhraseParser[F].parseNounPhrase(agentWord)
-                             verbPhrase  <- VerbPhraseParser[F].parseVerbPhrasePassive(root)
-                           } yield Sentence(agentPhrase, verbPhrase)
-                         case (_, None) =>
-                           HandleParserError[F].raise[Sentence](
-                             InvalidDiscourse("Illegal passive voice sentence: no auxiliary verb")
-                           )
-                         case (_, _) =>
-                           HandleParserError[F].raise[Sentence](
-                             InvalidDiscourse("Illegal sentence: multiple agents")
-                           )
-                       }
+                       parsePassiveVoiceSentence(root)
                      case (_, Left(error)) =>
                        HandleParserError[F].raise[Sentence](error)
                    }
