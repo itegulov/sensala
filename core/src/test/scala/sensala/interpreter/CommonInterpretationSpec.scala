@@ -1,14 +1,12 @@
 package sensala.interpreter
 
-import cats.Functor
 import cats.effect.IO
-import cats.mtl.FunctorRaise
 import org.aossie.scavenger.expression.{E, Sym, Var}
 import org.aossie.scavenger.expression.formula.{All, Ex, True}
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import sensala.SensalaSpec
-import sensala.error.NLError
+import sensala.error.NLError.FunctorRaiseNLError.raiseNLError
 import sensala.normalization.NormalFormConverter
 import sensala.postprocessing.PrettyTransformer
 import sensala.types._
@@ -19,13 +17,7 @@ import sensala.property.{PropertyExtractor, WordNetPropertyExtractor}
 import sensala.shared.effect.Log
 
 class CommonInterpretationSpec extends AnyFlatSpec with SensalaSpec {
-  implicit val log = Log.log[IO]
-  implicit val raiseNLError = new FunctorRaise[IO, NLError] {
-    override val functor: Functor[IO] = Functor[IO]
-
-    override def raise[A](e: NLError): IO[A] =
-      throw new RuntimeException(e.toString)
-  }
+  implicit val log                      = Log.log[IO]
   implicit val wordNetPropertyExtractor = WordNetPropertyExtractor.create[IO]().unsafeRunSync()
   implicit val propertyExtractor        = PropertyExtractor[IO]()
 

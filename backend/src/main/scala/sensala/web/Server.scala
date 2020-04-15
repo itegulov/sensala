@@ -1,9 +1,8 @@
 package sensala.web
 
-import cats.{Functor, Monad}
+import cats.Monad
 import cats.effect._
 import cats.implicits._
-import cats.mtl.FunctorRaise
 import distage.Injector
 import izumi.distage.model.definition.ModuleDef
 import izumi.distage.model.plan.GCMode
@@ -12,9 +11,8 @@ import org.http4s.server.blaze._
 import org.http4s.implicits._
 import org.http4s.server.middleware._
 import scopt.OParser
+import sensala.error.NLError.FunctorRaiseNLError.raiseNLError
 import sensala.shared.effect.Log
-import sensala.error.NLError
-import sensala.error.NLError.FunctorRaiseNLError
 import sensala.interpreter.Interpreter
 import sensala.interpreter.context.{Context, LocalContext}
 import sensala.parser.english._
@@ -45,12 +43,6 @@ object Server extends IOApp {
     implicit val log: Log[IO] = Log.log
     OParser.parse(parser, args, Config()) match {
       case Some(config) =>
-        implicit val raiseNLError: FunctorRaiseNLError[IO] = new FunctorRaise[IO, NLError] {
-          override val functor: Functor[IO] = Functor[IO]
-
-          override def raise[A](e: NLError): IO[A] =
-            throw new RuntimeException(e.toString)
-        }
         implicit val sensalaContext: Context[IO]           = Context.initial
         implicit val sensalaLocalContext: LocalContext[IO] = LocalContext.empty
         val module = new ModuleDef {
