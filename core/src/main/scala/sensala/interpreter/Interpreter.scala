@@ -11,8 +11,9 @@ import sensala.types._
 import sensala.interpreter.context.{Context, LocalContext}
 import sensala.property.PropertyExtractor
 import sensala.models.nl._
+import sensala.verbnet.VerbNetExtractor
 
-final case class Interpreter[F[_]: Monad: PropertyExtractor: Context: LocalContext: FunctorRaiseNLError]() {
+final case class Interpreter[F[_]: Monad: PropertyExtractor: VerbNetExtractor: Context: LocalContext: FunctorRaiseNLError]() {
   private val thenAdverb = Adverb("then")
 
   def interpret(nl: NL, cont: F[E]): F[E] =
@@ -72,17 +73,20 @@ final case class Interpreter[F[_]: Monad: PropertyExtractor: Context: LocalConte
         } yield Ex(e, event, w(e) /\ agent(e, x) /\ contL)
       case TransitiveVerb(word, obj) =>
         for {
-          x <- LocalContext[F].getEntity
-          e <- Context[F].bindFreeVar
-          _ <- LocalContext[F].putEvent(e)
-          w = Sym(word)
+          x        <- LocalContext[F].getEntity
+          e        <- Context[F].bindFreeVar
+          _        <- LocalContext[F].putEvent(e)
+          verbInfo <- VerbNetExtractor[F].extract(word)
+          preSym   = Sym(verbInfo.preVerbRole)
+          postSym  = Sym(verbInfo.postVerbRole)
+          w        = Sym(word)
           objL <- interpret(
                    obj,
                    for {
                      y     <- LocalContext[F].getEntity
-                     _     <- Context[F].addEvent(e, w(e) /\ agent(e, x) /\ patient(e, y))
+                     _     <- Context[F].addEvent(e, w(e) /\ preSym(e, x) /\ postSym(e, y))
                      contL <- cont
-                   } yield Ex(e, event, w(e) /\ agent(e, x) /\ patient(e, y) /\ contL)
+                   } yield Ex(e, event, w(e) /\ preSym(e, x) /\ postSym(e, y) /\ contL)
                  )
         } yield objL
       case VerbAdjectivePhrase(verb, adjective) =>

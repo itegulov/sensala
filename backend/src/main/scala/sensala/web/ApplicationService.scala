@@ -1,9 +1,8 @@
 package sensala.web
 
-import cats.{Functor, Monad}
+import cats.Monad
 import cats.implicits._
 import cats.effect._
-import cats.mtl.FunctorRaise
 import edu.stanford.nlp.trees.Tree
 import io.circe.syntax._
 import org.aossie.scavenger.expression.formula.True
@@ -13,9 +12,7 @@ import org.http4s.HttpRoutes
 import org.http4s.dsl.Http4sDsl
 import sensala.interpreter.Interpreter
 import sensala.shared.effect.Log
-import sensala.error.NLError
 import sensala.error.NLError.FunctorRaiseNLError
-import sensala.error.NLError.FunctorRaiseNLError.raiseNLError
 import sensala.interpreter.context.{Context, LocalContext}
 import sensala.models.SensalaNode
 import sensala.normalization.NormalFormConverter
@@ -25,8 +22,9 @@ import sensala.property.{PropertyExtractor, WordNetPropertyExtractor}
 import sensala.structure._
 import sensala.models._
 import sensala.parser.english.ParserError.HandleParserError
+import sensala.verbnet.VerbNetExtractor
 
-final case class ApplicationService[F[_]: DiscourseParser: Sync: Concurrent: Interpreter: Log: HandleParserError]()
+final case class ApplicationService[F[_]: DiscourseParser: WordNetPropertyExtractor: VerbNetExtractor: Sync: Concurrent: Interpreter: Log: HandleParserError: FunctorRaiseNLError]()
     extends Http4sDsl[F] {
   object DiscourseQueryParamMatcher extends QueryParamDecoderMatcher[String]("discourse")
 
@@ -49,62 +47,57 @@ final case class ApplicationService[F[_]: DiscourseParser: Sync: Concurrent: Int
                      _ <- Log[F].error(s"Parsing failed:\n$error")
                    } yield List(stanfordParsed, SensalaError(s"Parsing failed: $error"))
                  case Right(sentence) =>
-                   WordNetPropertyExtractor.create[F]().flatMap {
-                     implicit wordNetPropertyExtractor =>
-                       implicit val propertyExtractor: PropertyExtractor[F] =
-                         PropertyExtractor[F]()
-                       implicit val sensalaContext: Context[F] = Context.initial[F]
-                       implicit val sensalaLocalContext: LocalContext[F] =
-                         LocalContext.empty[F]
-                       for {
-                         _             <- Log[F].info(s"Result of sentence parsing:\n$sentence")
-                         sensalaParsed = SensalaParsed(sentence)
-                         interpreter   = Interpreter[F]()
-                         lambdaTerm    <- interpreter.interpret(sentence, Monad[F].pure(True))
-                         context       <- sensalaContext.state.get
-                         _ <- Log[F].info(
-                               s"""
-                                  |Result of discourse interpretation:
-                                  |  $lambdaTerm
-                                  |  ${lambdaTerm.pretty}
-                                 """.stripMargin
-                             )
-                         normalForm = NormalFormConverter.normalForm(lambdaTerm)
-                         _ <- Log[F].info(
-                               s"""
-                                  |Result of applying β-reduction:
-                                  |  $normalForm
-                                  |  ${normalForm.pretty}
-                                 """.stripMargin
-                             )
-                         prettyTerm = PrettyTransformer.transform(normalForm)
-                         _ <- Log[F].info(
-                               s"""
-                                  |Result of applying pretty transform:
-                                  |  ${prettyTerm.pretty}
-                                 """.stripMargin
-                             )
-                         entitiyProperties = context.entityProperties.map(_._2.pretty)
-                         _ <- Log[F].info(
-                               s"""
-                                  |Context after interpretation:
-                                  |  ${entitiyProperties.mkString("\n")}
-                                 """.stripMargin
-                             )
-                         cnf = new TPTPClausifier()
-                           .apply(List((prettyTerm, AxiomClause)))
-                         _ <- Log[F].info(
-                               s"""
-                                  |Result of clausification:
-                                  |${cnf.clauses.mkString("\n")}
-                                 """.stripMargin
-                             )
-                       } yield List(
-                         stanfordParsed,
-                         sensalaParsed,
-                         SensalaInterpreted(prettyTerm.pretty)
-                       )
-                   }
+                   implicit val propertyExtractor: PropertyExtractor[F] = PropertyExtractor[F]()
+                   implicit val sensalaContext: Context[F]              = Context.initial[F]
+                   implicit val sensalaLocalContext: LocalContext[F]    = LocalContext.empty[F]
+                   for {
+                     _             <- Log[F].info(s"Result of sentence parsing:\n$sentence")
+                     sensalaParsed = SensalaParsed(sentence)
+                     interpreter   = Interpreter[F]()
+                     lambdaTerm    <- interpreter.interpret(sentence, Monad[F].pure(True))
+                     context       <- sensalaContext.state.get
+                     _ <- Log[F].info(
+                           s"""
+                              |Result of discourse interpretation:
+                              |  $lambdaTerm
+                              |  ${lambdaTerm.pretty}
+                               """.stripMargin
+                         )
+                     normalForm = NormalFormConverter.normalForm(lambdaTerm)
+                     _ <- Log[F].info(
+                           s"""
+                              |Result of applying β-reduction:
+                              |  $normalForm
+                              |  ${normalForm.pretty}
+                               """.stripMargin
+                         )
+                     prettyTerm = PrettyTransformer.transform(normalForm)
+                     _ <- Log[F].info(
+                           s"""
+                              |Result of applying pretty transform:
+                              |  ${prettyTerm.pretty}
+                               """.stripMargin
+                         )
+                     entitiyProperties = context.entityProperties.map(_._2.pretty)
+                     _ <- Log[F].info(
+                           s"""
+                              |Context after interpretation:
+                              |  ${entitiyProperties.mkString("\n")}
+                               """.stripMargin
+                         )
+                     cnf = new TPTPClausifier()
+                       .apply(List((prettyTerm, AxiomClause)))
+                     _ <- Log[F].info(
+                           s"""
+                              |Result of clausification:
+                              |${cnf.clauses.mkString("\n")}
+                               """.stripMargin
+                         )
+                   } yield List(
+                     stanfordParsed,
+                     sensalaParsed,
+                     SensalaInterpreted(prettyTerm.pretty)
+                   )
                }
     } yield result
 

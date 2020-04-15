@@ -15,10 +15,12 @@ import sensala.interpreter.context.{Context, LocalContext}
 import sensala.models.nl.NL
 import sensala.property.{PropertyExtractor, WordNetPropertyExtractor}
 import sensala.shared.effect.Log
+import sensala.verbnet.VerbNetExtractor
 
 class CommonInterpretationSpec extends AnyFlatSpec with SensalaSpec {
   implicit val log                      = Log.log[IO]
   implicit val wordNetPropertyExtractor = WordNetPropertyExtractor.create[IO]().unsafeRunSync()
+  implicit val verbNetExtractor         = VerbNetExtractor.create[IO]().unsafeRunSync()
   implicit val propertyExtractor        = PropertyExtractor[IO]()
 
   def interpret(discourse: NL): E = {

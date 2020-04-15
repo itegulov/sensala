@@ -19,6 +19,7 @@ import sensala.parser.english._
 import sensala.parser.english.ParserError.HandleParserError
 import sensala.parser.english.ParserError.HandleParserError.handleParserErrorIO
 import sensala.property.{PropertyExtractor, WordNetPropertyExtractor}
+import sensala.verbnet.VerbNetExtractor
 
 import scala.concurrent.duration._
 
@@ -59,25 +60,29 @@ object Server extends IOApp {
         implicit val parser = resource.use { objects =>
           objects.get[DiscourseParser[IO]]
         }
-        WordNetPropertyExtractor.create[IO]().flatMap { implicit wordNetPropertyExtractor =>
-          implicit val propertyExtractor: PropertyExtractor[IO] = PropertyExtractor()
-          implicit val interpreter: Interpreter[IO]             = Interpreter()
-          val applicationService                                = ApplicationService[IO]()
-          val httpApp = Router[IO](
+        for {
+          implicit0(wordNetExtractor: WordNetPropertyExtractor[IO]) <- WordNetPropertyExtractor
+                                                                        .create[IO]()
+          implicit0(verbNetExtractor: VerbNetExtractor[IO])   <- VerbNetExtractor.create[IO]()
+          implicit0(propertyExtractor: PropertyExtractor[IO]) = PropertyExtractor[IO]()
+          implicit0(interpreter: Interpreter[IO])             = Interpreter[IO]()
+          applicationService                                  = ApplicationService[IO]()
+          httpApp = Router[IO](
             "/" -> applicationService.application
           )
-          val methodConfig = CORSConfig(
+          methodConfig = CORSConfig(
             anyOrigin = true,
             anyMethod = false,
             allowedMethods = Some(Set("GET", "POST", "PUT")),
             allowCredentials = true,
             maxAge = 1.day.toSeconds
           )
-          val corsApp = CORS(httpApp, methodConfig).orNotFound
-          val serverBuilder =
-            BlazeServerBuilder[IO].bindHttp(config.port, config.host).withHttpApp(corsApp)
-          serverBuilder.serve.compile.drain.as(ExitCode.Success)
-        }
+          corsApp = CORS(httpApp, methodConfig).orNotFound
+          serverBuilder = BlazeServerBuilder[IO]
+            .bindHttp(config.port, config.host)
+            .withHttpApp(corsApp)
+          result <- serverBuilder.serve.compile.drain.as(ExitCode.Success)
+        } yield result
       case None =>
         log.error("Invalid arguments").as(ExitCode.Error)
     }
