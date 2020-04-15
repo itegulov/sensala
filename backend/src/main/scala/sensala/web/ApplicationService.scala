@@ -15,6 +15,7 @@ import sensala.interpreter.Interpreter
 import sensala.shared.effect.Log
 import sensala.error.NLError
 import sensala.error.NLError.FunctorRaiseNLError
+import sensala.error.NLError.FunctorRaiseNLError.raiseNLError
 import sensala.interpreter.context.{Context, LocalContext}
 import sensala.models.SensalaNode
 import sensala.normalization.NormalFormConverter
@@ -48,13 +49,6 @@ final case class ApplicationService[F[_]: DiscourseParser: Sync: Concurrent: Int
                      _ <- Log[F].error(s"Parsing failed:\n$error")
                    } yield List(stanfordParsed, SensalaError(s"Parsing failed: $error"))
                  case Right(sentence) =>
-                   implicit val raiseNLError: FunctorRaiseNLError[F] =
-                     new FunctorRaise[F, NLError] {
-                       override val functor: Functor[F] = Functor[F]
-
-                       override def raise[A](e: NLError): F[A] =
-                         throw new RuntimeException(e.toString)
-                     }
                    WordNetPropertyExtractor.create[F]().flatMap {
                      implicit wordNetPropertyExtractor =>
                        implicit val propertyExtractor: PropertyExtractor[F] =
