@@ -25,8 +25,6 @@ import sensala.structure._
 import sensala.models._
 import sensala.parser.english.ParserError.HandleParserError
 
-import scala.util.Try
-
 final case class ApplicationService[F[_]: DiscourseParser: Sync: Concurrent: Interpreter: Log: HandleParserError]()
     extends Http4sDsl[F] {
   object DiscourseQueryParamMatcher extends QueryParamDecoderMatcher[String]("discourse")
