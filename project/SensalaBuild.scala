@@ -28,7 +28,8 @@ object SensalaBuild {
       "-Ywarn-dead-code",
       "-Ypartial-unification",
       "-Xfuture",
-      "-Xexperimental"
+      "-Xexperimental",
+      "-Xfatal-warnings"
     ),
     resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots",
     scalacOptions in (Compile, console) -= "-Ywarn-unused-import",
