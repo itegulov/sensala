@@ -6,7 +6,7 @@
   "author": "Daniyar Itegulov",
   "license": "MIT",
   "dependencies": {
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "bootstrap": "^4.4.1",
     "d3": "^5.15.0",
     "dagre-d3": "^0.6.4",
