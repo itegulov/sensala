@@ -1,6 +1,5 @@
 package sensala.models
 
-import cats.syntax.functor._
 import io.circe._
 import io.circe.syntax._
 import io.circe.generic.auto._

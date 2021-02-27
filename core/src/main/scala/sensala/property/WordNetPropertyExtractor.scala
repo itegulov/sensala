@@ -9,7 +9,7 @@ import org.aossie.scavenger.expression.Sym
 import sensala.shared.effect.Log
 import sensala.structure._
 
-import scala.collection.convert.ImplicitConversionsToScala._
+import scala.jdk.CollectionConverters._
 
 final case class WordNetPropertyExtractor[F[_]: Sync: Log] private (
   private val dictionary: Dictionary
@@ -20,16 +20,16 @@ final case class WordNetPropertyExtractor[F[_]: Sync: Log] private (
   def extractProperties(word: String): F[List[Property]] =
     dictionary.lookupAllIndexWords(word).getIndexWordArray.toList.flatTraverse[F, Property] {
       indexWord =>
-        indexWord.getSenses.toList.flatTraverse[F, Property] { sense =>
+        indexWord.getSenses.asScala.to(List).flatTraverse[F, Property] { sense =>
           for {
             _          <- Log[F].debug(s"Trying sense for $word: ${sense.getGloss}")
             treeEither <- getHypernymTree(sense).attempt
-            tree       = treeEither.map(tree => tree.toList.toList)
+            tree       = treeEither.map(tree => tree.toList.asScala.to(List))
             result <- tree.getOrElse(List.empty).flatTraverse[F, Property] { pathAny =>
                        val path = pathAny
-                       path.toList.flatTraverse[F, Property] { nodeAny =>
+                       path.asScala.toList.flatTraverse[F, Property] { nodeAny =>
                          val node       = nodeAny
-                         val properties = node.getSynset.getWords.map(_.getLemma).toList
+                         val properties = node.getSynset.getWords.asScala.map(_.getLemma).to(List)
                          Log[F].debug(properties.mkString(", ")) >>
                            properties.map(lemma => Property(x => Sym(lemma)(x))).pure[F]
                        }

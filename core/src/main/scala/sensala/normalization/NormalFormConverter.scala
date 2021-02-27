@@ -14,7 +14,7 @@ object NormalFormConverter {
         if (bind.name == v || !bodyFree.contains(v)) {
           t
         } else {
-          Abs(bind, typ, substitute(body, v, e))
+          Abs(bind, typ, substitute(body, v, e, Set()))
         }
     }
 

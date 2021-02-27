@@ -16,7 +16,7 @@ import sensala.parser.english.SensalaGrammaticalRelations._
 import sensala.parser.english.ParserError.HandleParserError
 import sensala.parser.ParserUtil._
 
-import scala.collection.convert.ImplicitConversionsToScala._
+import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
 
 class NounPhraseParser[F[_]: Monad: HandleParserError: PronounParser: VerbPhraseParser] {
@@ -29,7 +29,7 @@ class NounPhraseParser[F[_]: Monad: HandleParserError: PronounParser: VerbPhrase
     nounPhrase: IndexedWord
   )(implicit graph: SemanticGraph): F[CommonNounDeterminer] = {
     require(nounPhrase.tag == "NN")
-    val children = graph.childPairs(nounPhrase).toList.map(pairToTuple)
+    val children = graph.childPairs(nounPhrase).asScala.toList.map(pairToTuple)
     val determiners = children.collect {
       case (rel, word) if rel == Det => word
     }
@@ -57,7 +57,7 @@ class NounPhraseParser[F[_]: Monad: HandleParserError: PronounParser: VerbPhrase
     nounPhrase: IndexedWord
   )(implicit graph: SemanticGraph): F[CommonNounDeterminer] = {
     require(nounPhrase.tag == "NNS")
-    val children = graph.childPairs(nounPhrase).toList.map(pairToTuple)
+    val children = graph.childPairs(nounPhrase).asScala.toList.map(pairToTuple)
     val determiners = children.collect {
       case (rel, word) if rel == Det => word
     }
@@ -84,7 +84,7 @@ class NounPhraseParser[F[_]: Monad: HandleParserError: PronounParser: VerbPhrase
     nounPhrase: IndexedWord
   )(implicit graph: SemanticGraph): F[NounPhrase] = {
     require(nounPhrase.tag == "NNS")
-    val children = graph.childPairs(nounPhrase).toList.map(pairToTuple)
+    val children = graph.childPairs(nounPhrase).asScala.toList.map(pairToTuple)
     val numModifiers = children.collect {
       case (rel, word) if rel == NumMod => word
     }
@@ -115,7 +115,7 @@ class NounPhraseParser[F[_]: Monad: HandleParserError: PronounParser: VerbPhrase
     nounTree: IndexedWord,
     nounPhrase: NounPhrase
   )(implicit graph: SemanticGraph): F[NounPhrase] = {
-    val modifiers = graph.childPairs(nounTree).toList.map(pairToTuple).collect {
+    val modifiers = graph.childPairs(nounTree).asScala.toList.map(pairToTuple).collect {
       case (rel, word) if rel == AdjMod => word
     }
     for {
@@ -133,10 +133,10 @@ class NounPhraseParser[F[_]: Monad: HandleParserError: PronounParser: VerbPhrase
     nounTree: IndexedWord,
     nounPhrase: NounPhrase
   )(implicit graph: SemanticGraph): F[NounPhrase] = {
-    val refs = graph.childPairs(nounTree).toList.map(pairToTuple).collect {
+    val refs = graph.childPairs(nounTree).asScala.toList.map(pairToTuple).collect {
       case (rel, word) if rel == Ref => word
     }
-    val relativeClauses = graph.childPairs(nounTree).toList.map(pairToTuple).collect {
+    val relativeClauses = graph.childPairs(nounTree).asScala.toList.map(pairToTuple).collect {
       case (rel, word) if rel == RelClMod => word
     }
     // FIXME: References and relative clauses can be ordered differently
@@ -145,6 +145,8 @@ class NounPhraseParser[F[_]: Monad: HandleParserError: PronounParser: VerbPhrase
         VerbPhraseParser[F].parseVerbPhrase(relClause).map(WhNounPhrase(_, prevNp))
       case (prevNp, (ref, relClause)) if ref.word.toLowerCase == "that" =>
         VerbPhraseParser[F].parseVerbPhrase(relClause).map(RelativeClausePhrase("that", _, prevNp))
+      case (_, (ref, _)) =>
+        HandleParserError[F].raise(UnexpectedWord(ref.word))
     }
   }
 
@@ -152,7 +154,7 @@ class NounPhraseParser[F[_]: Monad: HandleParserError: PronounParser: VerbPhrase
     nounTree: IndexedWord,
     nounPhrase: NounPhrase
   )(implicit graph: SemanticGraph): F[NounPhrase] = {
-    val prepositions = graph.childPairs(nounTree).toList.map(pairToTuple).collect {
+    val prepositions = graph.childPairs(nounTree).asScala.toList.map(pairToTuple).collect {
       case (rel, word) if NomMod.isAncestor(rel) || rel == NomModPoss => (rel, word)
     }
     prepositions.foldM(nounPhrase) {
@@ -161,6 +163,7 @@ class NounPhraseParser[F[_]: Monad: HandleParserError: PronounParser: VerbPhrase
           prepositionNounPhrase <- parseNounPhrase(preposition)
           prepositionGraphMap = graph
             .childPairs(preposition)
+            .asScala
             .map(pairToTuple)
             .toMap
           caseWord <- prepositionGraphMap.get(Case) match {

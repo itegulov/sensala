@@ -13,17 +13,17 @@ import sensala.parser.english.SensalaGrammaticalRelations._
 import sensala.parser.english.ParserError.HandleParserError
 import sensala.parser.ParserUtil._
 
-import scala.collection.convert.ImplicitConversionsToScala._
+import scala.jdk.CollectionConverters._
 
 class VerbPhraseParser[F[_]: Monad: HandleParserError: NounPhraseParser: DiscourseParser] {
   def parseAdverbialClauseVerbPhrase(
     verbTree: IndexedWord,
     verbPhrase: VerbPhrase
   )(implicit graph: SemanticGraph): F[VerbPhrase] = {
-    val adverbialClauses = graph.childPairs(verbTree).toList.map(pairToTuple).collect {
+    val adverbialClauses = graph.childPairs(verbTree).asScala.toList.map(pairToTuple).collect {
       case (rel, word) if AdvclMod.isAncestor(rel) => (rel.getSpecific, word)
     }
-    val adverbs = graph.childPairs(verbTree).toList.map(pairToTuple).collect {
+    val adverbs = graph.childPairs(verbTree).asScala.toList.map(pairToTuple).collect {
       case (rel, word) if rel == AdvMod => word
     }
     adverbialClauses match {
@@ -44,7 +44,7 @@ class VerbPhraseParser[F[_]: Monad: HandleParserError: NounPhraseParser: Discour
     verbTree: IndexedWord,
     verbPhrase: VerbPhrase
   )(implicit graph: SemanticGraph): F[VerbPhrase] = {
-    val prepositions = graph.childPairs(verbTree).toList.map(pairToTuple).collect {
+    val prepositions = graph.childPairs(verbTree).asScala.toList.map(pairToTuple).collect {
       case (rel, word) if NomMod.isAncestor(rel) => word
     }
     for {
@@ -55,6 +55,7 @@ class VerbPhraseParser[F[_]: Monad: HandleParserError: NounPhraseParser: Discour
                                                          )
                                  prepositionGraphMap = graph
                                    .childPairs(preposition)
+                                   .asScala
                                    .map(pairToTuple)
                                    .toMap
                                  caseWord <- prepositionGraphMap.get(Case) match {
@@ -76,7 +77,7 @@ class VerbPhraseParser[F[_]: Monad: HandleParserError: NounPhraseParser: Discour
   )(implicit graph: SemanticGraph): F[VerbPhrase] =
     verbTree.tag match {
       case "VB" | "VBZ" | "VBP" | "VBD" | "VBN" | "VBG" =>
-        val childrenMap         = graph.childPairs(verbTree).map(pairToTuple).toMap
+        val childrenMap         = graph.childPairs(verbTree).asScala.map(pairToTuple).toMap
         val objOpt              = childrenMap.get(DObj)
         val clausalComponentOpt = childrenMap.get(CComp)
         (objOpt, clausalComponentOpt) match {
@@ -122,7 +123,7 @@ class VerbPhraseParser[F[_]: Monad: HandleParserError: NounPhraseParser: Discour
   )(implicit graph: SemanticGraph): F[VerbPhrase] =
     verbTree.tag match {
       case "VB" | "VBZ" | "VBP" | "VBD" | "VBN" | "VBG" =>
-        val childrenMap = graph.childPairs(verbTree).map(pairToTuple).toMap
+        val childrenMap = graph.childPairs(verbTree).asScala.map(pairToTuple).toMap
         val passSubjOpt = childrenMap.get(NSubjPass)
         passSubjOpt match {
           case Some(passSubj) =>

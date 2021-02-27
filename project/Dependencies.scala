@@ -28,7 +28,7 @@ object Dependencies {
   val http4sDSL         = "org.http4s" %% "http4s-dsl"          % http4sVersion
   val http4sTwirl       = "org.http4s" %% "http4s-twirl"        % http4sVersion
 
-  val monix = "io.monix" %% "monix" % "3.0.0-RC2"
+  val monix = "io.monix" %% "monix" % "3.3.0"
 
   val scalatest           = "org.scalatest"              %% "scalatest"                 % scalatestVersion % Test
   val scalactic           = "org.scalactic"              %% "scalactic"                 % scalatestVersion % Test
@@ -47,16 +47,16 @@ object Dependencies {
   val stanfordNlpModelsEnglish = "edu.stanford.nlp" % "stanford-corenlp" % stanfordNlpVersion classifier "models"
   val stanfordNlpModelsGerman  = "edu.stanford.nlp" % "stanford-corenlp" % stanfordNlpVersion classifier "models-german"
 
-  val scopt = "com.github.scopt" %% "scopt" % "4.0.0-RC2"
+  val scopt = "com.github.scopt" %% "scopt" % "4.0.0"
 
-  val scalaLogging   = "com.typesafe.scala-logging" %% "scala-logging"  % "3.9.0"
+  val scalaLogging   = "com.typesafe.scala-logging" %% "scala-logging"  % "3.9.2"
   val logbackClassic = "ch.qos.logback"             % "logback-classic" % "1.2.3"
 
-  val scavenger = "org.aossie" %% "scavenger" % "0.2.1-SNAPSHOT"
+  val scavenger = "org.aossie" %% "scavenger" % "0.2.2-SNAPSHOT"
   
   val sourcecode = "com.lihaoyi" %% "sourcecode" % "0.1.9"
 
-  val kindProjector    = compilerPlugin("org.typelevel" %% "kind-projector"     % "0.11.0" cross CrossVersion.full)
+  val kindProjector    = compilerPlugin("org.typelevel" %% "kind-projector"     % "0.11.3" cross CrossVersion.full)
   val betterMonadicFor = compilerPlugin("com.olegpy"    %% "better-monadic-for" % "0.3.1")
 
   val digestDependencies =
@@ -72,7 +72,6 @@ object Dependencies {
       Seq(
         "io.circe" %% "circe-core"           % circeVersion,
         "io.circe" %% "circe-generic"        % circeVersion,
-        "io.circe" %% "circe-generic-extras" % circeVersion,
         "io.circe" %% "circe-literal"        % circeVersion,
         "io.circe" %% "circe-parser"         % circeVersion
       )

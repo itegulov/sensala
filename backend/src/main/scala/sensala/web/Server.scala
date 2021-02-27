@@ -2,7 +2,6 @@ package sensala.web
 
 import cats.Monad
 import cats.effect._
-import cats.implicits._
 import distage.Injector
 import izumi.distage.model.definition.ModuleDef
 import izumi.distage.model.plan.GCMode

@@ -8,13 +8,14 @@ import cats.syntax.apply._
 import edu.mit.jverbnet.index.{IVerbIndex, VerbIndex}
 import sensala.shared.effect.Log
 
-import scala.collection.convert.ImplicitConversionsToScala._
+import scala.jdk.CollectionConverters._
 
 final case class VerbInfo(preVerbRole: String, postVerbRole: String)
 
 class VerbNetExtractor[F[_]: Sync: Log] private (index: IVerbIndex) {
   private val idMap = index
     .iterator()
+    .asScala
     .toList
     .collect {
       case verb if verb.isRoot =>
@@ -31,12 +32,12 @@ class VerbNetExtractor[F[_]: Sync: Log] private (index: IVerbIndex) {
     idMap.get(verb) match {
       case Some(verbClass) =>
         for {
-          frames <- Sync[F].delay(verbClass.getFrames)
+          frames <- Sync[F].delay(verbClass.getFrames.asScala.toList)
           // TODO: Decide which frame to use based on context
           frame         = frames.head
           syntax        <- Sync[F].delay(frame.getSyntax)
-          preVerbDescs  <- Sync[F].delay(syntax.getPreVerbDescriptors.toList)
-          postVerbDescs <- Sync[F].delay(syntax.getPostVerbDescriptors.toList)
+          preVerbDescs  <- Sync[F].delay(syntax.getPreVerbDescriptors.asScala.toList)
+          postVerbDescs <- Sync[F].delay(syntax.getPostVerbDescriptors.asScala.toList)
           // TODO: Do not ignore other pre and post verb descriptors
           // TODO: What if there are no pre or post verb descriptors?
           preVerbDesc  = preVerbDescs.head.getValue.toLowerCase

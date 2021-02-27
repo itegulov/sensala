@@ -16,7 +16,7 @@ import sensala.models.nl._
 import sensala.parser.english.ParserError.HandleParserError
 import sensala.parser.ParserUtil._
 
-import scala.collection.convert.ImplicitConversionsToScala._
+import scala.jdk.CollectionConverters._
 
 class DiscourseParser[F[_]: Monad: HandleParserError: NounPhraseParser: VerbPhraseParser] {
   private val logger = Logger[this.type]
@@ -36,7 +36,7 @@ class DiscourseParser[F[_]: Monad: HandleParserError: NounPhraseParser: VerbPhra
   def parsePassiveVoiceSentence(
     verbRoot: IndexedWord
   )(implicit graph: SemanticGraph): F[Sentence] = {
-    val children    = graph.childPairs(verbRoot).map(pairToTuple).toList
+    val children    = graph.childPairs(verbRoot).asScala.map(pairToTuple).toList
     val childrenMap = children.toMap
     val agents = children.collect {
       case (rel, word) if NomMod.isAncestor(rel) && rel.getSpecific == "agent" =>
@@ -70,7 +70,7 @@ class DiscourseParser[F[_]: Monad: HandleParserError: NounPhraseParser: VerbPhra
   )(implicit graph: SemanticGraph): F[Sentence] =
     root.tag match {
       case "VB" | "VBZ" | "VBP" | "VBD" | "VBN" | "VBG" =>
-        val children    = graph.childPairs(root).map(pairToTuple).toList
+        val children    = graph.childPairs(root).asScala.map(pairToTuple).toList
         val childrenMap = children.toMap
         val subjOpt     = childrenMap.get(NSubj)
         for {
@@ -87,7 +87,7 @@ class DiscourseParser[F[_]: Monad: HandleParserError: NounPhraseParser: VerbPhra
                    }
         } yield result
       case "JJ" | "RB" =>
-        val childrenMap = graph.childPairs(root).map(pairToTuple).toMap
+        val childrenMap = graph.childPairs(root).asScala.map(pairToTuple).toMap
         val subjOpt     = childrenMap.get(NSubj)
         val copOpt      = childrenMap.get(Cop)
         (copOpt, subjOpt) match {
@@ -111,7 +111,7 @@ class DiscourseParser[F[_]: Monad: HandleParserError: NounPhraseParser: VerbPhra
             HandleParserError[F].raise(InvalidDiscourse("Illegal sentence: no subject"))
         }
       case "NN" | "NNP" | "PRP" =>
-        val children    = graph.childPairs(root).map(pairToTuple).toList
+        val children    = graph.childPairs(root).asScala.map(pairToTuple).toList
         val childrenMap = children.toMap
         val subjOpt     = childrenMap.get(NSubj)
         val copOpt      = childrenMap.get(Cop)
@@ -151,7 +151,7 @@ class DiscourseParser[F[_]: Monad: HandleParserError: NounPhraseParser: VerbPhra
             HandleParserError[F].raise(InvalidDiscourse("Illegal sentence: no subject"))
         }
       case "RBR" =>
-        val children    = graph.childPairs(root).map(pairToTuple).toList
+        val children    = graph.childPairs(root).asScala.map(pairToTuple).toList
         val childrenMap = children.toMap
         val subjOpt     = childrenMap.get(NSubj)
         val copOpt      = childrenMap.get(Cop)
@@ -200,7 +200,7 @@ class DiscourseParser[F[_]: Monad: HandleParserError: NounPhraseParser: VerbPhra
   private def annotateSentences(discourse: String): List[CoreMap] = {
     val document = new Annotation(discourse)
     SensalaStanfordParser.annotate(document)
-    document.get(classOf[SentencesAnnotation]).toList
+    document.get(classOf[SentencesAnnotation]).asScala.to(List)
   }
 
   def buildPennTaggedTree(discourse: String): F[List[Tree]] = {

@@ -12,7 +12,7 @@ object SensalaBuild {
   lazy val commonSettings = Seq(
     organization := "",
     version := "0.1",
-    scalaVersion := "2.12.11",
+    scalaVersion := "2.13.5",
     scalacOptions := Seq(
       "-encoding",
       "UTF-8",
@@ -23,19 +23,15 @@ object SensalaBuild {
       "-language:implicitConversions",
       "-language:higherKinds",
       "-language:experimental.macros",
-      "-Xlint",
-      "-Yno-adapted-args",
+      "-Xlint:_,-byname-implicit", // ignore without byname implicit https://github.com/scala/bug/issues/12072
       "-Ywarn-dead-code",
-      "-Ypartial-unification",
-      "-Xfuture",
-      "-Xexperimental",
       "-Xfatal-warnings"
     ),
     resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots",
-    scalacOptions in (Compile, console) -= "-Ywarn-unused-import",
-    scalacOptions in (Compile, doc) ++= Seq("-diagrams", "-implicits"),
-    scalacOptions in Test ++= Seq("-Yrangepos"),
-    sbt.Keys.test in assembly := {},
+    Compile / console / scalacOptions -= "-Ywarn-unused-import",
+    Compile / doc / scalacOptions ++= Seq("-diagrams", "-implicits"),
+    Test / scalacOptions ++= Seq("-Yrangepos"),
+    assembly / sbt.Keys.test := {},
     scalafmtOnCompile := true
   )
 
@@ -92,11 +88,11 @@ object SensalaBuild {
     .settings(commonSettings)
     .settings(
       name := "sensala-cli",
-      mainClass in assembly := Some("sensala.CLI"),
+      assembly / mainClass := Some("sensala.CLI"),
       fullRunInputTask(sensala, Runtime, "sensala.CLI"),
-      trapExit in sensala := true,
-      fork in sensala := false,
-      traceLevel in sensala := 0,
+      sensala / trapExit := true,
+      sensala / fork := false,
+      sensala / traceLevel := 0,
       libraryDependencies ++= commonDependencies ++ Seq(
         scopt
       )
@@ -108,14 +104,14 @@ object SensalaBuild {
     .settings(name := "sensala-backend")
     .settings(
       pipelineStages := Seq(digest, gzip),
-      mainClass in assembly := Some("sensala.web.Server"),
-      assemblyMergeStrategy in assembly := {
+      assembly / mainClass := Some("sensala.web.Server"),
+      assembly / assemblyMergeStrategy := {
         case "logback.xml" =>
           MergeStrategy.first
-        case PathList("org", "scalatools", "testing", xs @ _*) =>
+        case PathList("org", "scalatools", "testing", _*) =>
           MergeStrategy.first
         case x =>
-          val oldStrategy = (assemblyMergeStrategy in assembly).value
+          val oldStrategy = (assembly / assemblyMergeStrategy).value
           oldStrategy(x)
       },
       libraryDependencies ++= commonDependencies ++ http4sDependencies ++ Seq(
@@ -125,6 +121,7 @@ object SensalaBuild {
     .dependsOn(core, parser, models)
 
   lazy val models = Project(id = "models", base = file("models"))
+      .settings(commonSettings)
       .settings(name := "sensala-models")
       .settings(
         libraryDependencies ++= circeDependencies.value

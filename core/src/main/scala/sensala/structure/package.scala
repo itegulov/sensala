@@ -80,6 +80,6 @@ package object structure {
 
     def ->:(right: E): E = Imp(right, lambda)
 
-    def unary_~(): E = Neg(lambda)
+    def unary_~ : E = Neg(lambda)
   }
 }

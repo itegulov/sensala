@@ -11,6 +11,9 @@ sealed trait ParserError extends Exception {
 }
 
 final case class InvalidDiscourse(message: String) extends ParserError
+final case class UnexpectedWord(word: String) extends ParserError {
+  override val message: String = s"""Unexpected word "$word""""
+}
 
 object ParserError {
   type HandleParserError[F[_]] = ApplicativeHandle[F, ParserError]
@@ -25,6 +28,7 @@ object ParserError {
         override def handleWith[A](fa: IO[A])(f: ParserError => IO[A]): IO[A] =
           fa.handleErrorWith {
             case e: ParserError => f(e)
+            case t: Throwable   => throw t
           }
 
         override def raise[A](e: ParserError): IO[A] = IO.raiseError(e)
